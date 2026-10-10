@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Ged\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
@@ -17,7 +17,7 @@ use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
  * restore it separately would put a branch back under a parent that is still
  * deleted. The count matches the list for the same reason.
  */
-final readonly class FoldersTrashSource implements TrashSourceInterface
+final readonly class FoldersTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(private DocumentFolderRepository $folderRepository) {}
 
@@ -29,6 +29,11 @@ final readonly class FoldersTrashSource implements TrashSourceInterface
     public function getRequiredPrivilege(): string
     {
         return 'ged.folders.manage';
+    }
+
+    public function countTrashed(): int
+    {
+        return count($this->folderRepository->findTrashedRoots());
     }
 
     public function getSummary(int $limit): TrashSummary

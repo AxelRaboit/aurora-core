@@ -1,3 +1,4 @@
+import { withQuery } from "@/shared/utils/http/withQuery.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 
 /**
@@ -38,7 +39,9 @@ export function useNoteShareApi(props) {
          */
         preview: (noteId, { linked = false } = {}) =>
             request(
-                `${withId(props.sharesPreviewPath, noteId)}?linked=${linked ? 1 : 0}`,
+                withQuery(withId(props.sharesPreviewPath, noteId), {
+                    linked: linked ? 1 : 0,
+                }),
                 null,
                 { method: "GET", noGuard: true },
             ),

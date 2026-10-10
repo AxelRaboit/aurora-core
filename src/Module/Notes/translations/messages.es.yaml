@@ -374,8 +374,6 @@ notes:
                 unpublished: "Espacio de notas despublicado"
                 badge: 'Publicado en la web'
             my_space: "Mi espacio de notas"
-            managed_badge: 'Espacio de cliente'
-            managed_hint: 'Las notas del espacio de cliente del mismo nombre. Su nombre y su equipo siguen al espacio de cliente: se ajustan en Studio.'
             errors:
                 private_owner_only: "Solo el propietario puede reservarse el espacio de notas."
                 bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'
@@ -480,7 +478,6 @@ notes:
             some_refused: "{count} elemento no se ha podido procesar. | {count} elementos no se han podido procesar."
             confirm_delete_selection: '¿Mover a la papelera los {count} elementos seleccionados?'
             new_folder: 'Nueva carpeta'
-            search_placeholder: 'Buscar una nota…'
             preview:
                 empty: 'Esta nota está vacía.'
             tag:
@@ -576,7 +573,6 @@ notes:
         title_placeholder: 'Título de la nota…'
         search_placeholder: 'Buscar una nota…'
         search_no_results: 'Ningún resultado'
-        search_no_results_description: 'Ninguna nota coincide con «{query}».'
         resize_handle: 'Arrastre para redimensionar'
         content_placeholder: |-
             # Escriba markdown aquí
@@ -710,7 +706,6 @@ notes:
             more: 'Los {shown} primeros de {total}: precise la búsqueda para ver los demás.'
             clear: 'Borrar'
             in_content: 'Buscar «{query}» en el contenido'
-            in_notebook: 'Buscar «{query}» en todo el cuaderno'
             replace:
                 toggle: "Reemplazar"
                 find: "Buscar"

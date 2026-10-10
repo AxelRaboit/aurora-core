@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
@@ -33,7 +33,7 @@ use function count;
  * another only the module, and the same rows reach both through that rule.
  * Acting on a row is checked again, row by row, by the routes.
  */
-final readonly class DeliverablesTrashSource implements TrashSourceInterface
+final readonly class DeliverablesTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(
         private DeliverableRepository $deliverableRepository,
@@ -52,9 +52,14 @@ final readonly class DeliverablesTrashSource implements TrashSourceInterface
         return null;
     }
 
+    public function countTrashed(): int
+    {
+        return count($this->visibleRows());
+    }
+
     public function getSummary(int $limit): TrashSummary
     {
-        $rows = array_values(array_filter($this->deliverableRepository->findAllTrashed(), $this->isVisible(...)));
+        $rows = $this->visibleRows();
 
         $oldest = null;
         foreach ($rows as $row) {
@@ -99,5 +104,16 @@ final readonly class DeliverablesTrashSource implements TrashSourceInterface
                 ? $space->getName()
                 : $this->translator->trans('suite.studio.deliverables.scope.'.$deliverable->getScope()->value),
         );
+    }
+
+    /**
+     * The trashed deliverables the reader may see, read once for the summary
+     * and for the count alike.
+     *
+     * @return list<DeliverableInterface>
+     */
+    private function visibleRows(): array
+    {
+        return array_values(array_filter($this->deliverableRepository->findAllTrashed(), $this->isVisible(...)));
     }
 }

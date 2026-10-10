@@ -16,6 +16,7 @@
  * The search goes through our server, like the media library's: the API key
  * stays on the server side.
  */
+import { withQuery } from "@/shared/utils/http/withQuery.js";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check, Image, Search, Trash2 } from "lucide-vue-next";
@@ -90,7 +91,7 @@ async function search() {
     searching.value = true;
 
     const payload = await request(
-        `${props.searchPath}?q=${encodeURIComponent(query.value.trim())}`,
+        withQuery(props.searchPath, { q: query.value.trim() }),
         null,
         { method: HttpMethod.Get, noGuard: true },
     );

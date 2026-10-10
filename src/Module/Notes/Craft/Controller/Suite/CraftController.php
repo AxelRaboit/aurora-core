@@ -104,7 +104,7 @@ final class CraftController extends AbstractController
             $folder instanceof NoteFolderInterface => $folder->getSpace(),
             null !== $folderId => null,
             null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId),
-            default => $this->spaceAccess->personalSpace($user),
+            default => $this->spaceAccess->writableDefaultSpace($user),
         };
 
         if (!$space instanceof NoteSpaceInterface) {

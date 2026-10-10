@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Reminder\Service;
 
 use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Service\NoteAddresses;
 use Aurora\Module\Notes\Reminder\Entity\NoteReminder;
 use Aurora\Module\Notes\Reminder\Entity\NoteReminderInterface;
 use Aurora\Module\Notes\Reminder\Repository\NoteReminderRepository;
@@ -14,7 +15,6 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -30,7 +30,7 @@ final readonly class NoteReminders
         private EntityManagerInterface $entityManager,
         private NotificationManagerInterface $notifications,
         private NoteSpaceAccess $spaceAccess,
-        private UrlGeneratorInterface $urlGenerator,
+        private NoteAddresses $noteAddresses,
         private TranslatorInterface $translator,
     ) {}
 
@@ -97,7 +97,7 @@ final readonly class NoteReminders
                 'notes.reminder',
                 '' === $title ? $this->translator->trans('notes.markdown.untitled') : $title,
                 $this->translator->trans('notes.markdown.reminder.body'),
-                $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $note->getId()]),
+                $this->noteAddresses->noteUrl($note),
                 ['noteId' => $note->getId()],
                 flush: false,
             );

@@ -1,7 +1,16 @@
+{# Light unless the reader chose dark: the suite opens in its light theme
+   whatever the computer's own setting, and the button in the top bar is
+   how anyone moves to dark (Axel, 10/10/2026). It followed the system
+   before, so a Mac set to dark opened every first visit in dark. #}
 <script nonce="{{ csp_nonce() }}">
     (function () {
-        const storedTheme = localStorage.getItem('aurora-theme');
-        if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        let storedTheme = null;
+        try {
+            storedTheme = localStorage.getItem('aurora-theme');
+        } catch (error) {
+            // Storage refused (private window): the light theme stands.
+        }
+        if ('dark' === storedTheme) {
             document.documentElement.classList.add('dark');
             {% if colorScheme is defined and colorScheme %}
             document.documentElement.style.colorScheme = 'dark';

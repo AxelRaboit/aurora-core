@@ -14,6 +14,7 @@ import { useI18n } from "vue-i18n";
 import { FileText, FolderTree, Tag, Tags } from "lucide-vue-next";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
+import AppSectionCard from "@/shared/components/display/AppSectionCard.vue";
 import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
 
 const props = defineProps({
@@ -54,10 +55,8 @@ const byType = computed(() =>
             />
         </div>
 
-        <div v-if="hasAnyShare(byType)" class="aurora-card p-3 sm:p-5 space-y-4">
-            <h3 class="text-sm font-semibold text-primary">{{ t("suite.stats.ged.by_type") }}</h3>
-
+        <AppSectionCard v-if="hasAnyShare(byType)" :title="t('suite.stats.ged.by_type')">
             <AppShareBar :segments="byType" />
-        </div>
+        </AppSectionCard>
     </div>
 </template>

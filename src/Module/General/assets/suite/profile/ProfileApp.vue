@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { useI18n } from "vue-i18n";
 import { Upload, Trash2, Save, SlidersHorizontal } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -54,7 +55,9 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 </script>
 
 <template>
-    <div class="max-w-5xl mx-auto aurora-stack">
+    <div class="aurora-stack">
+        <AppPageHeading :title="t('suite.nav.profile')" :subtitle="t('suite.nav.profile_description')" />
+
         <!-- The screen's how-to guide, next to what it explains; folded
              or unfolded, the choice applies to every panel. -->
         <AppGuide :title="t('suite.profile.guide.title')" storage-key="profile">

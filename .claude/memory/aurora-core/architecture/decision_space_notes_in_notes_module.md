@@ -1,65 +1,71 @@
 ---
-name: Notes d'un espace client = un espace de notes du module Notes
-description: Plus de mur de notes dans Studio - un espace de notes réglé d'ailleurs (managedBy) par espace client, l'équipe synchronisée, l'import Craft dans Notes ; pièges de droits et de migration
+name: Notes d'un espace client = espace de notes hébergé par Studio
+description: Un moteur de notes (module Notes), des espaces hébergés par d'autres modules ; les notes d'un espace client s'écrivent dans l'espace client, par son équipe, sans le droit Notes ; la portée de requête les sépare du module Notes
 type: project
 ---
 
 ## Règle
 
-Les notes d'un espace client **ne vivent plus dans Studio**. Il n'y a plus
-d'entité `SpaceNote` : chaque `CustomerSpace` pointe (`noteSpace`, `SET NULL`,
-unique) vers **un `NoteSpace` du module Notes**, marqué
-`managedBy = 'studio.customer_space'`, sans propriétaire, accès `members`.
+**Un seul moteur de notes, des notes qui vivent chez leur hôte** (décision du
+10/10/2026, qui remplace « l'onglet est une porte vers le module Notes » du
+06/10/2026).
 
-- `SpaceNoteSpaceProvider::resolve()` l'ouvre **à la demande** (première note,
-  premier import, `POST workspace_space_notes_open`), jamais à la création de
-  l'espace client.
-- `SpaceNoteSpaceSync::sync()` tient son **nom et ses membres** : référent ->
-  `Manager`, membre -> `Editor`, personne d'autre. Appelé par
-  `CustomerSpaceManager::update()`. `trash()` appelle `SpaceNoteSpaceSync::trash()` :
-  l'espace de notes passe à la corbeille **en restant réglé** (`managedBy`
-  gardé, la restauration depuis Notes répond 409), et `restore()` le fait
-  revenir avec l'espace client s'il y est encore. `forceDelete()` appelle
-  `release()` : `managedBy` remis à null, l'espace reste à la corbeille et les
-  administrateurs le restaurent (règle « adopts » des espaces sans
-  propriétaire).
-- Côté Notes, un espace `isManaged()` refuse (409
-  `notes.markdown.spaces.errors.managed`) renommer, accès, membres, publier,
-  retirer ; le panneau cache ses réglages et porte un badge. On y écrit, on y
-  range, on partage une note par lien normalement.
-- L'onglet Notes de l'espace client (`SpaceNoteSpaceView.vue`) liste les notes
-  et mène à `suite_notes_markdown_show`. **Caché** si le module Notes est
-  éteint ou sans `notes.markdown.use` ; `workspace_space_notes_*` est fermé par
-  `NotesRouteGateSubscriber`.
-- L'import Craft vit dans `src/Module/Notes/Craft/` (routes
-  `suite_notes_craft_*`, réglages `suite_notes_craft_*`). Le Markdown de Craft
-  entre presque tel quel : `CraftMarkdown` ne défait que ses balises.
+- Chaque `CustomerSpace` pointe (`noteSpace`, `SET NULL`, unique) vers un
+  `NoteSpace` marqué `managedBy = 'studio.customer_space'`, sans propriétaire,
+  accès `members`, ouvert **à la demande** (`SpaceNoteSpaceProvider::resolve()`,
+  `POST workspace_space_notes_open`), équipe synchronisée par
+  `SpaceNoteSpaceSync` (référent -> `Manager`, membre -> `Editor`).
+- **Contrat d'hôte** : `Notes\Space\Hosting\NoteSpaceHostInterface` (tag
+  `aurora.notes.space_host`), implémenté par `Studio\SpaceNote\Service\CustomerSpaceNoteHost` :
+  qui entre (`studio.spaces.view` + `SpaceVisibility::canSee`), le libellé
+  (nom de l'espace client), les adresses de page
+  (`/workspace/{id}?view=notes&note=__id__`). Notes ne connaît pas Studio.
+- **Portée de requête** : `Notes\Space\Hosting\NoteSpaceScope`, posée par
+  `NoteSpaceScopeSubscriber` sur toute route `suite_notes_*` :
+  - paramètre `notesHost=<clé>:<référence>` -> **Hosted** : un seul espace,
+    listes et accès par id (sinon 404) ;
+  - images sans le droit Notes -> **Hosts** : espaces hébergés seulement ;
+  - sinon -> **Module** : les listes excluent les espaces hébergés, l'accès par
+    id reste ouvert (corbeille générale, notifications) et `show`/`read`
+    redirigent vers la page de l'hôte ;
+  - hors routes du moteur (commandes, corbeille, palette) -> **All**.
+  La clause vit dans `readableSubquery`/`writableSubquery`/`grantedSubquery`,
+  liée par `bindViewer(..., $scope)` ; `NoteSpaceAccess::roleWith` lit
+  `admits()`.
+- `HostedNoteSpaceVoter` accorde `notes.markdown.use` **à la requête** quand la
+  portée est Hosted/Hosts ; il s'abstient sinon. Le droit n'est jamais donné à
+  la personne.
+- La section Notes de l'espace client (`SpaceNoteSpaceView.vue`) monte
+  `MarkdownNotesApp` avec les props de `MarkdownNotesViewBuilder::indexView()`
+  calculées dans `NoteSpaceScope::within(Hosted, …)` : chemins d'API avec
+  `notesHost`, `pagePaths` de l'hôte, `fill`, pas de journal ni de page de
+  lecture du module.
+- Liens vers une note : toujours `NoteAddresses::noteUrl()` (notifications,
+  palette), jamais `suite_notes_markdown_show` en dur.
 
 ## Pourquoi
 
-Le mur de Studio était un second outil de prise de notes, en blocs Editor.js,
-à côté du module Notes : ni dossiers, ni liens entre notes, ni historique, ni
-recherche. La règle du docblock de `StudioModule` dit qu'un outil appartient à
-son module ; décision produit du 06/10/2026 (« un espace de notes par espace
-client, ouvert à son équipe »).
+Les notes d'un client se mêlaient au carnet personnel dans le module Notes, et
+l'onglet de l'espace client renvoyait dans le module : deux modules qui se
+partageaient un écran. Axel a choisi « un moteur commun, des modules qui
+hébergent leurs notes » (10/10/2026). L'équipe d'un espace client y écrit parce
+qu'elle travaille pour le client : l'accès suit l'espace client, plus le droit
+Notes (qui reste celui du module).
 
 ## Comment l'appliquer
 
-- **Ne jamais donner de privilège en passant.** Un équipier sans
-  `notes.markdown.use` est inscrit à l'espace de notes mais ne voit pas
-  l'onglet : c'est voulu, le droit se règle avec les autres.
-- Les administrateurs voient **tous** les espaces de notes gérés (ils sont sans
-  propriétaire, donc « adoptés ») - cohérent avec Studio où ils voient tous les
-  espaces clients.
+- **Nouveau module qui veut ses notes** : implémenter `NoteSpaceHostInterface`
+  (clé = `managedBy`), créer l'espace avec `NoteSpaceManagerInterface::createManaged()`,
+  construire l'éditeur dans `NoteSpaceScope::within(Hosted, …)`. Rien à toucher
+  dans Notes.
+- **Côté client JS** : une adresse d'API peut déjà porter une query ; ajouter
+  des paramètres avec `withQuery()` (`@/shared/utils/http/withQuery.js`),
+  jamais `` `${path}?q=` ``. Lire l'id d'une adresse avec `idFromAddress()`
+  (`@notes/.../noteAddress.js`), jamais une regex sur `/markdown/`.
+- Un espace hébergé refuse toujours d'être réglé depuis Notes (409
+  `notes.markdown.spaces.errors.managed`).
 - Toucher à l'équipe d'un espace client ailleurs que par
   `CustomerSpaceManager` : appeler `SpaceNoteSpaceSync::sync()` après.
-- Une note pour soi sur un client va dans **son espace personnel** ; la
-  migration y a rangé les anciennes notes personnelles dans un dossier au nom
-  de l'espace client.
-- La migration `Version20261006190000` (postUp, chiffrement par
-  `AURORA_ENCRYPTION_KEY`, blocs -> Markdown par `EditorBlocksToMarkdown`) est
-  irréversible et ne se joue **pas** en `--dry-run` (postUp s'exécute quand
-  même). Couleur du post-it et libellé d'auteur sont perdus ; une épinglée
-  devient favori de son auteur ; une personnelle sans auteur est abandonnée.
-- Note client : [docs/aurora-client/MIGRATION_STUDIO.md](../../../../docs/aurora-client/MIGRATION_STUDIO.md),
-  sections 7 et 8.
+- La migration `Version20261006190000` (postUp, irréversible, pas de
+  `--dry-run`) reste décrite dans
+  [docs/aurora-client/MIGRATION_STUDIO.md](../../../../docs/aurora-client/MIGRATION_STUDIO.md), sections 7 et 8.

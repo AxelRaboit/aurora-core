@@ -27,9 +27,10 @@
  * menu hid the drawer with it.
  *
  * **No hover tooltip anywhere in the column.** It repeated the label the row
- * already shows, and its only other job - carrying the description - was taken
- * over by the "show descriptions" switch, which puts the text in the row itself
- * where it can be read without hunting for it. Two ways to see the same thing
+ * already shows, and its only other job - carrying the description - is done by the row itself, which always shows
+ * the text under the label where it can be read without hunting for it (the
+ * "show descriptions" switch that once made it optional went with the visual
+ * redesign of the suite, 10/10/2026). Two ways to see the same thing
  * meant the tooltip had to be silenced whenever the switch was on, which is the
  * shape of a feature that has been replaced. The rows lost theirs first; the
  * account block and the "view site" link kept theirs a while longer, repeating
@@ -39,6 +40,8 @@
  * `useSidemenuNav`, `theme` from `useSidemenuSectionTheme`. Ten props would
  * have to be edited in three files every time one is added.
  */
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { ChevronDown } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
@@ -65,6 +68,23 @@ function isFoldable(section) {
     return false !== section.foldable;
 }
 
+/*
+ * Every section keeps its header, a single entry included. Without it, an
+ * entry standing alone read as the last row of the section above - Notes
+ * Markdown looked like part of the GED (Axel, 10/10/2026) - and the dot
+ * before its name was not enough to mark the break. The header is what
+ * separates sections, and it is also what folds.
+ */
+
+const { locale } = useI18n();
+
+/**
+ * An entry's figure, in the reader's language: « 1 204 » in French, « 1,204 »
+ * in English. The locale is vue-i18n's, never the browser's - a suite in
+ * French reads French numbers whatever the browser is set to.
+ */
+const countFormat = computed(() => new Intl.NumberFormat(locale.value));
+
 defineProps({
     /** The sections to draw, already filtered by the caller. */
     sections: { type: Array, required: true },
@@ -78,16 +98,16 @@ defineProps({
      * is folded - a search that obeyed the folds would hide its own results.
      */
     navFilter: { type: String, default: "" },
-    /**
-     * Show each item's description under its label instead of only on hover.
-     *
-     * Same rule as `AppActionButton`: the label goes bold only when a
-     * description sits under it, because bold is what separates the two. An
-     * item with no description keeps a normal label - bolding it would promise
-     * a second line that never comes.
-     */
-    showDescriptions: { type: Boolean, default: false },
 });
+
+/*
+ * **No icon on a row** (visual redesign of the suite, 10/10/2026). The menu
+ * folds away entirely rather than to a rail, so an icon never stood in for a
+ * hidden label; beside a name and its description it was a third thing to read
+ * on every line, twenty times down the column. The section's dot and the name
+ * carry the row. Icons stay where they still do work: the search palette,
+ * where results of every kind are mixed, and the folder trees of a module view.
+ */
 </script>
 
 <template>
@@ -97,6 +117,7 @@ defineProps({
             type="button"
             class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider transition-colors"
             :class="[theme.headerClasses(themeId(section)), theme.labelClasses(themeId(section))]"
+            :aria-expanded="nav.isSectionExpanded(section) ? 'true' : 'false'"
             v-on:click="nav.toggleSection(section)"
         >
             <span class="flex min-w-0 items-center gap-2">
@@ -123,12 +144,15 @@ defineProps({
                         <a
                             :href="item.path"
                             :data-sidemenu-active="nav.itemIsActive(item) ? 'true' : null"
-                            class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
+                            :aria-current="nav.itemIsCurrent(item) ? 'page' : undefined"
+                            class="flex items-center flex-1 min-w-0 gap-3 py-[0.4375rem] pl-3"
                         >
-                            <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, themeId(section))" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
-                                <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                                <span class="flex items-baseline gap-2">
+                                    <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                                    <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
+                                </span>
+                                <span v-if="item.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="item.description">{{ item.description }}</span>
                             </span>
                         </a>
                         <!-- `title` stays: it is the accessible name of a button
@@ -136,6 +160,7 @@ defineProps({
                              reader announces "button" and nothing else. -->
                         <AppIconButton
                             :title="item.label"
+                            :aria-expanded="nav.isGroupExpanded(item.route) ? 'true' : 'false'"
                             class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
                             v-on:click.stop="nav.toggleGroup(item.route)"
                         >
@@ -152,10 +177,12 @@ defineProps({
                             :sidemenu-active="nav.itemIsCurrent(child)"
                             :link-classes-override="nav.itemClasses(child, themeId(section))"
                         >
-                            <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, themeId(section))" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
-                                <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ child.description }}</span>
+                                <span class="flex items-baseline gap-2">
+                                    <span class="min-w-0 flex-1 truncate" :class="child.description ? 'font-semibold' : ''">{{ child.label }}</span>
+                                    <span v-if="null !== (child.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(child.count) }}</span>
+                                </span>
+                                <span v-if="child.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="child.description">{{ child.description }}</span>
                             </span>
                         </AppNavLink>
                     </div>
@@ -170,13 +197,16 @@ defineProps({
                     :sidemenu-active="nav.itemIsActive(item)"
                     :link-classes-override="nav.itemClasses(item, themeId(section))"
                 >
-                    <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, themeId(section))" :stroke-width="2" />
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
-                        <!-- Not truncated: a description cut at one line is
-                             worse than no description, and the row is allowed
-                             to grow when the reader asked for the text. -->
-                        <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                        <span class="flex items-baseline gap-2">
+                            <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                            <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
+                        </span>
+                        <!-- Two lines at most, the whole sentence on hover:
+                             one line cut a description in the middle, and an
+                             unbounded one let a long sentence stretch a row
+                             now that every row carries one. -->
+                        <span v-if="item.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="item.description">{{ item.description }}</span>
                     </span>
                 </AppNavLink>
             </template>

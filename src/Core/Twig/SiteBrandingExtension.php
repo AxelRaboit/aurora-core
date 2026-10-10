@@ -28,6 +28,8 @@ final class SiteBrandingExtension extends AbstractExtension implements GlobalsIn
                 ApplicationParameterEnum::SiteDescription->getDefaultValue(),
             ) ?? '',
             'siteLogoUrl' => $this->resolveMediaUrl(ApplicationParameterEnum::LogoMediaId),
+            // Empty unless set: the suite then keeps the site's logo in dark mode.
+            'siteLogoDarkUrl' => $this->resolveMediaUrl(ApplicationParameterEnum::LogoDarkMediaId),
             'siteFaviconUrl' => $this->resolveMediaUrl(ApplicationParameterEnum::FaviconMediaId),
             'siteNameOnPhone' => $this->settingRepository->getBoolean(ApplicationParameterEnum::SuiteBarSiteNameOnPhone->value, true),
         ];

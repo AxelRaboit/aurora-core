@@ -194,39 +194,41 @@ function spaceName(item) {
 
 <template>
     <div ref="container" class="relative aurora-stack">
-        <StudioSectionTabs
-            current="calendar"
-            :tabs="[
-                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
-                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
-            ]"
-            :label="t('suite.studio.spaces.tabs_label')"
-        />
         <AppLoader :active="loading" />
+        <AppListToolbar :title="t('suite.nav.studio_spaces')" :subtitle="t('suite.nav.studio_spaces_description')">
+            <template #above>
+                <StudioSectionTabs
+                    current="calendar"
+                    :tabs="[
+                        { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                        { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+                    ]"
+                    :label="t('suite.studio.spaces.tabs_label')"
+                />
 
-        <!-- The scope tabs, like those of the space list: the scope changes
-             the spaces counted, so the page reloads. -->
-        <div
-            v-if="hasScopeChoice"
-            class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
-            role="group"
-            :aria-label="t('suite.studio.calendar.scope_label')"
-        >
-            <a
-                v-for="option in ['mine', 'all']"
-                :key="option"
-                :href="scopeHref(option)"
-                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
-                :class="option === scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
-                :aria-current="option === scope ? 'true' : undefined"
-            >
-                {{ t(`suite.studio.calendar.scopes.${option}`) }}
-            </a>
-        </div>
+                <!-- The scope tabs, like those of the space list: the scope changes
+                     the spaces counted, so the page reloads. -->
+                <div
+                    v-if="hasScopeChoice"
+                    class="flex w-fit items-center gap-0.5 aurora-segmented"
+                    role="group"
+                    :aria-label="t('suite.studio.calendar.scope_label')"
+                >
+                    <a
+                        v-for="option in ['mine', 'all']"
+                        :key="option"
+                        :href="scopeHref(option)"
+                        class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                        :class="option === scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                        :aria-current="option === scope ? 'true' : undefined"
+                    >
+                        {{ t(`suite.studio.calendar.scopes.${option}`) }}
+                    </a>
+                </div>
 
-        <!-- The list bar: the search, and the filters next to it rather than
-             as labelled fields on a separate line. -->
-        <AppListToolbar>
+                <!-- The list bar: the search, and the filters next to it rather than
+                     as labelled fields on a separate line. -->
+            </template>
             <AppSearchInput v-model="search" :placeholder="t('suite.studio.calendar.search_placeholder')" />
             <template #inline>
                 <AppSelect v-model="customer" :options="customerOptions" :placeholder="t('suite.studio.calendar.all_customers')" />
@@ -260,13 +262,13 @@ function spaceName(item) {
             </h2>
 
             <div class="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
-                <div class="flex flex-1 overflow-hidden rounded-lg border border-line sm:flex-none" role="group" :aria-label="t('suite.studio.calendar.view_label')">
+                <div class="flex flex-1 items-center gap-0.5 aurora-segmented sm:flex-none" role="group" :aria-label="t('suite.studio.calendar.view_label')">
                     <button
                         v-for="option in VIEWS"
                         :key="option"
                         type="button"
-                        class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 min-h-7.5 sm:min-h-0 sm:flex-none"
-                        :class="view === option ? 'bg-accent-600 text-white font-medium' : 'text-secondary hover:bg-surface-2'"
+                        class="flex-1 cursor-pointer rounded-md px-2.5 py-1 text-sm transition-colors min-h-7.5 sm:min-h-0 sm:flex-none"
+                        :class="view === option ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
                         :aria-pressed="view === option"
                         v-on:click="view = option"
                     >

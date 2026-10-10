@@ -50,6 +50,16 @@ final class ThemeFontEnumTest extends TestCase
     {
         $css = (string) file_get_contents(self::APP_CSS);
 
+        if ($font->isVariable()) {
+            self::assertStringContainsString(
+                sprintf('@import "@fontsource-variable/%s/wght.css";', $font->value),
+                $css,
+                sprintf('%s est proposée dans le back-office mais son fichier variable n\'est pas embarqué : la page sortirait dans la pile de secours.', $font->label()),
+            );
+
+            return;
+        }
+
         $weights = $font->hasItalic()
             ? ['400', '400-italic', '500', '500-italic', '600', '700']
             : ['400', '500', '600', '700'];
@@ -132,7 +142,7 @@ final class ThemeFontEnumTest extends TestCase
     public function testAnUnknownValueFallsBackToTheDefault(): void
     {
         // The `config` column is free JSON: a key written by hand or
-        // surviving the removal of a case is better set in Poppins than
+        // surviving the removal of a case is better set in the default than
         // turned into an error page.
         self::assertSame(ThemeFontEnum::default(), ThemeFontEnum::fromConfig('comic-sans'));
         self::assertSame(ThemeFontEnum::default(), ThemeFontEnum::fromConfig(null));

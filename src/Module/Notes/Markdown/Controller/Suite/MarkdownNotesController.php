@@ -30,6 +30,7 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownDailyNote;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
+use Aurora\Module\Notes\Markdown\Service\NoteAddresses;
 use Aurora\Module\Notes\Markdown\Service\NoteTasks;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Reminder\Service\NoteReminders;
@@ -90,6 +91,7 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteMemberRepository $memberRepository,
         private readonly NoteLiveHub $liveHub,
         private readonly NoteMentions $mentions,
+        private readonly NoteAddresses $noteAddresses,
     ) {}
 
     /**
@@ -216,6 +218,12 @@ final class MarkdownNotesController extends AbstractController
         // stayed a bare link.
         if ($request->isXmlHttpRequest() && 'json' === $request->getPreferredFormat()) {
             return $this->jsonSuccess(['note' => ['id' => (int) $note->getId(), 'title' => $note->getTitle(), 'content' => $note->getContent()]]);
+        }
+
+        // A hosted note is read where its host shows it.
+        $hostedUrl = $this->noteAddresses->hostedNoteUrl($note);
+        if (null !== $hostedUrl) {
+            return $this->redirect($hostedUrl);
         }
 
         return $this->render(
@@ -438,6 +446,16 @@ final class MarkdownNotesController extends AbstractController
             }
         }
 
+        // Neither: the default space, which must be writable too - in a
+        // hosted space, a reader imports nothing.
+        if (!$folder instanceof NoteFolderInterface && !$space instanceof NoteSpaceInterface) {
+            $space = $this->spaceAccess->writableDefaultSpace($user);
+
+            if (!$space instanceof NoteSpaceInterface) {
+                return $this->jsonNotFound();
+            }
+        }
+
         $created = 0;
 
         foreach ($files as $file) {
@@ -490,7 +508,7 @@ final class MarkdownNotesController extends AbstractController
         $allowed = match (true) {
             null !== $folderId => $this->spaceAccess->writableFolder($user, $folderId) instanceof NoteFolderInterface,
             null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId) instanceof NoteSpaceInterface,
-            default => true,
+            default => $this->spaceAccess->writableDefaultSpace($user) instanceof NoteSpaceInterface,
         };
         if (!$allowed) {
             return $this->jsonNotFound();
@@ -744,7 +762,10 @@ final class MarkdownNotesController extends AbstractController
             }
         }
 
-        $space ??= $this->spaceAccess->personalSpace($user);
+        $space ??= $this->spaceAccess->writableDefaultSpace($user);
+        if (!$space instanceof NoteSpaceInterface) {
+            return $this->jsonNotFound();
+        }
 
         $title = mb_trim((string) ($data['title'] ?? ''));
         $note = $this->manager->createFromTemplate(
@@ -770,6 +791,12 @@ final class MarkdownNotesController extends AbstractController
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
+
+        // The journal lives in the personal space, which a request a host
+        // opened for its own space cannot reach.
+        if (!$this->spaceAccess->personalSpaceIfOpen($user) instanceof NoteSpaceInterface) {
+            return $this->jsonNotFound();
+        }
 
         // A day picked in the journal's calendar (09/10/2026); today otherwise.
         $date = $this->decodeJson($request)['date'] ?? null;
@@ -867,6 +894,10 @@ final class MarkdownNotesController extends AbstractController
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
+
+        if (!$this->spaceAccess->personalSpaceIfOpen($user) instanceof NoteSpaceInterface) {
+            return $this->jsonSuccess(['days' => []]);
+        }
 
         $month = (string) $request->query->get('month', '');
         if (1 !== preg_match('/^(\d{4})-(\d{2})$/', $month, $parts) || (int) $parts[2] < 1 || (int) $parts[2] > 12) {
@@ -1067,6 +1098,15 @@ final class MarkdownNotesController extends AbstractController
         }
 
         if (!$request->isXmlHttpRequest()) {
+            // A hosted note opens where its host shows it: a client space's
+            // note in the client space (10/10/2026). Its old address in the
+            // module - a notification, a bookmark - leads there too.
+            $readable = $note ?? $this->spaceAccess->readableNote($user, $id);
+            $hostedUrl = $readable instanceof MarkdownNoteInterface ? $this->noteAddresses->hostedNoteUrl($readable) : null;
+            if (null !== $hostedUrl) {
+                return $this->redirect($hostedUrl);
+            }
+
             if (!$note instanceof MarkdownNoteInterface) {
                 if ($this->spaceAccess->readableNote($user, $id) instanceof MarkdownNoteInterface) {
                     return $this->redirectToRoute('suite_notes_markdown_read', ['id' => $id]);

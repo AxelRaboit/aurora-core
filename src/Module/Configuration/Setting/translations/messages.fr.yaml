@@ -1,47 +1,100 @@
 suite:
     settings:
+        pending: "{count} modification en attente | {count} modifications en attente"
+        sections:
+            identity:
+                title: "Identité du site"
+                lead: "Ce qui s'affiche sur le site public, signe les e-mails et présente le flux RSS."
+            addresses:
+                title: "Adresses"
+                lead: "L'adresse publique construit les liens des e-mails et du plan du site ; l'e-mail administrateur reçoit les messages de l'administration."
+            languages:
+                title: "Langues"
+                lead: "La langue que le site sert par défaut, et s'il en sert une seule."
+            dates:
+                title: "Dates et heures"
+                lead: "Le fuseau dans lequel le site affiche les heures, et la façon d'écrire une date."
+            listing:
+                title: "Pages et listes"
+                lead: "Combien de publications par page, et ce que montre l'adresse racine du site."
+            comments:
+                title: "Commentaires"
+                lead: "Si les lecteurs peuvent commenter, et si leurs messages passent d'abord par la modération."
+            retention:
+                title: "Conservation"
+                lead: "Combien de versions, de jours en corbeille et de réponses de formulaire le site garde."
+            maintenance:
+                title: "Maintenance"
+                lead: "Fermer le site public le temps d'une intervention, sans fermer l'administration."
+            suite_access:
+                title: "Accès à l'administration"
+                lead: "Qui peut créer un compte ou demander l'accès à la suite."
+            site_access:
+                title: "Comptes du site public"
+                lead: "Si les visiteurs peuvent se connecter ou s'inscrire sur le site."
+            seo_defaults:
+                title: "Titres et descriptions"
+                lead: "Ce que montrent les moteurs de recherche quand une page ne dit rien d'elle-même."
+            seo_sharing:
+                title: "Partage"
+                lead: "L'image et le compte repris quand une page est partagée sur les réseaux."
+            email_language:
+                title: "Langue"
+                lead: "La langue des e-mails que l'application envoie."
+            email_colours:
+                title: "Couleurs"
+                lead: "Les couleurs des e-mails, celles du thème du site par défaut."
+            provider_identity:
+                title: "Votre identité"
+                lead: "Le bloc du prestataire, repris dans chaque contrat au moment où il est scellé."
+            provider_bank:
+                title: "Coordonnées bancaires"
+                lead: "Imprimées dans les contrats, pour le règlement."
+            contract_follow_up:
+                title: "Suivi des contrats"
+                lead: "Combien de temps les contrats sont gardés, et les relances d'un contrat resté sans réponse."
         studio_guide:
             title: "Votre identité dans les contrats"
             step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."
             step_2: "Un contrat dont la trame utilise un champ resté vide ne peut pas être scellé tant que vous ne l'avez pas rempli ici."
             step_3: "La durée de conservation ne descend jamais sous cinq ans, même si vous saisissez moins."
             step_4: "Les relances, désactivées par défaut, renvoient un nouveau lien de signature après le délai choisi, jusqu'au nombre maximum, et 0 dans l'un des deux champs les arrête."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         media_guide:
             title: "Les limites des fichiers"
             step_1: "La taille maximale vaut pour tout fichier déposé, médiathèque comme espaces clients, et les invités d'un espace restent en plus limités à 25 Mo."
             step_2: "Le serveur peut refuser plus tôt : ses propres limites d'envoi doivent être relevées pour qu'une valeur plus haute serve."
             step_3: "Les versions conservées comptent le fichier actuel ; au-delà, les plus anciennes sont supprimées avec leur fichier, et 0 les garde toutes."
             step_4: "Masquer le crédit des photos demande une confirmation, car les conditions de l'API Pexels demandent de le montrer."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         email_guide:
             title: "La langue et les couleurs des e-mails"
             step_1: "Ce réglage fixe la langue des e-mails que l'application envoie sans connaître celle du destinataire, comme les messages adressés à l'administration."
             step_2: "« Suivre la langue par défaut » reprend la langue choisie dans l'onglet Localisation."
             step_3: "Un e-mail lié à un contrat part dans la langue du contrat, et l'avis d'un nouveau commentaire dans la langue du compte de l'auteur de l'article."
             step_4: "Par défaut, l'accent des e-mails (bouton, liens, pastille du logo) suit la couleur principale du thème ; coupez « Suivre la couleur du thème » pour en choisir une autre. Le fond, les titres et le texte se règlent à côté, et « Couleur d'origine » remet celle de départ."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         system_guide:
             title: "Qui peut entrer, et quand"
             step_1: "Le mode maintenance ferme le site public à tous ses visiteurs, alors que la suite et sa page de connexion restent ouverts."
             step_2: "Les inscriptions admin ouvrent un formulaire de création de compte pour la suite, à refermer une fois le premier compte créé."
             step_3: "Les demandes d'accès laissent quelqu'un demander un compte, que vous approuvez ensuite depuis l'espace développeur."
             step_4: "Couper la connexion frontend retire du site public la connexion, l'inscription et la page de compte, et rend les inscriptions frontend sans effet."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         seo_guide:
             title: "Ce que voient les moteurs et les réseaux"
             step_1: "Le modèle de titre place le titre de la page et le nom du site aux endroits marqués dans le champ, et une page sans titre affiche le nom seul."
             step_2: "La description par défaut sert aux pages qui n'ont pas la leur ; vide, c'est la description de l'onglet Général qui est reprise."
             step_3: "L'image de partage illustre les liens partagés sur les réseaux quand la page n'en a pas ; sans elle, le logo prend sa place."
             step_4: "Le compte X renseigné ici est indiqué dans les aperçus des liens partagés sur ce réseau."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         branding_guide:
             title: "Le logo et l'icône du site"
-            step_1: "Le logo s'affiche dans le menu latéral de la suite et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie."
+            step_1: "Le logo s'affiche dans le menu latéral de la suite et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie. Un second logo, facultatif, prend sa place quand la suite est en mode sombre."
             step_2: "Sans favicon choisi, l'onglet du navigateur affiche l'initiale du nom du site sur la couleur principale du thème."
             step_3: "Une image prise dans la médiathèque doit être au statut « Publié » pour s'afficher aux visiteurs."
             step_4: "Sur téléphone, le nom du site peut être masqué à côté du logo de la barre du haut, pour ne garder que le logo."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         localization_guide:
             title: "Langues, heure et dates du site"
             step_1: "La langue par défaut sert de repli au site public, et aux e-mails quand l'onglet Emails suit cette langue."
@@ -49,14 +102,14 @@ suite:
             step_3: "Le désactiver plus tard rend leur place aux contenus saisis dans les autres langues, restés en base."
             step_4: "La langue de la suite ne se règle pas ici : chacun la choisit dans son profil."
             step_5: "Le fuseau horaire donne l'heure du site : 9 h dans une publication programmée veut dire 9 h ici, et les emails et PDF datent à cette heure, dans le style de dates choisi."
-            step_6: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_6: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         reading_guide:
             title: "Ce que lisent les visiteurs"
             step_1: "La page d'accueil se choisit en cherchant une page ou en saisissant son numéro ; sans choix, l'accueil liste les derniers articles."
             step_2: "Un commentaire n'est possible que si les commentaires sont activés ici et sur la publication ; avec la modération, chacun attend votre validation."
             step_3: "Le délai de purge vaut pour les corbeilles des articles, des notes et de la médiathèque, et 0 garde tout jusqu'à ce que vous les vidiez."
             step_4: "Les réponses aux formulaires, adresse IP comprise, sont effacées après leur délai de conservation, et 0 les garde sans limite."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         administration_guide:
             title: "L'espace développeur"
             step_1: "Cet espace est réservé au rôle développeur, et chaque rubrique du menu latéral ouvre l'un de ses onglets."
@@ -70,21 +123,21 @@ suite:
             step_2: "Une image plus grande que la taille maximale est réduite dans votre navigateur, puis envoyée au format WebP."
             step_3: "La qualité, de 0 à 100, ne joue que sur les images réduites ; 85 est un bon compromis entre poids et netteté."
             step_4: "Les images déjà présentes dans les notes ne changent pas, et les GIF animés passent sans retouche."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         sequences_guide:
             title: "Comment se numérotent les références"
             step_1: "Chaque préfixe numérote un type d'enregistrement, comme les documents, les publications ou les contrats."
             step_2: "Une référence s'écrit préfixe, tiret puis numéro, et certaines séries, comme les contrats, repartent à 1 chaque année."
             step_3: "Un préfixe compte de 1 à 10 lettres ou chiffres, sans espace ni tiret, et passe en majuscules à l'enregistrement."
             step_4: "Changer un préfixe ne touche pas aux références déjà attribuées : seules les suivantes le prennent."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         general_guide:
             title: "Les réglages de base du site"
             step_1: "Le nom du site s'affiche sur le site public et signe les e-mails envoyés par l'application."
             step_2: "La description du site présente le flux RSS, et sert aux moteurs de recherche quand ni la page ni l'onglet SEO n'en donnent une."
             step_3: "L'adresse publique, sans barre oblique finale, construit les liens des e-mails et du plan du site ; vide, l'application déduit celle du serveur."
             step_4: "L'e-mail administrateur reçoit les messages destinés à l'administration ; vide, l'adresse déclarée à l'installation du serveur prend le relais."
-            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         integration:
             status_active: Active
             status_off: Désactivée
@@ -430,6 +483,9 @@ suite:
         logo_media_id:
             label: Logo du site
             description: ID du média utilisé comme logo
+        logo_dark_media_id:
+            label: Logo en mode sombre
+            description: "Facultatif. Remplace le logo du site quand la suite est en mode sombre : menu latéral, barre du haut et pages de connexion. Utile pour un logo sans fond dessiné en couleur foncée, qui disparaîtrait sur fond sombre. Vide, le logo du site sert dans les deux modes."
         favicon_media_id:
             label: Favicon
             description: ID du média utilisé comme favicon
@@ -582,13 +638,13 @@ suite:
         todo:
             title: "À traiter"
             nothing: "Rien ne vous attend pour l'instant."
-            countersign: "{count} contrat à contresigner | {count} contrats à contresigner"
-            missed: "{count} parution manquée | {count} parutions manquées"
-            late_review: "{count} relecture en retard | {count} relectures en retard"
-            changes_requested: "{count} contenu à revoir | {count} contenus à revoir"
-            comments_pending: "{count} commentaire en attente | {count} commentaires en attente"
-            posts_pending_review: "{count} publication à relire | {count} publications à relire"
-            reminders_overdue: "{count} rappel en retard | {count} rappels en retard"
+            countersign: "contrat à contresigner | contrats à contresigner"
+            missed: "parution manquée | parutions manquées"
+            late_review: "relecture en retard | relectures en retard"
+            changes_requested: "contenu à revoir | contenus à revoir"
+            comments_pending: "commentaire en attente | commentaires en attente"
+            posts_pending_review: "publication à relire | publications à relire"
+            reminders_overdue: "rappel en retard | rappels en retard"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

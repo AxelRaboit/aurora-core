@@ -2,7 +2,7 @@
 import "./sidemenu.css";
 
 defineOptions({ inheritAttrs: false });
-import { computed, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useLayoutMount } from "@/shared/composables/useLayoutMount.js";
 import { useTheme } from "@/shared/composables/useTheme.js";
@@ -11,36 +11,28 @@ import { useResizable } from "@/shared/composables/useResizable.js";
 import { useSuiteSearch } from "@core/suite/sidemenu/composables/useSuiteSearch.js";
 import { useSidemenuCollapse } from "@core/suite/sidemenu/composables/useSidemenuCollapse.js";
 import { useSidemenuPeek } from "@core/suite/sidemenu/composables/useSidemenuPeek.js";
-import { useSidemenuDescriptions } from "@core/suite/sidemenu/composables/useSidemenuDescriptions.js";
 import { useSidemenuNav } from "@core/suite/sidemenu/composables/useSidemenuNav.js";
 import { useSidemenuSectionTheme } from "@core/suite/sidemenu/composables/useSidemenuSectionTheme.js";
 import { useSidemenuLiveColors } from "@core/suite/sidemenu/composables/useSidemenuLiveColors.js";
-import AppLogo from "@/shared/components/display/AppLogo.vue";
+import AppSiteLogo from "@/shared/components/display/AppSiteLogo.vue";
 import AppAvatar from "@/shared/components/display/AppAvatar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
-import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
-import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/suite/notifications/AppNotificationsBell.vue";
 import AppTopbarAccount from "./AppTopbarAccount.vue";
 import AppSidemenuNav from "./AppSidemenuNav.vue";
+import AppSidemenuHead from "./AppSidemenuHead.vue";
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "./topbarButton.js";
 import { getModulePanel } from "@/shared/nav/modulePanelRegistry.js";
 import {
     AlarmClock,
     CalendarDays,
     CheckSquare,
     ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    ChevronsDownUp,
-    ChevronsUpDown,
     Clock,
     FileText,
-    Filter,
     FolderKanban,
-    Globe,
     Image,
     Layers,
     Loader2,
@@ -73,12 +65,11 @@ const props = defineProps({
     profilePath: { type: String, default: "/suite/general/profile" },
     sidemenuPreferencesPath: { type: String, default: "/suite/general/profile/sidemenu" },
     sidemenuCollapsedPath: { type: String, default: "/suite/general/profile/sidemenu/collapsed" },
-    sidemenuDescriptionsPath: { type: String, default: "/suite/general/profile/sidemenu/descriptions" },
-    sidemenuShowDescriptions: { type: Boolean, default: true },
     logoutPath: { type: String, default: "/logout" },
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
     siteLogoUrl: { type: String, default: "" },
+    siteLogoDarkUrl: { type: String, default: "" },
     /** Site setting: the name next to the logo in the top bar on a phone. */
     siteNameOnPhone: { type: Boolean, default: true },
     appVersion: { type: String, default: "" },
@@ -108,10 +99,6 @@ const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
 const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
 const { onEdgeEnter, onEdgeLeave, onMenuEnter, onMenuLeave } = useSidemenuPeek();
-const { showDescriptions, toggleDescriptions } = useSidemenuDescriptions(
-    props.sidemenuDescriptionsPath,
-    props.sidemenuShowDescriptions,
-);
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
@@ -184,9 +171,48 @@ const {
     openPalette, closePalette, activateResult, entryIndex,
 } = useSuiteSearch({ searchPath: props.searchPath, navItems, currentRoute: props.activeRoute });
 
-function openSearchFromMobile() {
-    closeMobile();
-    openPalette();
+const asideHead = ref(null);
+const drawerHead = ref(null);
+
+/**
+ * `/` puts the caret in the menu's filter, from anywhere on the page but a
+ * field: the search palette has ⌘K, the menu had nothing but the mouse
+ * (sidemenu audit of 10/10/2026). On a narrow screen the drawer opens first,
+ * since the column is not there to type into.
+ */
+function isTypingTarget(target) {
+    return target instanceof HTMLElement
+        && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+}
+
+function onSlashKey(event) {
+    if ("/" !== event.key || event.metaKey || event.ctrlKey || event.altKey || isTypingTarget(event.target)) return;
+    event.preventDefault();
+    if (window.matchMedia("(min-width: 1024px)").matches && !document.documentElement.classList.contains("sidemenu-collapsed")) {
+        asideHead.value?.focusFilter();
+        return;
+    }
+    openMobile();
+    // The drawer slides in over 200 ms; the field exists already, only hidden.
+    requestAnimationFrame(() => drawerHead.value?.focusFilter());
+}
+
+onMounted(() => window.addEventListener("keydown", onSlashKey));
+onBeforeUnmount(() => window.removeEventListener("keydown", onSlashKey));
+
+/** The foot's one line: the copyright, then the version when there is one. */
+const footLine = computed(() => [
+    t("shared.common.built_with", { year: new Date().getFullYear(), siteName: props.siteName }),
+    props.appVersion,
+].filter(Boolean).join(" · "));
+
+/**
+ * A filter that finds nothing in the module still has an answer elsewhere:
+ * « cont » in Éditorial found nothing while Contrats existed. The way out
+ * keeps the word and searches the project view instead.
+ */
+function searchAllModules() {
+    nav.backToProject();
 }
 </script>
 
@@ -211,123 +237,17 @@ function openSearchFromMobile() {
         v-on:mouseenter="onMenuEnter"
         v-on:mouseleave="onMenuLeave"
     >
-        <div class="sh-wrap flex items-center h-16 border-b border-line shrink-0 transition-all duration-200">
-            <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">
-                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-contain">
-                <AppLogo v-else :size="32" class="shrink-0" />
-                <div class="flex flex-col min-w-0">
-                    <span class="text-primary font-bold text-lg tracking-tight truncate leading-tight">{{ siteName }}</span>
-                    <span v-if="appVersion" data-app-version class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- `h-10`, to the pixel, because this row and the breadcrumb band are
-             meant to read as one line across the page: the menu's header and
-             the page header's upper band are both `h-16`, so whatever comes next
-             on each side has to match too. The link already measures 40px on its
-             own - `.si` gives it 0.624rem above and below a 20px row - so the
-             `py-2` this used to carry was the whole discrepancy. Pinned rather
-             than left implicit so a change to `.si` cannot quietly break the
-             alignment.
-
-             The row keeps its height, so the *link* has to be shorter than it:
-             at a full 40px its hover fill reaches both borders and the rounded
-             corners clip against them. `.sh-view-site` trims it to 32px, which
-             centres with 4px of clearance - see sidemenu.css. -->
-        <div v-if="hasEnabledFronts" class="sh-view-site h-10 flex items-center px-3 border-b border-line shrink-0">
-            <AppNavLink
-                :href="frontPath"
-                target="_blank"
-                hover-color="emerald"
-            >
-                <Globe class="w-5 h-5 shrink-0 text-muted group-hover:text-emerald-400 transition-colors" :stroke-width="2" />
-                <span class="si-label truncate">{{ t("suite.nav.view_site") }}</span>
-            </AppNavLink>
-        </div>
-
-        <!-- Shown only inside a module. Two rows, because they answer two
-             different questions and merging them would make the module's name a
-             button that leaves it: the first says where the column is, the
-             second is the way out. The dot before the name borrows the module's
-             section colour from the same registry the project view uses - the
-             reader already reads lime as "GED", so it is reused rather than
-             re-invented. -->
-        <div v-if="inModuleView" class="px-3 py-2 border-b border-line shrink-0 flex flex-col gap-1">
-            <div
-                class="si-section-header flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
-                :class="[sectionTheme.headerClasses(moduleId), sectionTheme.labelClasses(moduleId)]"
-            >
-                <span class="size-2 shrink-0 rounded-full" :class="sectionTheme.dotClasses(moduleId)" aria-hidden="true" />
-                <span class="truncate">{{ moduleLabel }}</span>
-            </div>
-            <button
-                type="button"
-                class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-muted hover:text-primary hover:bg-surface-2 transition-colors"
-                v-on:click="backToProject"
-            >
-                <ChevronLeft class="w-3.5 h-3.5 shrink-0" :stroke-width="2.5" />
-                <span class="truncate">{{ t("suite.nav.back_to_modules") }}</span>
-            </button>
-        </div>
-
-        <!-- The door swings both ways.
-
-             `backToProject` above had no counterpart: leaving the module view
-             was one press of Escape, and nothing short of reloading the page
-             brought it back. `enterModuleView` existed and was tested from the
-             day the view shipped - it simply had no control wired to it, which
-             is invisible until something the reader needs lives only in that
-             view. A folder they cannot create is how it surfaced. -->
-        <button
-            v-if="hasModuleView && !inModuleView"
-            type="button"
-            class="mx-3 my-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary"
-            v-on:click="enterModuleView"
-        >
-            <ChevronRight class="w-3.5 h-3.5 shrink-0" :stroke-width="2.5" />
-            <span class="truncate">{{ t("suite.nav.back_to_module", { module: moduleLabel }) }}</span>
-        </button>
-
-        <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
-            <div class="flex items-center gap-1">
-                <div class="relative flex flex-1 min-w-0 items-center">
-                    <Filter class="absolute left-2.5 w-3 h-3 text-muted pointer-events-none" :stroke-width="2" />
-                    <input
-                        v-model="navFilter"
-                        type="text"
-                        :placeholder="t('suite.nav.filter_nav')"
-                        class="w-full pl-7 pr-6 py-1.5 rounded-md text-xs bg-surface-2/60 border border-line/40 text-primary placeholder:text-muted focus:outline-none focus:border-line focus:bg-surface-2 transition-colors"
-                    >
-                    <button v-if="navFilter" type="button" class="absolute right-2 text-muted hover:text-primary transition-colors" v-on:click="navFilter = ''">
-                        <X class="w-3 h-3" :stroke-width="2.5" />
-                    </button>
-                </div>
-                <!-- Folds or unfolds the whole menu at once, the way the notes
-                     tree folds its own. Gone while filtering: the filter shows
-                     every match unfolded and draws no section header to fold. -->
-                <AppIconButton
-                    v-if="!navFilter"
-                    data-sidemenu-fold-all
-                    :title="nav.anyExpanded.value ? t('suite.nav.collapse_all') : t('suite.nav.expand_all')"
-                    v-on:click="nav.setAllExpanded(!nav.anyExpanded.value)"
-                >
-                    <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="w-3.5 h-3.5" :stroke-width="2" />
-                </AppIconButton>
-            </div>
-
-            <!-- Beside the filter because both act on the menu itself rather
-                 than leading anywhere. `AppToggle` carries its own label above
-                 the switch, which is a form layout; here the row is tight, so
-                 the label sits alongside instead. -->
-            <div class="flex items-center justify-between gap-2">
-                <span class="text-xs text-muted truncate">{{ t("suite.nav.show_descriptions") }}</span>
-                <AppToggle
-                    :model-value="showDescriptions"
-                    v-on:update:model-value="toggleDescriptions"
-                />
-            </div>
-        </div>
+        <AppSidemenuHead
+            ref="asideHead"
+            :nav="nav"
+            :theme="sectionTheme"
+            :site-name="siteName"
+            :site-logo-url="siteLogoUrl"
+            :site-logo-dark-url="siteLogoDarkUrl"
+            :dashboard-path="dashboardPath"
+            :front-path="frontPath"
+            :has-enabled-fronts="hasEnabledFronts"
+        />
 
         <!-- `py-1`, not `py-4`: 16px of padding left the first header and the
              last row of the last section standing 16px off their borders while
@@ -336,15 +256,23 @@ function openSearchFromMobile() {
              clearance a row's hover fill needs to keep off a border, the figure
              the "view site" row above already uses. -->
         <nav class="sidemenu-nav flex flex-col gap-0.5 flex-1 min-h-0 overflow-y-auto scrollbar-thin py-1">
-            <p v-if="navFilter && !displayedSections.length" class="px-3 text-xs text-muted">
-                {{ t("suite.nav.filter_nav_empty") }}
-            </p>
+            <div v-if="navFilter && !displayedSections.length" class="flex flex-col items-start gap-1.5 px-3 py-1 text-xs text-muted" data-sidemenu-filter-empty>
+                <p class="m-0">{{ t("suite.nav.filter_nav_empty") }}</p>
+                <button
+                    v-if="inModuleView"
+                    type="button"
+                    class="text-[0.8125rem] text-accent hover:underline"
+                    data-sidemenu-search-all
+                    v-on:click="searchAllModules"
+                >
+                    {{ t("suite.nav.filter_all_modules") }}
+                </button>
+            </div>
             <AppSidemenuNav
                 :sections="displayedSections"
                 :nav="nav"
                 :theme="sectionTheme"
                 :nav-filter="navFilter"
-                :show-descriptions="showDescriptions"
             />
 
             <!-- What a list of links cannot express: a folder tree, a note list.
@@ -358,9 +286,12 @@ function openSearchFromMobile() {
             />
         </nav>
 
-        <div class="flex justify-center py-2 border-t border-line">
-            <span class="text-xs text-muted/40 tracking-wide select-none">
-                {{ t('shared.common.built_with', { year: new Date().getFullYear(), siteName }) }}
+        <!-- Signed at the foot, on the left like everything above it, and
+             legible: it was centred in a grey at forty per cent, a line the
+             eye had to look for. -->
+        <div class="flex shrink-0 border-t border-line px-4 py-3">
+            <span class="select-none truncate text-xs text-secondary tabular-nums" data-sidemenu-foot>
+                {{ footLine }}
             </span>
         </div>
 
@@ -377,8 +308,7 @@ function openSearchFromMobile() {
         <a :href="dashboardPath" class="flex items-center gap-2">
             <!-- The site's logo on a phone too: it was only read by the wide
                  sidebar, and the phone bar kept drawing the default mark. -->
-            <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
-            <AppLogo v-else :size="28" />
+            <AppSiteLogo :url="siteLogoUrl" :dark-url="siteLogoDarkUrl" :size="28" />
             <!-- The name next to the logo, or the logo alone below `sm`: a site
                  setting (Réglages > Marque, 02/10/2026). When hidden, it is
                  still read by screen readers. Without a logo, the name always
@@ -388,20 +318,18 @@ function openSearchFromMobile() {
                 :class="siteNameOnPhone || !siteLogoUrl ? '' : 'sr-only sm:not-sr-only'"
             >{{ siteName }}</span>
         </a>
-        <div class="flex items-center gap-1">
-            <!-- The application bar: bare icons, like the bell and the account
-                 next to them (the page bar rule does not apply to the app
-                 frame), but each one with its name. -->
-            <AppButton
-                variant="icon"
-                size="none"
-                class="p-2 text-muted hover:text-primary"
+        <div class="flex items-center gap-1.5">
+            <!-- The application bar: framed squares, the same as the desktop
+                 top bar (`TOPBAR_BUTTON`), each one with its name. -->
+            <button
+                type="button"
+                :class="TOPBAR_BUTTON"
                 :title="t('suite.search.button')"
                 :aria-label="t('suite.search.button')"
                 v-on:click="openPalette"
             >
-                <Search class="w-5 h-5" :stroke-width="2" />
-            </AppButton>
+                <Search :class="TOPBAR_ICON" :stroke-width="2" />
+            </button>
             <!-- The bell belongs here too. On desktop it moved to the page
                  header, which is hidden below the large breakpoint - so without
                  this, a phone had no way to reach notifications at all. -->
@@ -435,17 +363,16 @@ function openSearchFromMobile() {
                  The icon shows the state, not the action - same reason as on
                  desktop: a control that announced what it would do flips under
                  the finger at the moment of tapping. -->
-            <AppButton
-                variant="icon"
-                size="none"
-                class="p-2"
+            <button
+                type="button"
+                :class="TOPBAR_BUTTON"
                 :title="mobileOpen ? t('suite.nav.collapse_menu') : t('suite.nav.expand_menu')"
                 :aria-label="mobileOpen ? t('suite.nav.collapse_menu') : t('suite.nav.expand_menu')"
                 v-on:click="mobileOpen ? closeMobile() : openMobile()"
             >
-                <PanelLeftClose v-if="mobileOpen" class="w-5 h-5" :stroke-width="2" />
-                <PanelLeft v-else class="w-5 h-5" :stroke-width="2" />
-            </AppButton>
+                <PanelLeftClose v-if="mobileOpen" :class="TOPBAR_ICON" :stroke-width="2" />
+                <PanelLeft v-else :class="TOPBAR_ICON" :stroke-width="2" />
+            </button>
         </div>
     </div>
 
@@ -455,79 +382,42 @@ function openSearchFromMobile() {
     >
         <div class="absolute inset-0 bg-black/60" v-on:click="closeMobile" />
         <div
-            class="relative w-[480px] max-w-[85vw] bg-surface h-full flex flex-col shadow-2xl transition-transform duration-200"
+            class="sidemenu-drawer relative w-[480px] max-w-[85vw] bg-surface h-full flex flex-col shadow-2xl transition-transform duration-200"
             :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
         >
-            <div class="flex items-center justify-between px-4 h-16 border-b border-line shrink-0">
-                <div class="flex items-center gap-2.5">
-                    <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-contain">
-                    <AppLogo v-else :size="32" />
-                    <div class="flex flex-col">
-                        <span class="text-primary font-bold text-lg tracking-tight">{{ siteName }}</span>
-                        <span v-if="appVersion" class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
-                    </div>
-                </div>
-                <AppButton
-                    variant="icon"
-                    size="none"
-                    class="p-1.5 text-muted hover:text-primary"
-                    :title="t('shared.common.close')"
-                    :aria-label="t('shared.common.close')"
-                    v-on:click="closeMobile"
-                >
-                    <X class="w-5 h-5" :stroke-width="2" />
-                </AppButton>
-            </div>
-
-            <div class="shrink-0 px-3 pt-3 pb-1 space-y-1">
-                <div class="flex items-center gap-1">
-                    <button
-                        type="button"
-                        class="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-muted border border-line hover:border-line hover:text-primary hover:bg-surface-2 transition-colors"
-                        v-on:click="openSearchFromMobile"
-                    >
-                        <Search class="w-4 h-4 shrink-0" :stroke-width="2" />
-                        <span class="flex-1 text-left">{{ t("suite.search.button") }}</span>
-                    </button>
-                    <!-- The aside's fold-all, here beside the search since the
-                         drawer has no filter row to sit in. -->
-                    <AppIconButton
-                        data-sidemenu-fold-all
-                        :title="nav.anyExpanded.value ? t('suite.nav.collapse_all') : t('suite.nav.expand_all')"
-                        v-on:click="nav.setAllExpanded(!nav.anyExpanded.value)"
-                    >
-                        <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                </div>
-                <a
-                    v-if="hasEnabledFronts"
-                    :href="frontPath"
-                    target="_blank"
-                    rel="noopener"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-secondary hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                >
-                    <Globe class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    {{ t("suite.nav.view_site") }}
-                </a>
-                <hr class="border-line mt-1">
-            </div>
+            <!-- The column's own head, so the drawer says which module it
+                 shows and how to leave it - it said neither, and a phone
+                 inside a module could not reach another one. -->
+            <AppSidemenuHead
+                ref="drawerHead"
+                :nav="nav"
+                :theme="sectionTheme"
+                :site-name="siteName"
+                :site-logo-url="siteLogoUrl"
+                :site-logo-dark-url="siteLogoDarkUrl"
+                :dashboard-path="dashboardPath"
+                :front-path="frontPath"
+                :has-enabled-fronts="hasEnabledFronts"
+                :show-shortcut="false"
+                closable
+                v-on:close="closeMobile"
+            />
 
             <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto scrollbar-thin px-3 py-2">
-                <!-- The same component the aside uses. Its own copy was a
-                     degraded one: no item descriptions in the tooltips, no
-                     `data-sidemenu-active`, and two dead `#tooltip` slots
-                     `AppNavLink` never declared - so those child links had no
-                     tooltip at all. No filter here: the drawer has none. -->
-                <!-- `activeSections`, not `groupedSections`: the drawer shows
-                     whichever view the column is on, so a phone is not sent back
-                     to the project menu on a page the desktop shows a module menu
-                     for. Not `displayedSections` - that one is filtered, and the
-                     drawer has no filter to explain the missing rows. -->
+                <!-- The same component, and since 10/10/2026 the same filtered
+                     sections as the aside: the drawer has the column's head,
+                     filter included, so it shows what the filter keeps. -->
+                <div v-if="navFilter && !displayedSections.length" class="flex flex-col items-start gap-1.5 px-3 py-1 text-xs text-muted">
+                    <p class="m-0">{{ t("suite.nav.filter_nav_empty") }}</p>
+                    <button v-if="inModuleView" type="button" class="text-[0.8125rem] text-accent hover:underline" v-on:click="searchAllModules">
+                        {{ t("suite.nav.filter_all_modules") }}
+                    </button>
+                </div>
                 <AppSidemenuNav
-                    :sections="activeSections"
+                    :sections="displayedSections"
                     :nav="nav"
                     :theme="sectionTheme"
-                    :show-descriptions="showDescriptions"
+                    :nav-filter="navFilter"
                 />
 
                 <!-- The module's panel belongs here too, and its absence was a
@@ -544,7 +434,7 @@ function openSearchFromMobile() {
                      and the folder favourites already do. -->
                 <component
                     :is="modulePanel"
-                    v-if="modulePanel && inModuleView && mobileOpen"
+                    v-if="modulePanel && inModuleView && mobileOpen && !navFilter"
                     class="mt-1"
                 />
             </nav>

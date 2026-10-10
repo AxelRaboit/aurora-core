@@ -260,7 +260,24 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
 
     private function createThemes(EntityManagerInterface $entityManager): void
     {
+        // Nuit violette first and switched on: the colours of the live site
+        // (the ARC charter, 10/10/2026), so the demo shows the suite in the
+        // accent it actually wears rather than a green nobody uses.
         $definitions = [
+            [
+                'slug' => 'nuit-violette',
+                'name' => 'Nuit violette',
+                'description' => 'Fond prune, accent violet, texte ivoire : les couleurs du site en ligne.',
+                'config' => [
+                    'primary_color' => '#8b6cff',
+                    'background_color' => '#130918',
+                    'header_color' => '#1b1128',
+                    'footer_color' => '#1b1128',
+                    'text_color' => '#ece2d0',
+                    'line_color' => '#ece2d0',
+                    'figure_color' => '#ece2d0',
+                ],
+            ],
             [
                 'slug' => 'nuit-emeraude',
                 'name' => 'Nuit émeraude',
@@ -323,7 +340,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
         $active = $repository->findOneBy(['active' => true]);
 
         if (null === $active || ('default' === $active->getSlug() && [] === $active->getConfig())) {
-            $chosen = $repository->findOneBy(['slug' => 'nuit-emeraude']);
+            $chosen = $repository->findOneBy(['slug' => 'nuit-violette']);
 
             if (null !== $chosen) {
                 if (null !== $active) {

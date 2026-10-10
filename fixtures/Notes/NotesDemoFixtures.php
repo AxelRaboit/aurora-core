@@ -179,7 +179,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setTitle($definition['title'])
                 ->setContent($this->withDates($this->withImages($definition, $note, $owner)))
                 // The emoji over the banner and the properties under the title
-                // (4.6.0): the table view of the clients' folder sorts by them.
+                // (4.6.0): the table view of the agency's folder sorts by them.
                 ->setIcon($definition['icon'] ?? null)
                 ->setProperties($this->properties($definition['properties'] ?? []))
                 ->setTags($definition['tags'])
@@ -211,8 +211,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $notes[$key] = $note;
         }
 
-        if (isset($notes['verrier'])) {
-            $this->history($manager, $owner, $notes['verrier']);
+        if (isset($notes['site'])) {
+            $this->history($manager, $owner, $notes['site']);
         }
 
         $manager->flush();
@@ -221,13 +221,13 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         $this->pin($manager, $owner, $pinned);
 
-        $this->shareLinkFor($notes['clients'] ?? null);
+        $this->shareLinkFor($notes['sommaire'] ?? null);
 
-        $this->handedToPeople($manager, $notes['verrier'] ?? null);
+        $this->handedToPeople($manager, $notes['site'] ?? null);
 
-        $this->writableLinkFor($manager, $notes['verrier'] ?? null);
+        $this->writableLinkFor($manager, $notes['site'] ?? null);
 
-        $this->comments($manager, $notes['verrier'] ?? null);
+        $this->comments($manager, $notes['site'] ?? null);
 
         $this->teamSpace($manager, $owner);
     }
@@ -354,7 +354,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             [
                 'title' => 'Accueillir un nouveau client',
                 'age' => '-6 days 3 hours',
-                'tags' => ['onboarding', 'client'],
+                'tags' => ['onboarding'],
                 'inFolder' => true,
                 'content' => <<<'MD'
                     # Accueillir un nouveau client
@@ -409,7 +409,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             [
                 'title' => 'Livrer une série de contenus',
                 'age' => '-1 day 4 hours',
-                'tags' => ['production', 'client'],
+                'tags' => ['production'],
                 'inFolder' => true,
                 'content' => <<<'MD'
                     # Livrer une série de contenus
@@ -461,7 +461,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     ## 2. Déployer sur le serveur
 
                     ```bash
-                    ssh client-verrier
+                    ssh site-agence
                     cd /var/www/site && git fetch --tags
                     git checkout v2.4.1 && make deploy
                     ```
@@ -475,7 +475,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     > [!failure] Si quelque chose casse
                     > On revient au tag précédent d'abord, on comprend ensuite : `git checkout v2.4.0 && make deploy`. Le client voit un site qui marche pendant qu'on cherche.
 
-                    Le cadre de la maintenance est dans la fiche du client, rangée dans le carnet de chacun. Retour au [[Bienvenue dans l'agence|sommaire du guide]].
+                    Le cadre de la maintenance d'un client est noté dans son espace client, section Notes. Retour au [[Bienvenue dans l'agence|sommaire du guide]].
                     MD,
             ],
         ];
@@ -511,12 +511,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         // The day before: everything, except the callout about access.
         $yesterday = (string) preg_replace('/\n> \[!info\] Accès\n> [^\n]*\n/', "\n", $current);
         // Five days ago: no technical section yet.
-        $fiveDays = (string) preg_replace('/## Technique\n.*?(?=\nLe cadre contractuel)/s', '', $yesterday);
-        // Twelve days ago: the site sheets in progress, and not yet Paul's
-        // warning.
+        $fiveDays = (string) preg_replace('/## Technique\n.*?(?=\nLa fiche remonte)/s', '', $yesterday);
+        // Twelve days ago: the project sheets in progress, and not yet
+        // Marie's warning.
         $twelveDays = str_replace(
-            '- [x] Reprise des fiches chantier, 24 au total',
-            '- [ ] Reprise des fiches chantier, 18 sur 24',
+            '- [x] Reprise des fiches réalisation, 24 au total',
+            '- [ ] Reprise des fiches réalisation, 18 sur 24',
             (string) preg_replace('/> \[!warning\] Avant toute mise en ligne\n(> [^\n]*\n)+\n/', '', $fiveDays),
         );
 
@@ -614,8 +614,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $this->shareLinks->create(
             $note,
             includeLinked: true,
-            recipientEmail: 'camille@studio-lumen.fr',
-            label: 'Carnet clients - lecture seule',
+            recipientEmail: 'associee@agence.test',
+            label: "Sommaire de l'agence - lecture seule",
             expiresAt: new DateTimeImmutable('+30 days'),
         );
     }
@@ -691,8 +691,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $this->shareLinks->create(
             $note,
             includeLinked: false,
-            recipientEmail: 'olivier@atelier-verrier.test',
-            label: 'Relecture du devis - écriture',
+            recipientEmail: 'traduction@example.test',
+            label: 'Relecture des traductions - écriture',
             expiresAt: new DateTimeImmutable('+14 days'),
             canWrite: true,
             coediting: true,
@@ -712,8 +712,11 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     private function folders(): array
     {
         return [
-            'clients' => ['name' => 'Clients', 'color' => '#22c55e', 'favorite' => true],
-            'lumen' => ['name' => 'Studio Lumen', 'parent' => 'clients', 'color' => '#3b82f6'],
+            // The agency's own projects. Clients have no folder here since
+            // 10/10/2026: their notes live in their client space, and the Notes
+            // module does not show them.
+            'agence' => ['name' => 'Agence', 'color' => '#22c55e', 'favorite' => true],
+            'studio' => ['name' => 'Studio photo', 'parent' => 'agence', 'color' => '#3b82f6'],
             'photo' => ['name' => 'Photographie', 'color' => '#f59e0b'],
             'editorial' => ['name' => 'Éditorial', 'color' => '#8b5cf6'],
             'archives' => ['name' => 'Archives'],
@@ -860,7 +863,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $question = new NoteComment();
         $question->setNote($note)->setAuthor($marie)
             ->setQuote('Galerie avant / après, en attente des photos')
-            ->setBody('Paul a envoyé les photos du chantier de Rezé hier soir. On les met en ligne cette semaine ?');
+            ->setBody('Léa a envoyé les photos de l\'atelier hier soir. On les met en ligne cette semaine ?');
         $manager->persist($question);
 
         $answer = new NoteComment();
@@ -869,7 +872,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $manager->persist($answer);
 
         $guest = new NoteComment();
-        $guest->setNote($note)->setGuestName('Paul (Cabinet Verrier)')
+        $guest->setNote($note)->setGuestName('Paul (traduction)')
             ->setQuote('Formulaire de contact en trois langues')
             ->setBody('Les traductions anglaise et allemande sont prêtes, je les envoie demain.');
         $manager->persist($guest);
@@ -916,10 +919,13 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
      * highlighted code blocks, images at their size, headings on three levels
      * for the outline, `[[…]]` links for the graph.
      *
-     * - "Cabinet Verrier" is the editor's showcase: the outline has enough
+     * - "Site de l'agence" is the editor's showcase: the outline has enough
      *   there to unfold, and it is the one carrying the history (`history()`).
-     * - "Sommaire des clients" goes ahead of the "Studio Lumen" folder
+     * - "Sommaire de l'agence" goes ahead of the "Studio photo" folder
      *   (`first`): the free order shows in the tree.
+     * - No client of any kind (10/10/2026): a client's notes are written in
+     *   its client space, which the Notes module does not show, so a client
+     *   here would teach the opposite of how the suite works.
      * - The two notes of the "Modèles" folder are templates: "Ajouter" offers
      *   them under "Partir de".
      * - `age` gives each note its modification date.
@@ -929,18 +935,18 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     private function notes(): array
     {
         return [
-            'clients' => [
-                // The index does not carry its folder's name: two "Clients"
+            'sommaire' => [
+                // The index does not carry its folder's name: two "Agence"
                 // rows one under the other, a folder and a note, is exactly
                 // the ambiguity folders removed.
-                'title' => 'Sommaire des clients',
-                'tags' => ['index', 'client'],
+                'title' => "Sommaire de l'agence",
+                'tags' => ['index', 'agence'],
                 'icon' => '🗂️',
                 'properties' => [
                     ['key' => 'Statut', 'type' => 'status', 'value' => 'À jour'],
                     ['key' => 'Suivi par', 'type' => 'person', 'value' => 'dev@aurora.app'],
                 ],
-                'folder' => 'clients',
+                'folder' => 'agence',
                 'first' => true,
                 'favorite' => true,
                 'age' => '-2 hours',
@@ -952,79 +958,79 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'coverPosition' => 60,
                 'appearance' => 'paper',
                 'content' => <<<'MD'
-                    # Sommaire des clients
+                    # Sommaire de l'agence
 
-                    Le point d'entrée du carnet : chaque client a sa fiche, et chaque fiche renvoie ici. Le cadre contractuel part du [[Contrat type]].
+                    Le point d'entrée du carnet : chaque projet de l'agence a sa fiche, et chaque fiche renvoie ici. Les notes sur un client, elles, s'écrivent dans son espace client.
 
                     > [!abstract] Cette semaine
-                    > **Trois clients actifs**, deux projets en cours, une relance à faire. Prochaine échéance : la séance catalogue du [[Studio Lumen]], le 14 novembre.
+                    > **Trois projets en cours**, une commande à passer. Prochaine échéance : l'installation du [[Studio photo]], le 14 novembre.
 
-                    ## Clients actifs
+                    ## Projets en cours
 
-                    | Client | Métier | Depuis | Ce qui revient |
+                    | Projet | Domaine | Depuis | Ce qui reste |
                     | --- | --- | ---: | --- |
-                    | [[Studio Lumen]] | photographie | 2024 | deux séances, un catalogue |
-                    | [[Cabinet Verrier]] | site vitrine | 2025 | maintenance mensuelle |
-                    | Boulangerie Fournier | réseaux sociaux | 2026 | douze publications par mois |
+                    | [[Studio photo]] | photographie | 2026 | les éclairages, le fond |
+                    | [[Site de l'agence]] | web | 2025 | la galerie, les traductions |
+                    | Formation vidéo | réseaux sociaux | 2026 | deux sessions |
 
-                    ## À relancer
+                    ## À faire
 
-                    - [x] Facture de septembre, Studio Lumen
-                    - [ ] Photos de la galerie, Cabinet Verrier
-                    - [ ] Devis de la Boulangerie Fournier, à partir des [[Tarifs 2024]] revus
+                    - [x] Commander le fond papier
+                    - [ ] Photos de la galerie du site
+                    - [ ] Revoir les [[Tarifs 2024]] avant la saison
 
                     > [!tip] Une nouvelle fiche
                     > « Ajouter », puis « Partir de » le [[Brief de projet]] : la fiche arrive avec ses sections, et la date du jour déjà écrite.
                     MD,
             ],
-            'lumen' => [
-                'title' => 'Studio Lumen',
+            'studio' => [
+                'title' => 'Studio photo',
                 'icon' => '📸',
                 'properties' => [
                     ['key' => 'Statut', 'type' => 'status', 'value' => 'En cours'],
                     ['key' => 'Échéance', 'type' => 'date', 'value' => '+36'],
                     ['key' => 'Budget', 'type' => 'number', 'value' => 4200],
                     ['key' => 'Suivi par', 'type' => 'person', 'value' => 'marie.dupont@aurora.app'],
-                    ['key' => 'Site', 'type' => 'url', 'value' => 'https://studio-lumen.example'],
+                    ['key' => 'Fournisseur', 'type' => 'url', 'value' => 'https://materiel-photo.example'],
                 ],
-                'tags' => ['client', 'photo'],
-                'folder' => 'lumen',
+                'tags' => ['agence', 'photo'],
+                'folder' => 'studio',
                 'age' => '-3 days',
                 'content' => <<<'MD'
-                    # Studio Lumen
+                    # Studio photo
 
-                    Un studio de design à Lyon, six personnes. Deux séances par an : le catalogue au printemps, les portraits d'équipe à l'automne. Interlocutrice : Camille, qui décide vite.
+                    Un coin de l'atelier transformé en studio : un fond, deux éclairages, de quoi faire les portraits et les photos de produits sans louer un lieu. Suivi par Marie, qui décide vite.
 
-                    > [!quote] Ce que Camille a dit au premier rendez-vous
+                    > [!quote] Ce qu'on s'est dit au lancement
                     > « On veut des images qui ressemblent à l'atelier un mardi matin, pas à une publicité. »
 
-                    ## Les séances
+                    ## Les étapes
 
-                    | Séance | Date | Lieu | État |
+                    | Étape | Date | Où | État |
                     | --- | --- | --- | --- |
-                    | Catalogue printemps | 18 avril | atelier | livrée |
-                    | Portraits d'équipe | 14 novembre | extérieur | à venir |
+                    | Fond papier et supports | 18 avril | atelier | fait |
+                    | Éclairages continus | 14 novembre | atelier | à venir |
 
-                    ## Les conditions
+                    ## Le cadre
 
-                    Reprises du [[Contrat type]], avec une clause de cession élargie aux réseaux sociaux. Le chiffrage de l'année est dans le [[Devis Lumen 2026]], et le lieu de la prochaine séance dans le [[Repérage Lumen]].
+                    Le chiffrage de l'année est dans le [[Budget du studio 2026]], et l'endroit retenu dans le [[Repérage du local]].
 
-                    Voir aussi [[Séance en extérieur]] : c'est le format qu'ils redemandent.
+                    Voir aussi [[Séance en extérieur]] : c'est le format qu'on garde quand le temps le permet.
                     MD,
             ],
-            'verrier' => [
-                'title' => 'Cabinet Verrier',
-                'tags' => ['client', 'web'],
+            'site' => [
+                'title' => "Site de l'agence",
+                'tags' => ['agence', 'web'],
                 'icon' => '🏛️',
                 'properties' => [
                     ['key' => 'Statut', 'type' => 'status', 'value' => 'Maintenance'],
                     ['key' => 'Échéance', 'type' => 'date', 'value' => '+5'],
                     ['key' => 'Budget', 'type' => 'number', 'value' => 2160],
                     ['key' => 'Suivi par', 'type' => 'person', 'value' => 'dev@aurora.app'],
-                    ['key' => 'Contrat signé', 'type' => 'checkbox', 'value' => true],
-                    ['key' => 'Site', 'type' => 'url', 'value' => 'https://cabinet-verrier.example'],
+                    ['key' => 'Hébergement payé', 'type' => 'checkbox', 'value' => true],
+                    ['key' => 'Site', 'type' => 'url', 'value' => 'https://agence.example'],
                 ],
-                'folder' => 'clients',
+                'folder' => 'agence',
                 'age' => '-25 minutes',
                 'cover' => 923307,
                 'coverCredit' => 'Julien Bachelet',
@@ -1035,40 +1041,40 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 // code block and an image at its size: everything the
                 // rendering can do, in a real sheet.
                 'content' => <<<'MD'
-                    # Cabinet Verrier
+                    # Site de l'agence
 
-                    Trois architectes associés à Nantes, et un site vitrine qui montre leurs chantiers livrés. En ligne depuis mars, maintenance au forfait. Interlocuteur : Paul, qui relit tout.
+                    Notre site vitrine, refait au printemps : il montre nos réalisations, en photo, en web et en réseaux sociaux. Relu par Marie avant chaque mise en ligne.
 
-                    ![Le dernier chantier livré, en tête de la page d'accueil|520]({{image:0}})
+                    ![La dernière réalisation, en tête de la page d'accueil|520]({{image:0}})
 
                     > [!warning] Avant toute mise en ligne
-                    > Paul veut être prévenu, même pour une correction de texte : le cabinet répond à des appels d'offres, et le site lui sert de référence.
+                    > Marie veut être prévenue, même pour une correction de texte : le site sert de référence quand on répond à une demande de devis.
 
                     ## Où ça en est
 
                     ### Livré
 
                     - [x] Refonte de la page d'accueil
-                    - [x] Reprise des fiches chantier, 24 au total
+                    - [x] Reprise des fiches réalisation, 24 au total
 
                     ### En cours
 
                     - [ ] Galerie avant / après, en attente des photos 📅 {{date:+3}}
                     - [ ] Formulaire de contact en trois langues 📅 {{date:-2}}
 
-                    ## Le forfait
+                    ## Ce que coûte le site
 
                     | Poste | Rythme | Montant |
                     | --- | --- | ---: |
-                    | Maintenance | mensuel | 180 € |
+                    | Hébergement | mensuel | 18 € |
                     | Sauvegardes | quotidien | inclus |
-                    | Petites évolutions | 2 h par mois | inclus |
+                    | Nom de domaine | annuel | 15 € |
 
-                    Au-delà des deux heures, c'est du temps facturé au tarif courant, annoncé avant d'être engagé.
+                    Les évolutions se font sur le temps de l'agence, le vendredi après-midi.
 
                     ## Technique
 
-                    Hébergé chez eux, déployé depuis un tag :
+                    Hébergé chez nous, déployé depuis un tag :
 
                     ```bash
                     git fetch --tags
@@ -1078,19 +1084,19 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     > [!info] Accès
                     > Les identifiants sont dans le coffre partagé, jamais dans une note.
 
-                    Le cadre contractuel est celui du [[Contrat type]], et la fiche remonte au [[Sommaire des clients]].
+                    La fiche remonte au [[Sommaire de l'agence]].
                     MD,
                 'images' => [9458996],
             ],
             'contrat' => [
                 'title' => 'Contrat type',
-                'tags' => ['contrat', 'client'],
+                'tags' => ['contrat'],
                 'appearance' => 'sepia',
                 'age' => '-16 days',
                 'content' => <<<'MD'
                     # Contrat type
 
-                    Le socle commun de chaque mission, à adapter par client. Ce qui change d'un contrat à l'autre est en italique.
+                    Le socle commun de chaque mission, à adapter à chacune. Ce qui change d'un contrat à l'autre est en italique.
 
                     ## 1. Commande
 
@@ -1108,7 +1114,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     > [!note] Ce qui ne se négocie pas
                     > Le délai de validation de cinq jours ouvrés, et la mention de l'auteur des photos quand elles sont publiées.
 
-                    Retour au [[Sommaire des clients]].
+                    Retour au [[Sommaire de l'agence]].
                     MD,
             ],
             'brief' => [
@@ -1193,7 +1199,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     La méthode qu'on suit pour chaque séance hors de l'atelier : un repérage la veille, la lumière de fin de journée, et une heure de battement pour la météo.
 
-                    Le Studio Lumen redemande ce format à chaque fois, noté ici sans lien exprès pour voir ce que donne une mention non liée.
+                    Le studio photo en reprendra le déroulé une fois monté, noté ici sans lien exprès pour voir ce que donne une mention non liée.
 
                     ## Le déroulé
 
@@ -1264,7 +1270,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     ## Web
 
-                    - Pourquoi un site lent coûte des clients
+                    - Pourquoi un site lent perd ses visiteurs
                     - Ce que le pied de page d'un site dit de son sérieux
 
                     > [!question] À trancher
@@ -1272,44 +1278,44 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     MD,
             ],
             'devis' => [
-                'title' => 'Devis Lumen 2026',
-                'tags' => ['client', 'devis'],
-                'folder' => 'lumen',
+                'title' => 'Budget du studio 2026',
+                'tags' => ['agence', 'budget'],
+                'folder' => 'studio',
                 'age' => '-9 days',
                 'content' => <<<'MD'
-                    # Devis Lumen 2026
+                    # Budget du studio 2026
 
-                    Deux séances, le catalogue au printemps et les portraits à l'automne. Le cadre est celui du [[Contrat type]].
+                    Deux temps : le fond et les supports au printemps, les éclairages à l'automne. Au-delà, on loue au cas par cas.
 
                     | Poste | Quantité | Prix |
                     | --- | ---: | ---: |
-                    | Séance catalogue | 1 | 1 400 € |
-                    | Portraits d'équipe | 12 | 900 € |
-                    | Retouche | forfait | 300 € |
+                    | Fond papier et supports | 1 | 1 400 € |
+                    | Éclairages continus | 2 | 900 € |
+                    | Réflecteurs et pinces | forfait | 300 € |
                     | **Total** |  | **2 600 €** |
 
-                    > [!success] Accepté le 18 mars
-                    > Acompte reçu le 21. Le solde se facture après chaque séance, au prorata.
+                    > [!success] Validé le 18 mars
+                    > Première commande passée le 21. La seconde attend la fin de la saison.
                     MD,
             ],
             'reperage' => [
-                'title' => 'Repérage Lumen',
-                'tags' => ['photo', 'méthode', 'client'],
-                'folder' => 'lumen',
+                'title' => 'Repérage du local',
+                'tags' => ['photo', 'méthode'],
+                'folder' => 'studio',
                 'age' => '-7 days',
                 'content' => <<<'MD'
-                    # Repérage Lumen
+                    # Repérage du local
 
-                    Leur atelier donne au nord : lumière égale toute la journée, aucune ombre dure. Le mur de briques du fond fait un décor à lui seul.
+                    L'atelier donne au nord : lumière égale toute la journée, aucune ombre dure. Le mur de briques du fond fait un décor à lui seul.
 
                     ## Les trois endroits retenus
 
                     1. **Le mur de briques**, pour les portraits individuels.
-                    2. **La grande table**, pour la photo de groupe au travail.
+                    2. **La grande table**, pour les photos de produits.
                     3. **La cour**, si le temps le permet, pour finir dehors.
 
                     > [!info] Accès
-                    > L'atelier ouvre à 8 h 30. Camille prévient l'équipe la veille pour que les bureaux soient rangés.
+                    > L'atelier ouvre à 8 h 30. Prévenir l'équipe la veille pour que les bureaux soient rangés.
 
                     Méthode complète dans [[Séance en extérieur]].
                     MD,
@@ -1340,7 +1346,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     ## En bref
 
-                    Une saison :sunny: chargée : ==dix-huit séances==, =={vert}deux nouveaux clients== et {rouge}un report pour la météo{/}. Le détail des clients est dans le [[Sommaire des clients]]. #bilan
+                    Une saison :sunny: chargée : ==dix-huit séances==, =={vert}deux nouveaux clients== et {rouge}un report pour la météo{/}. Les projets de l'agence sont dans le [[Sommaire de l'agence]]. #bilan
 
                     > [!tip] À retenir
                     > Les séances de fin de journée ont donné les meilleures images : on garde le déroulé de la [[Séance en extérieur]].
@@ -1373,8 +1379,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     ## La suite
 
                     - [x] Envoyer les galeries de septembre :white_check_mark:
-                    - [ ] Relancer la Boulangerie Fournier 📅 {{date:+2}}
-                    - [ ] Préparer le catalogue du Studio Lumen 📅 {{date:+9}}
+                    - [ ] Relancer les devis en attente 📅 {{date:+2}}
+                    - [ ] Installer les éclairages du [[Studio photo]] 📅 {{date:+9}}
                     - [ ] Clore les comptes de la saison 📅 {{date:-3}}
 
                     > [!warning]- Ce qui a coincé (cliquer pour déplier)
@@ -1394,7 +1400,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     La saison prochaine garde le même rythme, avec une séance de plus par mois. ^cap
 
-                    [^avis]: Message du Studio Lumen, reçu le lendemain de la livraison.
+                    [^avis]: Message reçu le lendemain d'une livraison.
                     MD,
             ],
             'livraison' => [

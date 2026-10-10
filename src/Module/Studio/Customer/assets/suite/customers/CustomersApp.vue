@@ -151,7 +151,7 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_customers')" :subtitle="t('suite.nav.studio_customers_description')">
             <AppSearchInput
                 v-model="search"
                 :placeholder="t('suite.studio.customers.search_placeholder')"
@@ -181,7 +181,7 @@ const pageActions = computed(() => {
              visible: a prospect created from a space would otherwise be
              filed somewhere nobody thinks to open. -->
         <div
-            class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="flex items-center gap-0.5 aurora-segmented"
             role="group"
             :aria-label="t('suite.studio.customers.status')"
         >
@@ -246,7 +246,7 @@ const pageActions = computed(() => {
             v-else
             class="aurora-card overflow-x-auto scrollbar-thin"
         >
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th

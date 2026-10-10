@@ -459,7 +459,7 @@ const confirmBlocked = computed(
 
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 space-y-1">
-                <h1 class="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
+                <h1 class="text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">
                     {{ contract.reference ?? t(`${CONTRACT_KEYS}.draft_title`) }}
                 </h1>
                 <p class="flex flex-wrap items-center gap-2 text-sm text-muted">

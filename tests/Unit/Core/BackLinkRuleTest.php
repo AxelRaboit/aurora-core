@@ -50,7 +50,7 @@ final class BackLinkRuleTest extends TestCase
         'src/Core/templates/Shared/components/app_pagination.html.twig' => 'previous page of a list',
         'src/Core/assets/shared/components/overlay/AppLightbox.vue' => 'previous picture',
         'src/Core/assets/suite/sidemenu/AppTopbarNav.vue' => "the browser's own back, in an installed app",
-        'src/Core/assets/suite/sidemenu/AppSidemenu.vue' => 'from a module back to all modules, inside the menu',
+        'src/Core/assets/suite/sidemenu/AppSidemenuHead.vue' => 'from a module back to all modules, inside the menu',
         'src/Core/templates/Shared/components/icon.html.twig' => 'the icon set',
         'src/Module/Studio/Calendar/assets/suite/calendar/StudioCalendarApp.vue' => 'previous month',
         'src/Module/Studio/SpaceAccess/assets/frontend/space/PublicSpaceApp.vue' => 'previous month',

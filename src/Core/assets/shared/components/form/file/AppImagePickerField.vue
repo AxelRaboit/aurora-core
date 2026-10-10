@@ -66,7 +66,7 @@ function clear() {
 
 <template>
     <div>
-        <p v-if="label" class="text-xs font-medium text-secondary uppercase tracking-wide mb-1.5">{{ label }}</p>
+        <p v-if="label" class="mb-1.5 text-[0.8125rem] font-medium text-primary">{{ label }}</p>
         <div v-if="modelValue?.url" class="flex items-start gap-3">
             <button
                 type="button"

@@ -212,15 +212,17 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <StudioSectionTabs
-            current="spaces"
-            :tabs="[
-                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
-                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
-            ]"
-            :label="t('suite.studio.spaces.tabs_label')"
-        />
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_spaces')" :subtitle="t('suite.nav.studio_spaces_description')">
+            <template #above>
+                <StudioSectionTabs
+                    current="spaces"
+                    :tabs="[
+                        { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                        { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+                    ]"
+                    :label="t('suite.studio.spaces.tabs_label')"
+                />
+            </template>
             <AppSearchInput
                 v-model="search"
                 :placeholder="t('suite.studio.spaces.search_placeholder')"
@@ -284,7 +286,7 @@ const pageActions = computed(() => {
              The group keeps its natural width (`w-fit`): stretched over the
              whole line, two short labels floated in an empty bar. -->
         <div
-            class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+            class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
             role="group"
             :aria-label="t('suite.studio.customers.status')"
         >
@@ -358,7 +360,7 @@ const pageActions = computed(() => {
             v-else
             class="aurora-card overflow-x-auto scrollbar-thin"
         >
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th

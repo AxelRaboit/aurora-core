@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import { POST_STATUS_COLORS } from "@/shared/utils/format/statusStyles.js";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -144,14 +145,6 @@ const statusSelectOptions = props.statusOptions.map((status) => ({
     label: t(`suite.posts.status.${status}`),
 }));
 
-// Mirrors the list's own palette, so a post reads the same in both places.
-const STATUS_COLORS = {
-    draft: "gray",
-    pending_review: "amber",
-    scheduled: "sky",
-    published: "emerald",
-    archived: "zinc",
-};
 
 /**
  * How the thumbnail fills a card's frame. Written out rather than assembled:
@@ -457,7 +450,7 @@ function termLabel(term) {
         <AppPageBar :back-href="listPath" :back-label="t('suite.posts.title')">
             <!-- Status stays visible whatever section is open. Knowing you
                  are editing a live page should not require opening a tab. -->
-            <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
+            <AppBadge :color="POST_STATUS_COLORS[form.status] ?? 'gray'">
                 {{ t(`suite.posts.status.${form.status}`) }}
             </AppBadge>
             <AppPageActions

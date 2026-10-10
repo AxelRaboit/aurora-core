@@ -38,11 +38,33 @@ const props = defineProps({
      * where the colour belongs to the thing rather than to its rank - a user
      * role is blue wherever it appears, and it must not change colour because a
      * role above it in the list has nobody in it.
+     *
+     * `slot: "neutral"` paints the segment in the interface's own grey, for
+     * a state that is not a category but the absence of one - a draft nobody
+     * has acted on yet. `"muted"` is the lighter grey, for a second such state
+     * in the same bar - an archived post. `"ink"` is the text colour itself,
+     * for the settled state of a series - a published post. The palette has no
+     * grey on purpose, and borrowing a hue for "set aside" would give it a
+     * meaning it has not.
      */
     firstSlot: { type: Number, default: 1 },
 });
 
 const { t } = useI18n();
+
+function segmentColour(segment, index) {
+    if ("neutral" === segment.slot) {
+        return "var(--color-secondary)";
+    }
+    if ("muted" === segment.slot) {
+        return "var(--color-muted)";
+    }
+    if ("ink" === segment.slot) {
+        return "var(--color-primary)";
+    }
+
+    return `var(--chart-cat-${segment.slot ?? props.firstSlot + index})`;
+}
 
 const total = computed(() =>
     props.segments.reduce((sum, segment) => sum + (segment.value ?? 0), 0),
@@ -53,7 +75,7 @@ const drawn = computed(() =>
         .map((segment, index) => ({
             ...segment,
             value: segment.value ?? 0,
-            colour: `var(--chart-cat-${segment.slot ?? props.firstSlot + index})`,
+            colour: segmentColour(segment, index),
             percent:
                 total.value > 0
                     ? Math.round(((segment.value ?? 0) / total.value) * 100)
@@ -65,10 +87,10 @@ const drawn = computed(() =>
 
 <template>
     <div v-if="total > 0" class="space-y-3">
-        <!-- `gap-0.5` is the 2px surface gap. Widths come from flex-grow rather
+        <!-- `gap-[3px]` is the surface gap. Widths come from flex-grow rather
              than percentages so the gaps are taken out of the free space and the
              row can never overflow. -->
-        <div class="flex gap-0.5 h-3">
+        <div class="flex h-3 gap-[3px]">
             <AppTooltip
                 v-for="(segment, index) in drawn"
                 :key="segment.key"
@@ -97,28 +119,33 @@ const drawn = computed(() =>
         </div>
 
         <!--
-            A wrapping row of compact entries, not a grid of stretched ones. On a
-            grid the cells are half the card wide, so the count drifted to the
-            far right and read as belonging to nothing: "Brouillon" at one edge
-            and "1" at the other. Each entry keeps its own parts together and the
-            row wraps when it runs out of width.
+            A table of two columns, each entry on its own ruled row: the name
+            on the left, the count and its share on the right (visual redesign
+            of the suite, 10/10/2026, after the validated mockup).
+
+            It replaces a wrapping line of compact entries, chosen once because
+            a grid of half-card cells pushed the count to the far edge, where it
+            read as belonging to nothing. The rule above each row is what ties
+            them back together: the eye follows the line from "Brouillon" to
+            its "1", the way it reads a ledger. One column on a phone.
 
             Read in the same order as the segments, so the reader maps colour to
             name by position as well as by hue.
         -->
-        <ul class="flex flex-wrap gap-x-5 gap-y-1.5 text-sm">
+        <ul class="grid grid-cols-1 gap-x-8 text-sm sm:grid-cols-2">
             <li
                 v-for="segment in drawn"
                 :key="segment.key"
-                class="flex items-baseline gap-1.5 min-w-0"
+                data-share-legend
+                class="flex min-w-0 items-center gap-2.5 border-t border-line py-2.5"
             >
                 <span
-                    class="w-2 h-2 rounded-full shrink-0 self-center"
+                    class="h-2.5 w-2.5 shrink-0 rounded-[3px]"
                     :style="{ backgroundColor: segment.colour }"
                 />
-                <span class="text-secondary truncate">{{ segment.label }}</span>
-                <span class="text-primary font-medium tabular-nums shrink-0">{{ segment.value }}</span>
-                <span class="text-muted text-xs tabular-nums shrink-0">{{ segment.percent }}&nbsp;%</span>
+                <span class="min-w-0 truncate text-secondary">{{ segment.label }}</span>
+                <span class="ml-auto shrink-0 font-semibold tabular-nums text-primary">{{ segment.value }}</span>
+                <span class="w-11 shrink-0 text-right text-xs tabular-nums text-muted">{{ segment.percent }}&nbsp;%</span>
             </li>
         </ul>
     </div>

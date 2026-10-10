@@ -6,6 +6,8 @@ namespace Aurora\Module\Configuration\Theme\Enum;
 
 use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckFontPairEnum;
 
+use function in_array;
+
 /**
  * The family in which a theme sets the whole application.
  *
@@ -17,16 +19,23 @@ use Aurora\Module\Studio\Deliverable\Slides\Enum\DeckFontPairEnum;
  * font nobody has. It is the same reason as for {@see DeckFontPairEnum}, at
  * another scale.
  *
- * **Five, chosen to stand apart from each other.** A geometric, a neutral
- * interface one, a grotesque, a rounded one and a serif: the choice is only
+ * **Chosen to stand apart from each other.** Geometric ones, a neutral
+ * interface one, a grotesque, a rounded one and serifs: the choice is only
  * worth something if switching from one to another shows.
  *
- * Adding a family means three steps that go together: the case here, its six
- * weights imported in `app.css`, and its package as a dependency.
+ * Adding a family means three steps that go together: the case here, its
+ * weights imported in `app.css` (six files, or the single one of a variable
+ * family, see {@see self::isVariable()}), and its package as a dependency.
  */
 enum ThemeFontEnum: string
 {
-    /** Geometric. Aurora's historical font, and its default. */
+    /**
+     * Geometric, open and a little wide. Aurora's default since 10/10/2026:
+     * the face of its wordmark, so the product and its logo speak alike.
+     */
+    case Sora = 'sora';
+
+    /** Geometric. Aurora's historical font, its default until 10/10/2026. */
     case Poppins = 'poppins';
 
     /** Neutral, drawn for screens. Goes unnoticed. */
@@ -58,7 +67,7 @@ enum ThemeFontEnum: string
      *
      * Tolerates anything `Theme::config` can hold: the column is free JSON, a
      * key may have been written there by hand or have survived the removal of
-     * a case, and a screen set in Poppins is better than an error page.
+     * a case, and a screen set in the default is better than an error page.
      */
     public static function fromConfig(mixed $raw): self
     {
@@ -67,7 +76,7 @@ enum ThemeFontEnum: string
 
     public static function default(): self
     {
-        return self::Poppins;
+        return self::Sora;
     }
 
     /**
@@ -80,6 +89,7 @@ enum ThemeFontEnum: string
     public function stack(): string
     {
         return match ($this) {
+            self::Sora => "'Sora Variable', ".self::SANS_FALLBACK,
             self::Poppins => "'Poppins', ".self::SANS_FALLBACK,
             self::Inter => "'Inter', ".self::SANS_FALLBACK,
             self::WorkSans => "'Work Sans', ".self::SANS_FALLBACK,
@@ -97,6 +107,7 @@ enum ThemeFontEnum: string
     public function label(): string
     {
         return match ($this) {
+            self::Sora => 'Sora',
             self::Poppins => 'Poppins',
             self::Inter => 'Inter',
             self::WorkSans => 'Work Sans',
@@ -109,12 +120,22 @@ enum ThemeFontEnum: string
 
     /** The line that says what the family looks like, which is translated. */
     /**
-     * Space Grotesk is drawn without an italic: its package ships none, and
-     * the browser slants the upright when a page asks for one.
+     * Space Grotesk and Sora are drawn without an italic: their packages ship
+     * none, and the browser slants the upright when a page asks for one.
      */
     public function hasItalic(): bool
     {
-        return self::SpaceGrotesk !== $this;
+        return !in_array($this, [self::SpaceGrotesk, self::Sora], true);
+    }
+
+    /**
+     * Bundled from one variable file (`@fontsource-variable/<value>`), which
+     * carries every weight: one import in `app.css` instead of six. Sora was
+     * already a dependency in that form, for the slides.
+     */
+    public function isVariable(): bool
+    {
+        return self::Sora === $this;
     }
 
     public function descriptionKey(): string

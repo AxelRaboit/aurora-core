@@ -101,7 +101,7 @@ function rowActions(row) {
             </div>
 
             <div v-else class="overflow-x-auto rounded-xl border border-line">
-                <table class="w-full text-sm">
+                <table class="aurora-table w-full text-sm">
                     <thead class="bg-surface-2 text-secondary">
                         <tr>
                             <th class="px-3 py-2 text-left font-medium">{{ t("suite.beacon.col_status") }}</th>

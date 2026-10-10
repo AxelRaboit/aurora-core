@@ -132,27 +132,41 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
     }
 
     /**
-     * The "show descriptions" switch is on for everyone by default, and a row
-     * with nothing under its name sits blank beside rows that have something.
-     * Worse, the line it lost is the one that told two records apart - the
-     * picker showed exactly this under each name.
+     * A taxonomy's terms and a content type's publications are figures, drawn
+     * on the right of the name like every figure of the menu. They used to
+     * stand in for a blank description ("6 termes"), the same fact written a
+     * second way (sidemenu audit of 10/10/2026).
      */
-    public function testEveryRecordEntryKeepsTheLineThatTellsThemApart(): void
+    public function testTaxonomyAndTypeEntriesCarryTheirFigure(): void
     {
         $view = $this->moduleNavViewOn('/suite/editorial/post-types');
 
+        $counted = 0;
         foreach ($view['groups'] ?? [] as $group) {
-            if ('destinations' === $group['id']) {
+            if (!in_array($group['id'], ['taxonomies', 'post_types'], true)) {
                 continue;
             }
 
             foreach ($group['items'] as $item) {
-                self::assertNotSame(
-                    '',
-                    (string) ($item['description'] ?? ''),
-                    sprintf('%s / %s', $group['id'], $item['label'] ?? '?'),
-                );
+                self::assertIsInt($item['count'] ?? null, sprintf('%s / %s', $group['id'], $item['label'] ?? '?'));
+                self::assertDoesNotMatchRegularExpression('/^\d+ /', (string) ($item['description'] ?? ''));
+                ++$counted;
             }
+        }
+
+        self::assertGreaterThan(0, $counted);
+    }
+
+    /** Studio's pages show Studio alone, like every other module's. */
+    public function testStudioPagesShowTheStudioView(): void
+    {
+        $view = $this->moduleNavViewOn('/suite/studio/customers');
+
+        self::assertSame('studio', $view['moduleId'] ?? null);
+        $routes = array_column($view['groups'][0]['items'] ?? [], 'route');
+        self::assertContains('suite_studio_customers', $routes);
+        foreach ($view['groups'][0]['items'] ?? [] as $item) {
+            self::assertArrayNotHasKey('count', $item, 'Studio carries no figures');
         }
     }
 

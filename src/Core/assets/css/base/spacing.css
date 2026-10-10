@@ -150,3 +150,48 @@
     border-color: var(--color-border);
     border-radius: 0.75rem;
 }
+
+/**
+ * A switch between a few views: a sunken strip, the chosen option raised on it.
+ *
+ * Twenty-one switches across the suite wrote the same line of Tailwind - a
+ * hairline border, a surface-2 at forty per cent, two pixels of padding - and
+ * one more, the dashboard's, had drifted to its own. The visual redesign of the
+ * suite (10/10/2026) drops the border, which made each switch a fifth card on
+ * screens already full of them, and gives the strip its full surface-2 and
+ * four pixels of room: the raised option now reads as pressed into a groove
+ * rather than framed in a box. The options keep their own classes - their
+ * size, their counts, their icons differ from one screen to the next.
+ */
+/**
+ * A list's table: the rows the validated screen mockups drew (10/10/2026).
+ *
+ * Every list writes its own cells in Tailwind - `px-4 py-2` here, `px-6 py-3`
+ * there - and they had drifted to rows of forty pixels where a title and its
+ * reference were cramped against the lines. The class goes on the `<table>`
+ * and sets the rhythm of its cells from above: twelve pixels above and below
+ * each cell (rows of about fifty-six with a second line), headers in small
+ * capitals at a readable grey. Nested rules outweigh a cell's own utilities by
+ * specificity, so no cell has to be edited to follow.
+ */
+@utility aurora-table {
+    & thead th {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        font-size: 0.71875rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: var(--th-secondary);
+    }
+
+    & tbody td {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+}
+
+@utility aurora-segmented {
+    background-color: var(--th-surface-2);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}

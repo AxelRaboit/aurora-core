@@ -546,35 +546,36 @@ function actionsFor(deliverable) {
 
 <template>
     <div class="aurora-stack">
-        <!-- The two shelves and the sentence that says what the current one
-             is: their own row, above the toolbar, because they decide what
-             every filter below counts. The house segmented group, at its
-             natural width, scrolling sideways rather than wrapping. -->
-        <div class="flex flex-col gap-2">
-            <div
-                class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
-                role="tablist"
-                :aria-label="t('suite.studio.deliverables.scope.label')"
-            >
-                <button
-                    v-for="value in SCOPES"
-                    :key="value"
-                    type="button"
-                    role="tab"
-                    :aria-selected="scope === value ? 'true' : 'false'"
-                    class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
-                    :class="scope === value ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
-                    v-on:click="setScope(value)"
-                >
-                    <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(`suite.studio.deliverables.scope.tab_${value}`) }}
-                    <span class="text-xs tabular-nums text-muted">{{ lists[value].length }}</span>
-                </button>
-            </div>
-            <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`suite.studio.deliverables.scope.intro_${scope}`) }}</p>
-        </div>
-
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_deliverables')" :subtitle="t('suite.nav.studio_deliverables_description')">
+            <template #above>
+                <!-- The two shelves and the sentence that says what the current one
+                     is: their own row, above the toolbar, because they decide what
+                     every filter below counts. The house segmented group, at its
+                     natural width, scrolling sideways rather than wrapping. -->
+                <div class="flex flex-col gap-2">
+                    <div
+                        class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
+                        role="tablist"
+                        :aria-label="t('suite.studio.deliverables.scope.label')"
+                    >
+                        <button
+                            v-for="value in SCOPES"
+                            :key="value"
+                            type="button"
+                            role="tab"
+                            :aria-selected="scope === value ? 'true' : 'false'"
+                            class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                            :class="scope === value ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                            v-on:click="setScope(value)"
+                        >
+                            <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t(`suite.studio.deliverables.scope.tab_${value}`) }}
+                            <span class="text-xs tabular-nums text-muted">{{ lists[value].length }}</span>
+                        </button>
+                    </div>
+                    <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`suite.studio.deliverables.scope.intro_${scope}`) }}</p>
+                </div>
+            </template>
             <AppSearchInput v-model="search" :placeholder="t('suite.studio.deliverables.search_placeholder')" />
             <!-- One row from `sm`, stacked on a phone: the display switch, the
                  category and the format, next to the search like the filters

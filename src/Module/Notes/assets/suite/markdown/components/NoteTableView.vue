@@ -147,7 +147,7 @@ function isAddress(value) {
         />
 
         <div class="overflow-x-auto rounded-lg border border-line">
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead class="bg-surface-2 text-left text-xs text-muted">
                     <tr>
                         <th v-for="column in headings" :key="column.key" class="whitespace-nowrap px-3 py-2 font-medium" :aria-sort="ariaSort(column.key)">

@@ -4,14 +4,14 @@ import {
     statusBadgeColor,
     accessRequestStatusBadge,
     accessRequestStatusBadgeColor,
+    POST_STATUS_COLORS,
+    POST_STATUS_CHART_SLOTS,
 } from "./statusStyles.js";
 
 describe("statusBadge", () => {
     it("returns the correct classes for known statuses", () => {
-        expect(statusBadge("published")).toBe(
-            "bg-emerald-500/15 text-emerald-400",
-        );
         expect(statusBadge("draft")).toBe("bg-amber-500/15 text-amber-400");
+        expect(statusBadge("published")).toBe("bg-primary/10 text-primary");
     });
 
     it("returns fallback classes for unknown status", () => {
@@ -21,12 +21,37 @@ describe("statusBadge", () => {
 
 describe("statusBadgeColor", () => {
     it("returns color name for known status", () => {
-        expect(statusBadgeColor("scheduled")).toBe("violet");
-        expect(statusBadgeColor("archived")).toBe("slate");
+        expect(statusBadgeColor("scheduled")).toBe("emerald");
+        expect(statusBadgeColor("published")).toBe("ink");
     });
 
     it("returns gray for unknown status", () => {
         expect(statusBadgeColor("whatever")).toBe("gray");
+    });
+});
+
+describe("post status palette", () => {
+    it("gives every status a badge colour and a chart slot", () => {
+        const statuses = [
+            "draft",
+            "pending_review",
+            "scheduled",
+            "published",
+            "archived",
+        ];
+
+        expect(Object.keys(POST_STATUS_COLORS).sort()).toEqual(
+            [...statuses].sort(),
+        );
+        expect(Object.keys(POST_STATUS_CHART_SLOTS).sort()).toEqual(
+            [...statuses].sort(),
+        );
+    });
+
+    it("never gives two statuses the same chart colour", () => {
+        const slots = Object.values(POST_STATUS_CHART_SLOTS);
+
+        expect(new Set(slots).size).toBe(slots.length);
     });
 });
 

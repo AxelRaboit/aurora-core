@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio;
 
 use Aurora\Core\Module\Contract\ModuleInterface;
+use Aurora\Core\Module\Contract\ModuleNavViewProviderInterface;
 use Aurora\Core\Module\Contract\ModuleToggleProviderInterface;
+use Aurora\Core\Module\Nav\ModuleNavGroup;
+use Aurora\Core\Module\Nav\ModuleNavView;
 use Aurora\Core\Module\Nav\NavItem;
 use Aurora\Core\Module\Nav\NavPermission;
 use Aurora\Core\Module\Nav\NavSection;
@@ -61,7 +64,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * tile in front of the list it would immediately redirect to is one click that
  * tells the reader nothing.
  */
-final readonly class StudioModule implements ModuleInterface, ModuleToggleProviderInterface
+final readonly class StudioModule implements ModuleInterface, ModuleNavViewProviderInterface, ModuleToggleProviderInterface
 {
     public function __construct(private StudioContext $studioContext) {}
 
@@ -102,6 +105,39 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
 
     public function getNavSections(): array
     {
+        $items = $this->enabledNavItems();
+
+        if ([] === $items) {
+            return [];
+        }
+
+        return [new NavSection('studio', $items, priority: 45)];
+    }
+
+    /**
+     * The column shows Studio alone on a Studio page, as it shows Éditorial,
+     * the GED or the notes alone on theirs. Studio was the one module whose
+     * pages kept the whole project menu, scrolled down to its entry, and
+     * nothing said why it behaved differently (sidemenu audit of 10/10/2026).
+     *
+     * The same four entries as the main menu, no panel. No figures either:
+     * its lists have scopes (my spaces, personal or shared deliverables) that a
+     * single count would misstate - the decision of 10/10/2026 stands.
+     */
+    public function getModuleNavView(): ?ModuleNavView
+    {
+        $items = $this->enabledNavItems();
+
+        return [] === $items ? null : new ModuleNavView('studio', [new ModuleNavGroup('destinations', $items)]);
+    }
+
+    /**
+     * The entries whose switch is on.
+     *
+     * @return NavItem[]
+     */
+    private function enabledNavItems(): array
+    {
         if (!$this->studioContext->isSuiteEnabled()) {
             return [];
         }
@@ -132,11 +168,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $items[] = $this->deliverablesNavItem();
         }
 
-        if ([] === $items) {
-            return [];
-        }
-
-        return [new NavSection('studio', $items, priority: 45)];
+        return $items;
     }
 
     public function getCatalogNavSections(): array

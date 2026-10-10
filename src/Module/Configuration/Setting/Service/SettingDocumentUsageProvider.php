@@ -26,6 +26,7 @@ final readonly class SettingDocumentUsageProvider implements BatchDocumentUsageP
     /** The settings whose value is a document id. */
     private const array MEDIA_SETTINGS = [
         ApplicationParameterEnum::LogoMediaId,
+        ApplicationParameterEnum::LogoDarkMediaId,
         ApplicationParameterEnum::FaviconMediaId,
         ApplicationParameterEnum::SeoDefaultOgImage,
     ];

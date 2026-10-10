@@ -19,6 +19,7 @@
 import { useI18n } from "vue-i18n";
 import { PanelLeft, PanelLeftClose } from "lucide-vue-next";
 import { useSidemenuCollapse } from "./composables/useSidemenuCollapse.js";
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "./topbarButton.js";
 
 const props = defineProps({
     /** Where the choice is saved, so it survives the next page. */
@@ -32,7 +33,7 @@ const { collapsed, toggle } = useSidemenuCollapse(props.collapsedPath);
 <template>
     <button
         type="button"
-        class="shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        :class="TOPBAR_BUTTON"
         :aria-pressed="collapsed"
         :title="collapsed ? t('suite.nav.expand_menu') : t('suite.nav.collapse_menu')"
         :aria-label="collapsed ? t('suite.nav.expand_menu') : t('suite.nav.collapse_menu')"
@@ -41,7 +42,7 @@ const { collapsed, toggle } = useSidemenuCollapse(props.collapsedPath);
         <!-- The icon shows the state, not the action: an open panel when the
              menu is open. A control that showed what it would do flips under
              the cursor at the moment of clicking, which reads as a glitch. -->
-        <PanelLeftClose v-if="!collapsed" class="w-5 h-5" :stroke-width="2" />
-        <PanelLeft v-else class="w-5 h-5" :stroke-width="2" />
+        <PanelLeftClose v-if="!collapsed" :class="TOPBAR_ICON" :stroke-width="2" />
+        <PanelLeft v-else :class="TOPBAR_ICON" :stroke-width="2" />
     </button>
 </template>

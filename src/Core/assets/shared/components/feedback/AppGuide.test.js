@@ -69,22 +69,23 @@ describe("AppGuide", () => {
         expect(elsewhere.find("details").element.open).toBe(true);
     });
 
-    it("drops its frame when folded", async () => {
+    it("keeps its frame folded, around a single row", async () => {
         const wrapper = mount(AppGuide, {
             props: { title: "Guide", open: false },
         });
 
-        expect(wrapper.find("[data-guide]").classes()).not.toContain(
-            "border-dashed",
-        );
+        const frame = () => wrapper.find("[data-guide]").classes();
+        expect(frame()).toContain("border");
+        expect(frame()).toContain("py-3");
 
         const details = wrapper.find("details");
         details.element.open = true;
         await details.trigger("toggle");
 
-        expect(wrapper.find("[data-guide]").classes()).toContain(
-            "border-dashed",
-        );
+        expect(frame()).toContain("border");
+        expect(frame()).toContain("bg-surface");
+        expect(frame()).not.toContain("py-3");
+        expect(frame()).not.toContain("border-dashed");
     });
 
     it("is rounded unless told otherwise", () => {
@@ -93,10 +94,10 @@ describe("AppGuide", () => {
             props: { title: "Encastré", rounded: false },
         });
 
-        expect(rounded.find("[data-guide]").classes()).toContain("rounded-lg");
+        expect(rounded.find("[data-guide]").classes()).toContain("rounded-xl");
         expect(flush.find("[data-guide]").classes()).toContain("rounded-none");
         expect(flush.find("[data-guide]").classes()).not.toContain(
-            "rounded-lg",
+            "rounded-xl",
         );
     });
 });

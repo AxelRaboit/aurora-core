@@ -1140,16 +1140,16 @@ const SHOTS = [
         // is, the one thing the card does not mention.
         //
         // By name and not by id: the fixtures renumber on every reload.
-        // "Cabinet Verrier" is the only demo note that brings all three
+        // "Site de l'agence" is the only demo note that brings all three
         // together: a banner, a wiki link in its text, and an incoming link,
-        // so a panel that shows something. "Sommaire des clients" has a
-        // richer source but nothing points to it: the panel opened on
+        // so a panel that shows something. "Sommaire de l'agence" has a
+        // richer source but less points to it: the panel opened on
         // "Aucun lien entrant", in the middle of a picture meant to show
         // that notes link to each other.
         name: "tour-notes",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await openNoteWithPanel(page, "Cabinet Verrier");
+            await openNoteWithPanel(page, "Site de l'agence");
             await page.locator('[data-side-tab="backlinks"]').first().click();
             await page.waitForTimeout(1_000);
         },
@@ -1162,7 +1162,7 @@ const SHOTS = [
         name: "tour-notes-plan",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await openNoteWithPanel(page, "Cabinet Verrier");
+            await openNoteWithPanel(page, "Site de l'agence");
             await page.locator('[data-side-tab="outline"]').first().click();
             await page.locator("[data-note-outline]").first().waitFor();
             await page.waitForTimeout(800);
@@ -1175,7 +1175,7 @@ const SHOTS = [
         name: "tour-notes-historique",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await openNoteByTitle(page, "Cabinet Verrier");
+            await openNoteByTitle(page, "Site de l'agence");
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(500);
             await page.getByText("Historique des versions", { exact: true }).first().click();
@@ -1248,7 +1248,7 @@ const SHOTS = [
                 await page.waitForTimeout(1_200);
             }
 
-            await page.locator("main").getByRole("button", { name: "Actions pour Clients" }).first().click();
+            await page.locator("main").getByRole("button", { name: "Actions pour Agence" }).first().click();
             await page.getByText("Exporter ce dossier (zip)", { exact: true }).first().waitFor();
             await page.waitForTimeout(600);
         },
@@ -1261,7 +1261,7 @@ const SHOTS = [
         name: "tour-notes-entete",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.getByRole("link", { name: /^Sommaire de l'agence/ }).first().click();
             await page.waitForTimeout(2_500);
             // **In the content, not in the whole page.** Since each row of
             // the tree carries its own action sheet, "Actions pour…" also
@@ -1281,7 +1281,7 @@ const SHOTS = [
         name: "tour-notes-graphe",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.getByRole("link", { name: /^Sommaire de l'agence/ }).first().click();
             await page.waitForTimeout(2_500);
             await page.locator("main").getByTitle(/^Actions/).first().click();
             await page.waitForTimeout(700);
@@ -1308,7 +1308,7 @@ const SHOTS = [
         name: "tour-notes-partage",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.getByRole("link", { name: /^Sommaire de l'agence/ }).first().click();
             await page.waitForTimeout(2_500);
 
             const id = /\/markdown\/(\d+)/.exec(page.url())?.[1];
@@ -1335,7 +1335,7 @@ const SHOTS = [
         name: "tour-notes-lien-partage",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await openNoteByTitle(page, "Cabinet Verrier");
+            await openNoteByTitle(page, "Site de l'agence");
             await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
             await page.waitForTimeout(500);
             await page.getByText("Partager", { exact: true }).first().click();
@@ -1353,7 +1353,7 @@ const SHOTS = [
         name: "tour-notes-coedition",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            const id = await openNoteByTitle(page, "Cabinet Verrier");
+            const id = await openNoteByTitle(page, "Site de l'agence");
             await page.getByTitle("Édition + aperçu").first().click();
             await page.waitForTimeout(800);
 
@@ -1375,7 +1375,7 @@ const SHOTS = [
         name: "tour-notes-partage-ecriture",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            const id = await openNoteByTitle(page, "Cabinet Verrier");
+            const id = await openNoteByTitle(page, "Site de l'agence");
             await page.getByTitle("Édition + aperçu").first().click();
             await page.waitForTimeout(800);
 
@@ -1420,7 +1420,7 @@ const SHOTS = [
         name: "tour-notes-proprietes",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await openNoteByTitle(page, "Cabinet Verrier");
+            await openNoteByTitle(page, "Site de l'agence");
             await page.locator("[data-note-properties]").first().waitFor();
             await page.waitForTimeout(800);
         },
@@ -1503,17 +1503,17 @@ const SHOTS = [
     },
     {
         // A folder as a table (4.6.0): one column per property the notes
-        // use, sorted by a click on a heading. The clients' folder, whose
+        // use, sorted by a click on a heading. The agency's folder, whose
         // sheets carry a status, a due date, a budget and who follows them.
         name: "tour-notes-tableau",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            // From the firm's sheet to its folder through the breadcrumb,
+            // From the agency site's sheet to its folder through the breadcrumb,
             // without a reload: the « person » column needs the people's
             // names, which a version before 4.6.2 only asks for once a note
             // has opened.
-            await openNoteByTitle(page, "Cabinet Verrier");
-            await page.locator("[data-note-crumb]", { hasText: "Clients" }).first().click();
+            await openNoteByTitle(page, "Site de l'agence");
+            await page.locator("[data-note-crumb]", { hasText: "Agence" }).first().click();
             await page.waitForTimeout(1_500);
             await page.getByTitle("Tableau").first().click();
             await page.locator("[data-note-table]").first().waitFor();
@@ -1533,7 +1533,7 @@ const SHOTS = [
         name: "tour-notes-commentaires",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await openNoteByTitle(page, "Cabinet Verrier");
+            await openNoteByTitle(page, "Site de l'agence");
             await page.getByTitle("Édition + aperçu").first().click();
             await page.waitForTimeout(800);
             await page.locator("[data-note-comments-toggle]").first().click();
@@ -1572,7 +1572,7 @@ const SHOTS = [
         name: "tour-notes-partage-commentaires",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            const id = await openNoteByTitle(page, "Cabinet Verrier");
+            const id = await openNoteByTitle(page, "Site de l'agence");
             const guest = await openCoeditGuest(await liveLinkUrl(page, id));
             await guest.locator("[data-share-comments]").first().click();
             await guest.locator("[data-note-comment-thread]").first().waitFor();
@@ -1678,7 +1678,7 @@ const SHOTS = [
         name: "tour-notes-apparence",
         path: "/suite/notes/markdown",
         async prepare(page) {
-            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.getByRole("link", { name: /^Sommaire de l'agence/ }).first().click();
             await page.waitForTimeout(2_500);
 
             const id = /\/markdown\/(\d+)/.exec(page.url())?.[1];
@@ -2909,7 +2909,7 @@ const SHOTS = [
                     // The note is found through the list's endpoint, which
                     // a blank tab cannot reach by a relative address.
                     await tab.goto(`${BASE_URL}/suite/notes/markdown`, { waitUntil: "domcontentloaded" });
-                    await openNoteByTitle(tab, "Cabinet Verrier");
+                    await openNoteByTitle(tab, "Site de l'agence");
                 },
                 async (tab) => tab.goto(`${BASE_URL}/suite/planning/calendar`, { waitUntil: "networkidle" }),
             ]);

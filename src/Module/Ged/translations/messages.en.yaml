@@ -142,6 +142,7 @@ suite:
             status: Status
             category: Category
             file: File
+            details_title: Details
             size: Size
             add: Add document
             create: New document

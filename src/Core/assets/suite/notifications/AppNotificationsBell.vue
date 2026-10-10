@@ -1,4 +1,5 @@
 <script setup>
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "@core/suite/sidemenu/topbarButton.js";
 import { Bell, Check, X, Trash2 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -51,19 +52,24 @@ function onItemClick(entry) {
 
 <template>
     <div class="relative">
-        <AppIconButton
-            class="relative"
+        <!-- A framed square like the other controls of the top bar
+             (`TOPBAR_BUTTON`), with the unread count on its corner. -->
+        <button
+            type="button"
+            data-notifications-bell
+            :class="TOPBAR_BUTTON"
             :title="t('suite.notifications.title')"
+            :aria-label="t('suite.notifications.title')"
             v-on:click="toggle"
         >
-            <Bell class="w-5 h-5" :stroke-width="2" />
+            <Bell :class="TOPBAR_ICON" :stroke-width="2" />
             <span
                 v-if="unreadCount > 0"
-                class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold tabular-nums"
+                class="absolute -right-1.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10.5px] font-semibold tabular-nums text-white"
             >
                 {{ unreadCount > 99 ? "99+" : unreadCount }}
             </span>
-        </AppIconButton>
+        </button>
 
         <Teleport to="body">
             <div

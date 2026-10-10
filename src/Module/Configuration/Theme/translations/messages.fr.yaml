@@ -103,7 +103,8 @@ suite:
         font_family: Police d'écriture
         font_preview: Portez ce vieux whisky au juge blond qui fume.
         fonts:
-            poppins: Géométrique, aux formes régulières. Le réglage par défaut.
+            sora: Géométrique, ouverte et un peu large. Le réglage par défaut.
+            poppins: Géométrique, aux formes régulières. L'ancien réglage par défaut.
             inter: Neutre, dessinée pour les écrans. Se fait oublier.
             work-sans: Grotesque, un peu plus large et plus chaleureuse qu'Inter.
             nunito: Arrondie. Le ton le moins institutionnel de la liste.

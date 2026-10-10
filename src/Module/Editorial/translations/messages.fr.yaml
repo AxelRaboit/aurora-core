@@ -232,6 +232,10 @@ suite:
             by_status: Répartition par statut
             comments_by_status: "Commentaires par statut"
             published_per_month: "Publications par mois"
+            posts_live: "{count} en ligne"
+            posts_total: "{count} publication | {count} publications"
+            comments_total: "{count} commentaire | {count} commentaires"
+            months_range: "{from} à {to}"
     post_galleries:
         editor_guide:
             title: "Comment se compose la galerie"
@@ -1495,6 +1499,17 @@ suite:
         filter_visibility: 'Diffusion'
         filter_term: Terme
         remove_filter: 'Retirer « {value} » du filtre {filter}'
+        heading:
+            total: "{count} publication | {count} publications"
+            live: "{count} en ligne"
+            drafts: "{count} brouillon | {count} brouillons"
+        status_tabs:
+            all: Toutes
+            draft: Brouillons
+            pending_review: En revue
+            scheduled: Programmées
+            published: Publiées
+            archived: Archivées
         filter_all:
             type: Tous les types
             status: Tous les statuts

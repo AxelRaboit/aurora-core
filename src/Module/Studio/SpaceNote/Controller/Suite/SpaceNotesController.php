@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Notes\EventSubscriber\NotesRouteGateSubscriber;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\SpaceNote\Service\CustomerSpaceNoteHost;
 use Aurora\Module\Studio\SpaceNote\Service\SpaceNoteSpaceProvider;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,15 +19,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 /**
  * A client space's notes, on the Studio side: a single route.
  *
- * **Notes are written in the Notes module**, in the client space's notes
- * space, and each note goes through that module's routes and rules. What is
- * left here is opening that notes space the first time it is needed, with the
- * space's team.
+ * **Notes are written in the client space** (10/10/2026), with the notes
+ * engine's own routes confined to the space's notes space
+ * ({@see CustomerSpaceNoteHost}). What is left here is opening that notes
+ * space the first time it is needed, with the space's team.
  *
  * **No public route, ever**: the client does not see the notes. The client
  * space comes in through the URL and goes through the spaces' visibility rule,
  * like every `workspace_*` route: a space one is not part of answers 404. And
  * the route closes with the Notes module ({@see NotesRouteGateSubscriber}).
+ * No right to the Notes module is asked: the team works in it because it is
+ * the client space's team.
  */
 #[Route('/workspace/{id}/notes', name: 'workspace_space_notes', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -47,7 +50,6 @@ class SpaceNotesController extends AbstractController
      * response saves a second round trip.
      */
     #[Route('/open', name: '_open', methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('notes.markdown.use')]
     public function open(CustomerSpace $space): JsonResponse
     {
         $this->provider->resolve($space);

@@ -10,9 +10,12 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
     const { request } = useRequest();
 
     const fieldValues = reactive({});
-    const initialValues = {};
+    // Reactive, so the tab's foot can say how many changes wait and offer to
+    // drop them (visual redesign of the suite, 10/10/2026).
+    const initialValues = reactive({});
     const parameterByKey = {};
     const mediaState = reactive({});
+    const initialMedia = {};
 
     for (const groupName of availableGroups) {
         for (const parameter of groups[groupName]) {
@@ -25,6 +28,7 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
                     id: value ? Number(value) : null,
                     url: parameter.mediaUrl ?? null,
                 };
+                initialMedia[parameter.key] = { ...mediaState[parameter.key] };
             }
         }
     }
@@ -115,6 +119,24 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
         }
     }
 
+    /** How many fields of a tab differ from what is saved. */
+    function pendingCount(groupName) {
+        return (groups[groupName] ?? []).filter(
+            (parameter) =>
+                fieldValues[parameter.key] !== initialValues[parameter.key],
+        ).length;
+    }
+
+    /** Puts every field of a tab back to what is saved, images included. */
+    function resetGroup(groupName) {
+        for (const parameter of groups[groupName] ?? []) {
+            fieldValues[parameter.key] = initialValues[parameter.key];
+            if (initialMedia[parameter.key]) {
+                mediaState[parameter.key] = { ...initialMedia[parameter.key] };
+            }
+        }
+    }
+
     const savingGroups = reactive({});
 
     async function saveGroup(groupName) {
@@ -170,6 +192,11 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
                 if (typeof result.value === "string")
                     fieldValues[parameter.key] = result.value;
                 initialValues[parameter.key] = fieldValues[parameter.key];
+                if (mediaState[parameter.key]) {
+                    initialMedia[parameter.key] = {
+                        ...mediaState[parameter.key],
+                    };
+                }
             }
 
             toast.success(t("suite.settings.saved"));
@@ -192,5 +219,7 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
         onMediaChange,
         savingGroups,
         saveGroup,
+        pendingCount,
+        resetGroup,
     };
 }

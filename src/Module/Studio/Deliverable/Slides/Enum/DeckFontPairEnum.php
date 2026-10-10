@@ -10,8 +10,8 @@ namespace Aurora\Module\Studio\Deliverable\Slides\Enum;
  * **Stacks rather than a font file per theme.** A deck is read in a browser,
  * printed from that browser and opened again from a share link, and a face
  * that only loads in the back office would leave the share link setting the
- * whole deck in Times. Poppins is Aurora's own face, already loaded on every
- * page by `app.css`; the serif and the monospace are generic families, which
+ * whole deck in Times. Poppins is bundled on every page by `app.css` (it was
+ * Aurora's own face until 10/10/2026, Sora since); the serif and the monospace are generic families, which
  * every system resolves to something it actually has.
  *
  * Four pairs and no free choice, for the same reason the layouts are fixed:
@@ -20,7 +20,7 @@ namespace Aurora\Module\Studio\Deliverable\Slides\Enum;
  */
 enum DeckFontPairEnum: string
 {
-    /** Poppins throughout. The look of the back office itself. */
+    /** Poppins throughout. Kept when Sora became Aurora's face: existing decks do not change. */
     case Sans = 'sans';
 
     /** Serif throughout. Reads as a document rather than as a screen. */

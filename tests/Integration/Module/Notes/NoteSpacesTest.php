@@ -561,11 +561,11 @@ final class NoteSpacesTest extends IntegrationTestCase
             self::assertSame('notes.markdown.spaces.errors.managed', $body['error'] ?? null, $route);
         }
 
+        // Not one of the Notes module's spaces: it lives in its host's
+        // screen, so the module's list leaves it out (10/10/2026).
         $this->client->request('GET', $this->urlGenerator->generate('suite_notes_spaces_list'));
         $listed = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['spaces'];
-        $row = array_values(array_filter($listed, static fn (array $one): bool => $spaceId === (int) $one['id']))[0] ?? [];
-        self::assertTrue($row['managed'] ?? false);
-        self::assertSame('manager', $row['role'] ?? null);
+        self::assertSame([], array_values(array_filter($listed, static fn (array $one): bool => $spaceId === (int) $one['id'])));
 
         // The team changes over there: the editor leaves, the outsider arrives.
         $this->entityManager->clear();

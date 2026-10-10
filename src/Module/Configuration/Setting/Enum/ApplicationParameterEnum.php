@@ -51,6 +51,10 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case HomepagePostId = 'homepage_post_id';
     case DefaultFront = 'default_front';
     case LogoMediaId = 'logo_media_id';
+    // The logo the suite shows in dark mode, when the site's one would vanish
+    // on a dark ground (a dark mark without a tile). Empty, the site's logo
+    // serves in both modes (10/10/2026).
+    case LogoDarkMediaId = 'logo_dark_media_id';
     case FaviconMediaId = 'favicon_media_id';
     // The site name next to the logo, in the back office's top bar on a
     // phone. Shown by default; turned off, the logo stands alone (02/10/2026).
@@ -169,6 +173,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::HomepagePostId => 'suite.parameters.homepage_post_id.label',
             self::DefaultFront => 'suite.parameters.default_front.label',
             self::LogoMediaId => 'suite.parameters.logo_media_id.label',
+            self::LogoDarkMediaId => 'suite.parameters.logo_dark_media_id.label',
             self::FaviconMediaId => 'suite.parameters.favicon_media_id.label',
             self::SuiteBarSiteNameOnPhone => 'suite.parameters.suite_bar_site_name_on_phone.label',
             self::SeoTitleTemplate => 'suite.parameters.seo_title_template.label',
@@ -243,6 +248,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::HomepagePostId => 'suite.parameters.homepage_post_id.description',
             self::DefaultFront => 'suite.parameters.default_front.description',
             self::LogoMediaId => 'suite.parameters.logo_media_id.description',
+            self::LogoDarkMediaId => 'suite.parameters.logo_dark_media_id.description',
             self::FaviconMediaId => 'suite.parameters.favicon_media_id.description',
             self::SuiteBarSiteNameOnPhone => 'suite.parameters.suite_bar_site_name_on_phone.description',
             self::SeoTitleTemplate => 'suite.parameters.seo_title_template.description',
@@ -326,6 +332,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::HomepagePostId => '',
             self::DefaultFront => '',
             self::LogoMediaId => '',
+            self::LogoDarkMediaId => '',
             self::FaviconMediaId => '',
             self::SuiteBarSiteNameOnPhone => '1',
             self::SeoTitleTemplate => '{title} - {siteName}',
@@ -380,7 +387,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::HomepagePostId => 'post',
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone, self::DateFormat => 'select',
             self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::SuiteBarSiteNameOnPhone, self::EmailAccentFollowsTheme => 'bool',
-            self::LogoMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
+            self::LogoMediaId, self::LogoDarkMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
             self::ColorPickerPresets, self::SuitePalette => 'json',
             self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'color',
             default => 'string',
@@ -403,13 +410,43 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::HomepagePostId, self::DefaultFront => 'reading',
             self::MaxUploadSizeMb, self::FileVersionsLimit, self::MediaCreditVisible => 'media',
             self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'system',
-            self::LogoMediaId, self::FaviconMediaId, self::SuiteBarSiteNameOnPhone => 'branding',
+            self::LogoMediaId, self::LogoDarkMediaId, self::FaviconMediaId, self::SuiteBarSiteNameOnPhone => 'branding',
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix, self::StudioContractPrefix => 'sequences',
             self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone, self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName, self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays => 'studio',
             self::EmailLocale, self::EmailAccentFollowsTheme, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email',
             self::NavSectionAliases, self::NavItemAliases, self::NavSectionOrder, self::NavItemOrder => 'navigation',
             self::ColorPickerPresets, self::SuitePalette => 'appearance',
+        };
+    }
+
+    /**
+     * The section of its tab the field is drawn in, for the tabs long enough
+     * to need more than one block (visual redesign of the suite, 10/10/2026).
+     * Null for the short tabs, which keep a single card. The section's title
+     * and lead are `suite.settings.sections.<key>.title|lead`.
+     */
+    public function getSection(): ?string
+    {
+        return match ($this) {
+            self::SiteName, self::SiteDescription => 'identity',
+            self::SiteUrl, self::AdminEmail => 'addresses',
+            self::DefaultLocale, self::SingleLocaleMode => 'languages',
+            self::Timezone, self::DateFormat => 'dates',
+            self::PostsPerPage, self::HomepagePostId, self::DefaultFront => 'listing',
+            self::CommentsEnabled, self::CommentModerationEnabled => 'comments',
+            self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays => 'retention',
+            self::MaintenanceMode => 'maintenance',
+            self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled => 'suite_access',
+            self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'site_access',
+            self::SeoTitleTemplate, self::SeoDefaultDescription => 'seo_defaults',
+            self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo_sharing',
+            self::EmailLocale => 'email_language',
+            self::EmailAccentFollowsTheme, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email_colours',
+            self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone => 'provider_identity',
+            self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName => 'provider_bank',
+            self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays => 'contract_follow_up',
+            default => null,
         };
     }
 

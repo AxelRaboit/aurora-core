@@ -113,7 +113,7 @@ const pageActions = computed(() => {
                 {{ t("suite.mount_points.empty") }}
             </p>
 
-            <table v-else class="w-full text-sm">
+            <table v-else class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("suite.mount_points.name") }}</th>

@@ -87,9 +87,9 @@
 }
 
 :root {
-    /* Mirror of ThemeFontEnum::Poppins->stack(). A theme without a chosen font
-       emits no rule, so this is the value that applies. */
-    --th-font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    /* Mirror of ThemeFontEnum::Sora->stack(), the default. A theme without a
+       chosen font emits no rule, so this is the value that applies. */
+    --th-font-sans: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
 
     --th-bg:        rgb(249 250 251);
     --th-surface:   rgb(255 255 255);

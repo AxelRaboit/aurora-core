@@ -272,6 +272,16 @@ final readonly class MyModuleModule implements ModuleInterface
   pas de `label`, pas de `icon` sur la section - uniquement `id`, `items`, `priority`.
 - `NavPermission(string $name)` : la permission string utilisée par
   `#[IsGranted]` côté controller.
+- `NavItemCountProviderInterface` (optionnel) : le chiffre affiché à droite
+  d'une entrée du menu latéral. Deux méthodes, `getCountedItemKeys(): array`
+  (les clés stables des entrées comptées, la route par défaut) et
+  `countItem(string $itemKey): int`. Auto-tagué, rien à câbler. Le menu ne
+  demande que les entrées qu'il dessine : une entrée cachée par un droit ne
+  coûte aucune requête. **Compter avec le périmètre de la liste** (un
+  contributeur ne voit que ses publications : son chiffre aussi) ; une entrée
+  qu'on ne sait pas compter à bas coût avec ses propres règles reste sans
+  chiffre. L'icône du `NavItem` ne s'affiche plus dans le menu latéral depuis
+  le 10/10/2026 ; elle sert encore à la palette de recherche.
 
 ### 4.2 Synchroniser permissions + menus
 
@@ -1007,6 +1017,36 @@ _instanceof:
 Mémoire référence : [`pattern_configuration_tab_provider.md`](../../../.claude/memory/aurora-core/architecture/pattern_configuration_tab_provider.md).
 
 ---
+
+## 8bis. Cas 6 - module qui héberge ses propres notes
+
+Le moteur de notes (stockage, éditeur, historique, liens, recherche, corbeille)
+est celui du module Notes. Un module peut garder **un espace de notes dans ses
+propres écrans**, comme un espace client de Studio garde les notes de son
+client : ces notes s'écrivent chez lui, avec ses règles d'accès, et le module
+Notes ne les montre pas.
+
+1. **Créer l'espace** à la demande avec
+   `NoteSpaceManagerInterface::createManaged($nom, '<clé>')` ; la clé est
+   inscrite dans `NoteSpace::$managedBy`.
+2. **Implémenter `NoteSpaceHostInterface`** (tag automatique) :
+   - `getKey()` : la clé ci-dessus ;
+   - `enter($reference, $user)` : l'espace de notes derrière votre référence,
+     si la personne y a droit selon **vos** règles, sinon `null` (réponse 404) ;
+   - `referenceOf()`, `labelOf()` : votre référence et le nom de l'espace ;
+   - `pagePaths()` : les adresses de vos pages (`library`, `note` et `folder`
+     avec `__id__`), où mènent notifications et recherche.
+3. **Monter l'éditeur** dans votre écran : construire ses props avec
+   `MarkdownNotesViewBuilder::indexView()` **dans**
+   `NoteSpaceScope::within(NoteSpaceScopeEnum::Hosted, $travail, new HostedNoteSpace($espace, $hote, $reference))`,
+   puis `<MarkdownNotesApp v-bind="props" fill />`. Toutes les routes du moteur
+   portent alors le paramètre `notesHost`, qui confine chaque requête à cet
+   espace ; l'accès ne demande pas le droit `notes.markdown.use`.
+4. **Synchroniser les membres** de l'espace de notes avec vos propres règles
+   (`NoteSpaceManagerInterface::syncManaged()`).
+
+Exemple complet : `Studio/SpaceNote/Service/CustomerSpaceNoteHost.php` et
+`Studio/SpaceNote/View/SpaceNotesViewBuilder.php`.
 
 ## 9. Checklist finale - module complet
 

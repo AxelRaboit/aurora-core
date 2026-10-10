@@ -232,6 +232,10 @@ suite:
             by_status: 'Distribución por estado'
             comments_by_status: 'Comentarios por estado'
             published_per_month: 'Publicaciones por mes'
+            posts_live: "{count} en línea"
+            posts_total: "{count} publicación | {count} publicaciones"
+            comments_total: "{count} comentario | {count} comentarios"
+            months_range: "{from} a {to}"
     post_galleries:
         editor_guide:
             title: "Cómo se compone la galería"
@@ -1521,6 +1525,17 @@ suite:
         filter_visibility: 'Difusión'
         filter_term: Término
         remove_filter: 'Quitar « {value} » del filtro {filter}'
+        heading:
+            total: "{count} publicación | {count} publicaciones"
+            live: "{count} en línea"
+            drafts: "{count} borrador | {count} borradores"
+        status_tabs:
+            all: Todas
+            draft: Borradores
+            pending_review: En revisión
+            scheduled: Programadas
+            published: Publicadas
+            archived: Archivadas
         filter_all:
             type: Todos los tipos
             status: Todos los estados

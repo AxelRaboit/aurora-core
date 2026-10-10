@@ -226,7 +226,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 isDropInside
                     ? 'bg-accent-600/15 text-accent-400 border-accent-600/40 ring-2 ring-accent-500'
                     : isSelected
-                        ? 'bg-surface-2 font-medium text-primary border-transparent'
+                        ? 'sidemenu-row-active bg-accent/10 font-medium text-accent border-transparent'
                         : 'hover:bg-surface-2 text-primary border-transparent',
                 isBeingDragged ? 'opacity-40' : '',
                 draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
@@ -293,7 +293,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                      is just noise. -->
                 <span
                     v-if="isFolder && !isOpen && node.noteCount"
-                    class="shrink-0 text-xs text-muted tabular-nums"
+                    class="shrink-0 text-xs font-medium text-secondary tabular-nums sm:group-hover:hidden"
                 >
                     {{ node.noteCount }}
                 </span>
@@ -305,8 +305,14 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
 
             <!-- With negative margins: the buttons keep their click area
                  without stretching the row. They pushed it up to 42 pixels, a
-                 form height, where a file explorer fits in 30. -->
-            <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 touch:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
+                 form height, where a file explorer fits in 30.
+
+                 Gone rather than transparent until the row is hovered: an
+                 invisible block still took its width, and the folder's count
+                 stood in the middle of the row instead of at its end, unlike
+                 every figure of the menu above (sidemenu audit of 10/10/2026).
+                 The count makes way for them on hover. -->
+            <div v-if="!readonly" class="-my-1.5 flex sm:hidden sm:group-hover:flex sm:group-focus-visible:flex touch:flex items-center gap-0.5 shrink-0">
                 <AppIconButton
                     v-if="isFolder && editable"
                     color="accent"

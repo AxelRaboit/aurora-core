@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { useI18n } from "vue-i18n";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -75,12 +76,12 @@ function itemActions(trash, item) {
 
 <template>
     <div class="aurora-stack">
-        <!-- The retention alone: what the trash is and how a restore goes
-             are told by the guide below, said a second time above it and a
-             third time under the list. -->
-        <p class="text-xs text-muted">
-            {{ retentionDays > 0 ? t("suite.trash.retention", { days: retentionDays }) : t("suite.trash.retention_off") }}
-        </p>
+        <!-- The retention under the name: what the trash is and how a
+             restore goes are told by the guide below. -->
+        <AppPageHeading
+            :title="t('suite.nav.trash')"
+            :subtitle="retentionDays > 0 ? t('suite.trash.retention', { days: retentionDays }) : t('suite.trash.retention_off')"
+        />
 
         <!-- The screen's how-to guide, next to what it explains; folded
              or unfolded, the choice applies to every panel. -->
@@ -103,7 +104,7 @@ function itemActions(trash, item) {
                  line, scrolling sideways on a phone. -->
             <div class="flex flex-col gap-2">
                 <div
-                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
                     role="group"
                     :aria-label="t('suite.trash.modules_label')"
                 >
@@ -125,7 +126,7 @@ function itemActions(trash, item) {
                      name above already says what the list holds. -->
                 <div
                     v-if="activeModule && activeModule.rows.length > 1"
-                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
                     role="group"
                     :aria-label="t('suite.trash.types_label')"
                 >

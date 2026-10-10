@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Save, RotateCcw, EyeOff, Eye } from "lucide-vue-next";
@@ -38,23 +39,15 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
 </script>
 
 <template>
-    <div>
-        <!-- The screen's how-to guide, next to what it explains; folded
-             or unfolded, the choice applies to every panel. -->
-        <AppGuide :title="t('suite.profile.sidemenu.guide.title')" storage-key="profile-sidemenu" class="mb-4">
-            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`suite.profile.sidemenu.guide.step_${step}`) }}</li>
-            </ol>
-        </AppGuide>
-        <header class="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-            <p class="text-sm text-secondary min-w-0">
-                {{ t('suite.profile.sidemenu.subtitle') }}
-            </p>
-            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:shrink-0">
+    <div class="aurora-stack">
+        <!-- The screen's name, what it does and its two commands, as every
+             screen of the suite opens (visual redesign of the suite,
+             10/10/2026). The sentence sat alone above the list, with no title. -->
+        <AppPageHeading :title="t('suite.profile.sidemenu.title')" :subtitle="t('suite.profile.sidemenu.subtitle')">
+            <template #actions>
                 <AppButton
                     variant="ghost"
                     size="md"
-                    class="w-full sm:w-auto"
                     :loading="prefs.resetting.value"
                     :disabled="totalCustomisations === 0"
                     v-on:click="prefs.reset"
@@ -65,20 +58,26 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
                 <AppButton
                     variant="primary"
                     size="md"
-                    class="w-full sm:w-auto"
                     :loading="prefs.saving.value"
                     v-on:click="prefs.save"
                 >
                     <Save class="w-4 h-4" :stroke-width="2" />
                     {{ t('suite.profile.sidemenu.save') }}
                 </AppButton>
-            </div>
-        </header>
+            </template>
+        </AppPageHeading>
+
+        <!-- The screen's how-to guide, next to what it explains; folded
+             or unfolded, the choice applies to every panel. -->
+        <AppGuide :title="t('suite.profile.sidemenu.guide.title')" storage-key="profile-sidemenu">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`suite.profile.sidemenu.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <AppSearchInput
             v-model="prefs.search.value"
             :placeholder="t('suite.profile.sidemenu.search_placeholder')"
-            class="mb-4"
         />
 
         <AppNoData
@@ -135,7 +134,7 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-2 border-t border-line/40">
-                        <span class="text-xs uppercase tracking-wider text-muted shrink-0">{{ t('suite.profile.sidemenu.color_label') }}</span>
+                        <span class="shrink-0 text-[0.8125rem] font-medium text-primary">{{ t('suite.profile.sidemenu.color_label') }}</span>
                         <SectionColorPicker
                             :model-value="prefs.getSectionColor(section.id)"
                             v-on:update:model-value="(color) => prefs.setSectionColor(section.id, color)"

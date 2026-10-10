@@ -183,6 +183,13 @@ const headerActions = computed(() => {
             </AppBadge>
             <AppPageActions v-if="headerActions.length" :actions="headerActions" icon-only-on-phone />
         </AppPageBar>
+        <div class="min-w-0">
+            <h1 class="m-0 truncate text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">{{ title }}</h1>
+            <p v-if="current.translations?.[primaryLocale]?.description" class="m-0 mt-1 text-[0.8125rem] text-secondary">
+                {{ current.translations[primaryLocale].description }}
+            </p>
+        </div>
+
         <!-- The screen's how-to guide, next to what it explains; collapsed
              or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.forms.editor_guide.title')" storage-key="form-editor">
@@ -190,13 +197,6 @@ const headerActions = computed(() => {
                 <li v-for="step in 5" :key="step">{{ t(`suite.forms.editor_guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
-
-        <div class="min-w-0">
-            <h1 class="m-0 truncate text-xl font-semibold tracking-tight text-primary sm:text-2xl">{{ title }}</h1>
-            <p v-if="current.translations?.[primaryLocale]?.description" class="m-0 mt-0.5 text-sm text-secondary">
-                {{ current.translations[primaryLocale].description }}
-            </p>
-        </div>
 
         <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin" role="tablist">
             <AppTab

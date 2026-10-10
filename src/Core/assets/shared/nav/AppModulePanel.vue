@@ -50,7 +50,7 @@ const { t } = useI18n();
              room runs out. -->
         <header class="flex flex-wrap items-center gap-x-1.5 gap-y-1 px-3 pb-1">
             <h2
-                class="min-w-0 flex-1 basis-40 truncate text-xs font-semibold uppercase tracking-wide text-muted"
+                class="min-w-0 flex-1 basis-40 truncate text-xs font-semibold uppercase tracking-wider text-secondary"
             >
                 {{ title }}
             </h2>

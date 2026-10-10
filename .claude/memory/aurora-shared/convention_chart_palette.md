@@ -72,6 +72,17 @@ Résultat : pire paire adjacente ΔE 9,1 en clair et 8,4 en sombre (cible 8), et
 - Séries temporelles, plusieurs séries, axes : `AppChart` (Chart.js). Il rend
   dans un canvas, donc ni tokens de thème ni `AppTooltip`, et sa palette par
   défaut n'est pas celle-ci : la lui passer explicitement.
+- **Couleur qui appartient à la chose** (un rôle, un statut) : `slot` nommé par
+  segment, depuis une table partagée (`POST_STATUS_CHART_SLOTS`,
+  `UserRoleEnum::chartSlot()`), alignée sur les badges de la liste. Les créneaux
+  nommés ne sont plus voisins dans l'ordre validé : mesurer chaque jointure sous
+  les trois déficiences avant de les poser. Le 09/10/2026, aqua contre bleu
+  sortait deux fois plus proche en tritanopie que vert contre bleu, d'où le vert
+  pour « Publiée ». Vert contre rouge reste interdit côte à côte : les
+  commentaires gardent l'ordre de la palette.
+- **Un état qui n'est pas une catégorie** (brouillon, archivé) : `slot:
+  "neutral"` ou `"muted"`, les deux gris de l'interface, plutôt qu'une teinte qui
+  lui prêterait un sens.
 - Nouvelle teinte nécessaire : ne pas en inventer une. Ajouter un créneau
   demande de revalider la palette entière, pas seulement la nouvelle couleur.
 - Le catalogue des composants partagés

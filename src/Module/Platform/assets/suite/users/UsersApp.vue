@@ -7,6 +7,7 @@ import { UserPlus, Save, Upload, Trash2, X, Send, Pencil, LayoutGrid } from "luc
 import { toast } from "vue-sonner";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppFileInput from "@/shared/components/form/file/AppFileInput.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -158,17 +159,21 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-            <AppSearchInput v-model="search" :placeholder="t('suite.users.search_placeholder')" class="flex-1" />
-            <AppMultiselect
-                v-model="roleFilter"
-                :options="roles"
-                :placeholder="t('suite.users.all_roles')"
-                :allow-empty="true"
-                class="sm:w-48 shrink-0"
-            />
-            <AppPageActions :actions="pageActions" class="shrink-0" />
-        </div>
+        <AppListToolbar :title="t('suite.nav.users')" :subtitle="t('suite.nav.users_description')">
+            <AppSearchInput v-model="search" :placeholder="t('suite.users.search_placeholder')" />
+            <template #inline>
+                <AppMultiselect
+                    v-model="roleFilter"
+                    :options="roles"
+                    :placeholder="t('suite.users.all_roles')"
+                    :allow-empty="true"
+                    class="sm:w-48 shrink-0"
+                />
+            </template>
+            <template #actions>
+                <AppPageActions :actions="pageActions" />
+            </template>
+        </AppListToolbar>
 
         <!-- The screen's how-to, next to what it explains; collapsed or
              expanded, the choice applies to every guide. -->
@@ -231,7 +236,7 @@ const pageActions = computed(() => {
 
             <div v-else class="aurora-card overflow-x-auto scrollbar-thin">
                 <AppNoData v-if="!loading && !users.length" :message="t('suite.users.empty')" />
-                <table v-else class="w-full text-sm">
+                <table v-else class="aurora-table w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
                             <!-- A single column for the person: their name,
@@ -360,7 +365,7 @@ const pageActions = computed(() => {
                 <p v-else class="text-xs text-muted">{{ t('suite.users.invite_frontend_role_hint') }}</p>
                 <!-- The message has no recipient when nothing is sent. -->
                 <div v-if="!inviteForm.disabled">
-                    <label class="block text-xs text-secondary uppercase tracking-wide mb-1.5">{{ t('suite.users.invite_message') }}</label>
+                    <label class="mb-1.5 block text-[0.8125rem] font-medium text-primary">{{ t('suite.users.invite_message') }}</label>
                     <textarea
                         v-model="inviteForm.message"
                         rows="3"

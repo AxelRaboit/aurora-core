@@ -30,7 +30,7 @@ const DEFAULT_PRIMARY_COLOR = "#10b981";
 // Mirror of ThemeFontEnum::default(). The list of families arrives from the
 // server: this is the only enum value the form needs to know before having
 // received anything.
-const DEFAULT_FONT_FAMILY = "poppins";
+const DEFAULT_FONT_FAMILY = "sora";
 
 // The original colors of the callouts, the ones in content-blocks.css; kept
 // in sync by useThemesEdit.test.js. The theme only stores the ones it changes,

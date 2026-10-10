@@ -245,7 +245,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
 
         <div class="min-w-0 space-y-1">
             <div class="flex flex-wrap items-baseline gap-2">
-                <h1 class="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
+                <h1 class="text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">
                     {{ t(`${WORDING_KEYS}.heading`, { customer: contract.customerName }) }}
                 </h1>
                 <span class="text-sm text-muted">{{ t(`${WORDING_KEYS}.parts.${part}`) }}</span>

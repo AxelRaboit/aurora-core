@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
@@ -29,7 +30,13 @@ use function sprintf;
  */
 class NoteFolderRepository extends ResolveTargetEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /**
+     * @param ?NoteSpaceScope $scope the request's scope, null for every space -
+     *                               optional so that a project's own repository
+     *                               calling `parent::__construct($registry)` keeps
+     *                               booting
+     */
+    public function __construct(ManagerRegistry $registry, protected readonly ?NoteSpaceScope $scope = null)
     {
         parent::__construct($registry, NoteFolder::class, NoteFolderInterface::class);
     }
@@ -290,7 +297,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             ->groupBy('n.folder');
 
         /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
-        $rows = NoteSpaceRepository::bindViewer($queryBuilder, $user)
+        $rows = NoteSpaceRepository::bindViewer($queryBuilder, $user, $this->scope)
             ->getQuery()
             ->getArrayResult();
 
@@ -340,7 +347,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     {
         $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user, $this->scope);
     }
 
     /** The folders of the spaces where a person writes. */
@@ -348,7 +355,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     {
         $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user, $this->scope);
     }
 
     /** The trash a person manages: the one of the spaces where they write. */

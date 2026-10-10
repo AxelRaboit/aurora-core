@@ -6,10 +6,10 @@ namespace Aurora\Module\Notes\Comment\Service;
 
 use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Service\NoteAddresses;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_diff;
@@ -35,7 +35,7 @@ final readonly class NoteMentions
         private UserRepository $userRepository,
         private NoteSpaceAccess $spaceAccess,
         private NotificationManagerInterface $notifications,
-        private UrlGeneratorInterface $urlGenerator,
+        private NoteAddresses $noteAddresses,
         private TranslatorInterface $translator,
     ) {}
 
@@ -91,7 +91,7 @@ final readonly class NoteMentions
                 'notes.mention',
                 '' === $title ? $this->translator->trans('notes.markdown.untitled') : $title,
                 $this->translator->trans($bodyKey, ['%name%' => $actorName]),
-                $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $note->getId()]),
+                $this->noteAddresses->noteUrl($note),
                 ['noteId' => $note->getId()],
             );
             ++$told;

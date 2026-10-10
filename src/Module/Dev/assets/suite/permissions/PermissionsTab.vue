@@ -28,7 +28,7 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
             <div class="bg-surface-2 border-b border-line px-4 py-2.5">
                 <h3 class="text-sm font-semibold text-primary">{{ t(`suite.modules.${moduleEntry.id}`, moduleEntry.id) }}</h3>
             </div>
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('suite.permissions.name') }}</th>

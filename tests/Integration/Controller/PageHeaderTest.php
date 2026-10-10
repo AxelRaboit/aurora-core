@@ -59,7 +59,7 @@ final class PageHeaderTest extends IntegrationTestCase
         $name = mb_trim($crawler->filter('header h2')->text());
         self::assertNotSame('', $name, 'The upper band must name the page.');
 
-        $trail = $crawler->filter('header nav[aria-label]');
+        $trail = $crawler->filter('nav[data-breadcrumb]');
         self::assertSame(
             1,
             $trail->filter('span.select-none')->count(),
@@ -71,6 +71,11 @@ final class PageHeaderTest extends IntegrationTestCase
             'A trail that stops before the page it is on does not say where you are.',
         );
         self::assertSame(1, $trail->filter('[aria-current="page"]')->count());
+        self::assertSame(
+            0,
+            $crawler->filter('header nav[data-breadcrumb]')->count(),
+            'The trail belongs to the content, not to the sticky bar: drawn there it made the frame two bands thick.',
+        );
     }
 
     /**
@@ -88,7 +93,7 @@ final class PageHeaderTest extends IntegrationTestCase
 
         self::assertResponseIsSuccessful();
 
-        $trail = $crawler->filter('header nav[aria-label]');
+        $trail = $crawler->filter('nav[data-breadcrumb]');
 
         // Three levels, so two separators.
         self::assertSame(2, $trail->filter('span.select-none')->count());
@@ -122,7 +127,7 @@ final class PageHeaderTest extends IntegrationTestCase
 
         self::assertResponseIsSuccessful();
 
-        $trail = $crawler->filter('header nav[aria-label]');
+        $trail = $crawler->filter('nav[data-breadcrumb]');
         self::assertSame(1, $trail->filter('span.select-none')->count(), 'A section and the page: one separator.');
         self::assertStringContainsString(mb_trim($crawler->filter('header h2')->text()), mb_trim($trail->text()));
         self::assertSame(1, $trail->filter('[aria-current="page"]')->count());

@@ -79,18 +79,21 @@ onUnmounted(() => {
     <div ref="root" class="relative">
         <button
             type="button"
-            class="flex shrink-0 items-center rounded-lg p-0.5 transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            class="flex shrink-0 items-center rounded-full transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             :title="userName || userEmail"
             :aria-label="userName || userEmail"
             :aria-expanded="open"
             aria-haspopup="menu"
             v-on:click="open = !open"
         >
+            <!-- Thirty-six pixels, the height of the framed controls beside it,
+                 in the soft accent: the initials read as a person rather than
+                 as one more button. -->
             <AppAvatar
-                variant="solid"
+                variant="soft"
                 :name="initials"
                 :photo-url="userPhotoUrl"
-                size="sm"
+                size="lg"
             />
         </button>
 

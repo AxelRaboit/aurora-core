@@ -144,7 +144,7 @@ function chooseFile(event) {
             <!-- Two attachments, two tabs, and the count on the label: it is
                  what makes the other one visible. -->
             <div
-                class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+                class="flex items-center gap-0.5 aurora-segmented"
                 role="group"
                 :aria-label="t('suite.studio.space_files.label')"
             >

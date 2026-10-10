@@ -276,8 +276,8 @@ describe("les espaces du panneau", () => {
     });
 
     /**
-     * A space set from Studio carries its badge, and its settings do not
-     * open from here, even for whoever manages it.
+     * A space another module hosts is set there: its settings do not open
+     * from here, even for whoever manages it.
      */
     it("keeps the settings of a managed space closed", async () => {
         answerWith({
@@ -297,7 +297,6 @@ describe("les espaces du panneau", () => {
         const wrapper = await render();
 
         expect(wrapper.find('[data-space-settings="7"]').exists()).toBe(false);
-        expect(wrapper.find("[data-space-managed]").exists()).toBe(true);
     });
 });
 

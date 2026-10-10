@@ -96,10 +96,10 @@ final class CustomerPageTest extends IntegrationTestCase
         // Studio > Clients > the company name, with the list as a link.
         $crawler = $this->client->getCrawler();
         self::assertStringStartsWith('Atelier Temoin - ', mb_trim($crawler->filter('title')->text()));
-        $header = $crawler->filter('main header, body header')->first()->text();
-        self::assertStringContainsString('Studio', $header);
-        self::assertStringContainsString('Atelier Temoin', $header);
-        self::assertGreaterThan(0, $crawler->filter('header a[href="/suite/studio/customers"]')->count());
+        $trail = $crawler->filter('nav[data-breadcrumb]')->first()->text();
+        self::assertStringContainsString('Studio', $trail);
+        self::assertStringContainsString('Atelier Temoin', $trail);
+        self::assertGreaterThan(0, $crawler->filter('nav[data-breadcrumb] a[href="/suite/studio/customers"]')->count());
     }
 
     public function testAnUnknownCustomerIsNotFound(): void

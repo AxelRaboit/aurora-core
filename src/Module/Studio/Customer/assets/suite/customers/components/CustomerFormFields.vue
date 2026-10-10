@@ -9,9 +9,14 @@
  * the links and the notes that this one lacked. It is read-only now, and every
  * field lives here.
  *
- * The grouping is the one the contracts use: who the company is, who signs for
- * it, how to reach it. Then what the client reads on their own page: links and
- * notes.
+ * The grouping is the one the contracts use: who the company is, then who
+ * signs for it and how to reach them. Then what the client reads on their own
+ * page: links and notes.
+ *
+ * On the customer's page, each group is its own titled card with a sentence
+ * saying where it ends up (`framed`, visual redesign of the suite,
+ * 10/10/2026); in the creation dialog, already a card, they stay plain
+ * sections under a small heading.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -25,6 +30,8 @@ const props = defineProps({
     modelValue: { type: Object, required: true },
     errors: { type: Object, default: () => ({}) },
     currencies: { type: Array, default: () => [] },
+    /** Each group in its own card, its title and sentence on top. */
+    framed: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -78,6 +85,12 @@ function linkError(index, field) {
     return props.errors[`links[${index}].${field}`] ?? "";
 }
 
+const sectionClass = computed(() => (props.framed ? "aurora-card space-y-4 p-4 sm:p-5" : "space-y-4"));
+const titleClass = computed(() =>
+    props.framed ? "m-0 text-[0.9375rem] font-semibold text-primary" : "m-0 text-xs font-medium uppercase tracking-wider text-muted",
+);
+const leadClass = computed(() => (props.framed ? "m-0 text-[0.8125rem] text-secondary" : "m-0 text-xs text-muted"));
+
 const currencyOptions = computed(() =>
     props.currencies.map((currency) => ({
         value: currency.value,
@@ -87,11 +100,12 @@ const currencyOptions = computed(() =>
 </script>
 
 <template>
-    <div class="space-y-5">
-        <section class="space-y-4">
-            <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
-                {{ t("suite.studio.customers.group_identity") }}
-            </h3>
+    <div :class="framed ? 'flex flex-col aurora-gap' : 'space-y-5'">
+        <section :class="sectionClass" data-customer-section="identity">
+            <div class="space-y-0.5">
+                <h3 :class="titleClass">{{ t("suite.studio.customers.group_identity") }}</h3>
+                <p :class="leadClass">{{ t("suite.studio.customers.group_identity_hint") }}</p>
+            </div>
 
             <!-- At the top of the sheet, because it is what tells the reader
                  why half the fields below are empty: a prospect does not yet
@@ -197,10 +211,11 @@ const currencyOptions = computed(() =>
             </div>
         </section>
 
-        <section class="space-y-4">
-            <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
-                {{ t("suite.studio.customers.group_representative") }}
-            </h3>
+        <section :class="sectionClass" data-customer-section="people">
+            <div class="space-y-0.5">
+                <h3 :class="titleClass">{{ t("suite.studio.customers.group_people") }}</h3>
+                <p :class="leadClass">{{ t("suite.studio.customers.group_people_hint") }}</p>
+            </div>
 
             <div class="grid gap-4 sm:grid-cols-3">
                 <AppInput
@@ -225,12 +240,6 @@ const currencyOptions = computed(() =>
                     v-on:update:model-value="set('representativeRole', $event)"
                 />
             </div>
-        </section>
-
-        <section class="space-y-4">
-            <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
-                {{ t("suite.studio.customers.group_contact") }}
-            </h3>
 
             <AppInput
                 :model-value="form.contractualEmail"
@@ -263,12 +272,10 @@ const currencyOptions = computed(() =>
 
         <!-- What the customer reads in the Informations tab of their spaces:
              say so here, since this is where it is written. -->
-        <section class="space-y-4">
+        <section :class="sectionClass" data-customer-section="links">
             <div class="space-y-0.5">
-                <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
-                    {{ t("suite.studio.customers.group_links") }}
-                </h3>
-                <p class="m-0 text-xs text-muted">{{ t("suite.studio.customers.group_links_hint") }}</p>
+                <h3 :class="titleClass">{{ t("suite.studio.customers.group_links") }}</h3>
+                <p :class="leadClass">{{ t("suite.studio.customers.group_links_hint") }}</p>
             </div>
 
             <div class="flex flex-col gap-3">

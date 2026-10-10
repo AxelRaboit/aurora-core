@@ -46,7 +46,7 @@ onMounted(() => {
         </div>
         <p v-if="!data?.items?.length" class="py-8 text-center text-sm text-muted">{{ t('suite.audit.empty') }}</p>
         <div v-else class="aurora-card overflow-x-auto scrollbar-thin">
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('suite.audit.action') }}</th>

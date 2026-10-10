@@ -35,12 +35,17 @@ import { isRef } from "vue";
  *
  * `studio` (45) closes the list under notes (violet), so it takes emerald:
  * the furthest hue from a purple, and the one every ledger already reads in.
+ *
+ * `planning` was teal until 10/10/2026: beside studio's emerald it measured
+ * a ΔE of 3.2 under the worst colour-vision deficiency, two greens nobody
+ * could tell apart. Cyan doubles that (6.2, against sky, which sits at the
+ * other end of the list) - sidemenu audit of 10/10/2026.
  */
 const SECTION_THEMES = {
     general: makeTheme("sky"),
     platform: makeTheme("indigo"),
     configuration: makeTheme("fuchsia"),
-    planning: makeTheme("teal"),
+    planning: makeTheme("cyan"),
     editorial: makeTheme("rose"),
     ged: makeTheme("lime"),
     notes: makeTheme("violet"),
@@ -371,13 +376,18 @@ export function useSidemenuSectionTheme(overrides = {}) {
      * menu (UI audit of 07/10/2026). The section keeps its hue, and the
      * reader's habit of « lime is the GED », in a dot before its name
      * (`dotClasses`); the label and the band go neutral.
+     *
+     * Neutral, but legible: `secondary` rather than `muted`. The headers are
+     * the column's landmarks, and in the lightest grey they fell under the
+     * contrast a label needs to be read without leaning in (visual redesign
+     * of the suite, 09/10/2026).
      */
     function headerClasses() {
         return "rounded-md hover:bg-surface-2";
     }
 
     function labelClasses() {
-        return "text-muted hover:text-secondary";
+        return "text-secondary hover:text-primary";
     }
 
     /** The section's own colour, kept to a dot before its name. */
@@ -389,19 +399,31 @@ export function useSidemenuSectionTheme(overrides = {}) {
      * Tailwind classes for a nav item's wrapper:
      * - active (current route)     → tinted background + tinted text
      * - in-tree (parent of active) → tinted text only, hover tint bg
-     * - idle                       → muted text, hover slides into tint
+     * - idle                       → body text, hover slides into tint
+     *
+     * An idle row is written in the body colour slightly lifted off the
+     * page's black (`primary/80`), not in the secondary grey: a menu is
+     * read before it is clicked, and the grey left every destination looking
+     * disabled next to the one already open. The description under it takes
+     * the secondary grey - the gap between the two is what makes them two
+     * lines of different weight.
      */
     function itemClasses(sectionId, { isActive, inTree }) {
         // One active state for the whole suite, whatever the module: the
-        // place you are reads the same everywhere.
+        // place you are reads the same everywhere. In the site's accent, a
+        // tint, its name in the colour and a 2 px edge (`sidemenu-row-active`):
+        // the grey it was matched the hover, and the open page did not stand
+        // out from the one under the pointer (visual redesign of the suite,
+        // 10/10/2026). The accent and not the section's hue, so the 07/10
+        // decision against a rainbow of active rows holds.
         if (isActive) {
-            return "bg-surface-2 text-primary font-medium";
+            return "sidemenu-row-active bg-accent/10 text-accent font-medium";
         }
         if (inTree) {
             return "text-primary hover:bg-surface-2";
         }
 
-        return "text-secondary hover:text-primary hover:bg-surface-2/60";
+        return "text-primary/80 hover:text-primary hover:bg-surface-2/60";
     }
 
     /** Tailwind classes for the icon nested inside a nav item. */

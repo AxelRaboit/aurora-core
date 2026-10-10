@@ -531,14 +531,18 @@ final class ContractPdfTest extends IntegrationTestCase
      * nothing: the active link is gone once they have signed, so a contract
      * waiting for the countersignature read as last touched the day it was
      * sent.
+     *
+     * The columns hold UTC with no zone, so the shifts start from
+     * `NOW() AT TIME ZONE 'UTC'`: a bare `NOW()` writes the server's local
+     * time, a day ahead of PHP between midnight and 2 a.m. in Paris.
      */
     public function testTheLastActivityOfASignedContractIsItsSignature(): void
     {
         $contractId = $this->signedByCustomer();
         $connection = $this->entityManager->getConnection();
-        $connection->executeStatement("UPDATE core_contracts SET created_at = NOW() - INTERVAL '10 days', frozen_at = NOW() - INTERVAL '10 days', last_reminder_at = NULL WHERE id = :id", ['id' => $contractId]);
-        $connection->executeStatement("UPDATE core_contract_access_links SET sent_at = NOW() - INTERVAL '10 days', last_used_at = NOW() - INTERVAL '10 days', revoked_at = CASE WHEN revoked_at IS NULL THEN NULL ELSE NOW() - INTERVAL '10 days' END WHERE contract_id = :id", ['id' => $contractId]);
-        $connection->executeStatement("UPDATE core_contract_signatures SET signed_at = NOW() - INTERVAL '2 days' WHERE contract_id = :id", ['id' => $contractId]);
+        $connection->executeStatement("UPDATE core_contracts SET created_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '10 days', frozen_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '10 days', last_reminder_at = NULL WHERE id = :id", ['id' => $contractId]);
+        $connection->executeStatement("UPDATE core_contract_access_links SET sent_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '10 days', last_used_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '10 days', revoked_at = CASE WHEN revoked_at IS NULL THEN NULL ELSE (NOW() AT TIME ZONE 'UTC') - INTERVAL '10 days' END WHERE contract_id = :id", ['id' => $contractId]);
+        $connection->executeStatement("UPDATE core_contract_signatures SET signed_at = (NOW() AT TIME ZONE 'UTC') - INTERVAL '2 days' WHERE contract_id = :id", ['id' => $contractId]);
         $this->entityManager->clear();
 
         $row = static::getContainer()->get(ContractSerializer::class)->serializeMany([$this->contractRepository->find($contractId)])[0];

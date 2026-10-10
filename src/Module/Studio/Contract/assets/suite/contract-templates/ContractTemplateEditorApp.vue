@@ -366,7 +366,7 @@ const governingLabel = computed(
         </AppMessage>
 
         <div class="flex flex-wrap items-baseline gap-2">
-            <h1 class="text-xl font-semibold tracking-tight text-primary sm:text-2xl">
+            <h1 class="text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">
                 {{ template.name }}
             </h1>
             <span class="text-sm text-muted">

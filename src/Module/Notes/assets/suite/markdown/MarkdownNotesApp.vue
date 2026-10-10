@@ -1,4 +1,5 @@
 <script setup>
+import { withQuery } from "@/shared/utils/http/withQuery.js";
 import { overlaysSettled } from '@/shared/composables/overlay/useBackButtonClose.js';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -53,6 +54,7 @@ import { useNoteLive } from "@notes/suite/markdown/composables/useNoteLive.js";
 import { useNoteCoedit } from "@notes/suite/markdown/composables/useNoteCoedit.js";
 import { canCoedit } from "@notes/suite/markdown/composables/noteCoeditProtocol.js";
 import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
+import { ID_PLACEHOLDER, idFromAddress } from "@notes/suite/markdown/composables/noteAddress.js";
 
 const { formatDateTime } = useDateFormat();
 
@@ -154,6 +156,18 @@ const props = defineProps({
     extraFields: { type: Object, default: () => ({}) },
     /** The note this URL is. Decided by the server, not by the browser. */
     activeId: { type: Number, default: null },
+    /**
+     * The page addresses `{ library, note, folder }` when another module
+     * hosts this screen - a client space's notes, shown in the client space
+     * (10/10/2026). The address bar then follows the host's page, while the
+     * requests keep going to the paths above. Null in the Notes module.
+     */
+    pagePaths: { type: Object, default: null },
+    /**
+     * Take the height the parent gives rather than the window's: a host
+     * shows the screen inside its own layout, under its own header.
+     */
+    fill: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -356,7 +370,16 @@ onErrorCaptured((error) => {
  * back button returns the library, because the address being left is a real
  * address and not an internal state.
  */
-const foldersApi = useNoteFoldersApi(props.folderPaths);
+/**
+ * Where the address bar goes: the host's pages when the screen is hosted,
+ * the Notes module's otherwise. The folder's page replaces the module's in
+ * the folder routes, so the library writes the host's address too.
+ */
+const libraryPage = computed(() => props.pagePaths?.library ?? props.libraryPath);
+const notePageTemplate = computed(() => props.pagePaths?.note ?? props.showPath);
+const folderPageTemplate = computed(() => props.pagePaths?.folder ?? props.folderPaths.show);
+
+const foldersApi = useNoteFoldersApi({ ...props.folderPaths, show: folderPageTemplate.value });
 const folders = ref([...props.folders]);
 
 const spacesApi = useNoteSpacesApi(props.spacePaths);
@@ -562,7 +585,7 @@ const { request: linkTitleRequest } = useRequest();
 /** A pasted address's page title, or null; nothing on screen if it fails. */
 async function fetchLinkTitle(url) {
     if (!props.linkTitlePath) return null;
-    const payload = await linkTitleRequest(`${props.linkTitlePath}?url=${encodeURIComponent(url)}`, null, {
+    const payload = await linkTitleRequest(withQuery(props.linkTitlePath, { url }), null, {
         method: 'GET',
         silent: true,
         noGuard: true,
@@ -894,7 +917,7 @@ const noteActions = computed(() => {
                 // The menu's history back, still on its way, would cancel the
                 // navigation: we leave once it has completed.
                 await overlaysSettled();
-                window.location.assign(`${readHref.value}?print=1`);
+                window.location.assign(withQuery(readHref.value, { print: 1 }));
             },
         },
         {
@@ -1497,7 +1520,7 @@ async function toggleFavorite(kind, id) {
 }
 
 function folderUrlFor(id) {
-    return props.folderPaths.show.replace('__id__', String(id));
+    return folderPageTemplate.value.replace(ID_PLACEHOLDER, String(id));
 }
 
 /**
@@ -1526,7 +1549,7 @@ async function showLibrary(folderId = null) {
     // Fallback: if it did not mount, the address stays the truth.
     window.location.assign(
         null === folderId || undefined === folderId
-            ? props.libraryPath
+            ? libraryPage.value
             : folderUrlFor(folderId),
     );
 }
@@ -1537,7 +1560,7 @@ async function refreshFolders() {
 }
 
 function noteUrlFor(id) {
-    return props.showPath.replace('__id__', String(id));
+    return notePageTemplate.value.replace(ID_PLACEHOLDER, String(id));
 }
 
 function noteExportUrlFor(id) {
@@ -1557,11 +1580,12 @@ async function openNote(id) {
 
 function onHistoryPop() {
     // The library has its own listener for the folder; this one only
-    // decides between "a note" and "the list".
-    const match = /\/markdown\/(\d+)(?:$|[?#])/.exec(window.location.pathname);
+    // decides between "a note" and "the list". Read against the page's own
+    // template, so a hosted screen finds its way back too.
+    const noteId = idFromAddress(notePageTemplate.value);
 
-    if (match) {
-        void selectNote(Number(match[1]));
+    if (null !== noteId) {
+        void selectNote(noteId);
 
         return;
     }
@@ -1604,7 +1628,7 @@ async function confirmDeleteAndLeave() {
     const folderId = openFolderId.value;
 
     try {
-        window.history.replaceState({ folderId }, '', folderId ? folderUrlFor(folderId) : props.libraryPath);
+        window.history.replaceState({ folderId }, '', folderId ? folderUrlFor(folderId) : libraryPage.value);
     } catch {
         // Sandboxed frame: the library is shown, only the address does not follow.
     }
@@ -1612,7 +1636,7 @@ async function confirmDeleteAndLeave() {
 
 function backToLibrary() {
     const folderId = openFolderId.value;
-    const url = folderId ? folderUrlFor(folderId) : props.libraryPath;
+    const url = folderId ? folderUrlFor(folderId) : libraryPage.value;
 
     try {
         window.history.pushState({ folderId }, '', url);
@@ -1646,8 +1670,8 @@ function backToLibrary() {
 function exportUrl({ spaceId = null, folderId = null } = {}) {
     // A single space when the panel asks for it from its header, a single
     // folder from its menu.
-    if (null != folderId) return `${props.exportPath}?folderId=${encodeURIComponent(String(folderId))}`;
-    if (null != spaceId) return `${props.exportPath}?spaceId=${encodeURIComponent(String(spaceId))}`;
+    if (null != folderId) return withQuery(props.exportPath, { folderId });
+    if (null != spaceId) return withQuery(props.exportPath, { spaceId });
 
     return props.exportPath;
 }
@@ -2009,7 +2033,10 @@ onUnmounted(() => {
          says how to leave it. `flex-1 min-h-0` on the card avoids writing its
          height by subtracting the link's, a number that would be wrong at the
          first change of font size. -->
-    <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)] flex-col gap-1.5">
+    <div
+        class="flex flex-col gap-1.5"
+        :class="fill ? 'min-h-0 flex-1' : 'h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)]'"
+    >
         <!-- The breadcrumb extends the back link: the root, then each folder
              down to the note, each one clickable. A note only had its title
              above it, and one no longer knew which folder one was writing in
@@ -2026,7 +2053,7 @@ onUnmounted(() => {
                  reloading the page. -->
             <AppBackLink
                 class="mr-1 shrink-0"
-                :href="libraryPath"
+                :href="libraryPage"
                 :label="t('notes.markdown.library.title')"
                 v-on:back="backToLibrary"
             />
@@ -2506,7 +2533,7 @@ onUnmounted(() => {
                     :notes-api="api"
                     :initial-folder-id="folderId"
                     :breadcrumb="breadcrumb"
-                    :root-url="libraryPath"
+                    :root-url="libraryPage"
                     :note-url-for="noteUrlFor"
                     :note-export-url-for="noteExportUrlFor"
                     :export-url-for="exportUrl"

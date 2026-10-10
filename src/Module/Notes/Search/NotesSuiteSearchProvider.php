@@ -6,10 +6,14 @@ namespace Aurora\Module\Notes\Search;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Search\SuiteSearchProviderInterface;
+use Aurora\Module\Notes\Markdown\Service\NoteAddresses;
 use Aurora\Module\Notes\NotesContext;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceScopeEnum;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
@@ -32,6 +36,11 @@ use function preg_replace;
  * (`visibleTo` in the repository is the one rule). The cost is the decryption
  * of those notes on each search, bounded by what the reader can already read.
  *
+ * **A hosted note opens where it lives** (10/10/2026): a client space's note
+ * leads to the client space, with the space's name under its title. Somebody
+ * without the Notes module still finds the notes of the client spaces whose
+ * team they are in - the search runs over the hosted spaces only for them.
+ *
  * Title matches first: somebody typing a note's name wants that note, not the
  * ten others that mention it.
  */
@@ -48,7 +57,9 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
         private NoteSearch $noteSearch,
         private NotesContext $notesContext,
         private Security $security,
-        private UrlGeneratorInterface $urlGenerator,
+        private NoteAddresses $noteAddresses,
+        private NoteSpaceRepository $spaceRepository,
+        private NoteSpaceScope $scope,
         private TranslatorInterface $translator,
     ) {}
 
@@ -62,21 +73,26 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
                 !$user instanceof CoreUserInterface
                 || !$this->notesContext->isSuiteEnabled()
                 || !$this->notesContext->isMarkdownEnabled()
-                || !$this->security->isGranted(self::PRIVILEGE)
+                || '' === mb_trim($query)
             ) {
-                return [];
-            }
-
-            if ('' === mb_trim($query)) {
                 return [];
             }
 
             // The notebook's own search (10/10/2026): accents and case
             // ignored, every word required, the best match first, and the
             // passage that matched. Already without the trashed notes.
+            $search = fn (): array => $this->noteSearch->search($user, $query, 'relevance', self::LIMIT)['results'];
+            $results = $this->security->isGranted(self::PRIVILEGE)
+                ? $search()
+                : $this->scope->within(NoteSpaceScopeEnum::Hosts, $search);
+
+            $spaces = $this->spacesOf($results);
             $rows = [];
-            foreach ($this->noteSearch->search($user, $query, 'relevance', self::LIMIT)['results'] as $result) {
-                $rows[] = $this->row($result);
+            foreach ($results as $result) {
+                $space = $spaces[(int) $result['spaceId']] ?? null;
+                if ($space instanceof NoteSpaceInterface) {
+                    $rows[] = $this->row($result, $space);
+                }
             }
 
             return ['notes' => $rows];
@@ -92,11 +108,14 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
      * of the same name apart; a match elsewhere shows the passage that
      * matched, since the title alone would not say why the note came up.
      *
+     * A hosted note shows its host's name for the space instead of the
+     * folder, and leads to the host's page.
+     *
      * @param array<string, mixed> $result
      *
      * @return array<string, mixed>
      */
-    private function row(array $result): array
+    private function row(array $result, NoteSpaceInterface $space): array
     {
         $title = (string) $result['title'];
         $passage = null;
@@ -108,13 +127,37 @@ final readonly class NotesSuiteSearchProvider implements SuiteSearchProviderInte
         }
 
         $titleMatched = [] !== $result['titleRanges'];
+        $hostLabel = $this->noteAddresses->hostLabel($space);
+        $place = $hostLabel ?? $this->folderName($result['folderName']);
 
         return [
             'id' => $result['id'],
             'title' => '' === mb_trim($title) ? $this->translator->trans('notes.markdown.untitled') : $title,
-            'subtitle' => $titleMatched || null === $passage ? $this->folderName($result['folderName']) : $passage,
-            'path' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => $result['id']]),
+            'subtitle' => $titleMatched || null === $passage ? $place : (null === $hostLabel ? $passage : $hostLabel.' · '.$passage),
+            'path' => $this->noteAddresses->noteUrlIn($space, (int) $result['id']),
         ];
+    }
+
+    /**
+     * The spaces of the results, by id, in one query.
+     *
+     * @param list<array<string, mixed>> $results
+     *
+     * @return array<int, NoteSpaceInterface>
+     */
+    private function spacesOf(array $results): array
+    {
+        $ids = array_values(array_unique(array_map(static fn (array $result): int => (int) $result['spaceId'], $results)));
+        if ([] === $ids) {
+            return [];
+        }
+
+        $spaces = [];
+        foreach ($this->spaceRepository->findBy(['id' => $ids]) as $space) {
+            $spaces[(int) $space->getId()] = $space;
+        }
+
+        return $spaces;
     }
 
     private function folderName(?string $name): ?string

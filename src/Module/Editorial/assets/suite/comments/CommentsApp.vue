@@ -79,31 +79,32 @@ const tabs = computed(() => [
 
 <template>
     <div class="aurora-stack">
-        <!-- The queues first, as a segmented group like the other lists of
-             the suite, each with its count as a muted number. One line on
-             a phone too: it scrolls sideways rather than wrapping. -->
-        <div class="overflow-x-auto scrollbar-thin">
-            <div
-                class="inline-flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
-                role="group"
-                :aria-label="t('suite.comments.title')"
-            >
-                <button
-                    v-for="tab in tabs"
-                    :key="tab.value"
-                    type="button"
-                    class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
-                    :class="status === tab.value ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
-                    :aria-pressed="status === tab.value"
-                    v-on:click="status = tab.value"
-                >
-                    {{ tab.label }}
-                    <span class="text-xs tabular-nums text-muted">{{ tab.count }}</span>
-                </button>
-            </div>
-        </div>
-
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.comments')" :subtitle="t('suite.nav.comments_description')">
+            <template #above>
+                <!-- The queues first, as a segmented group like the other lists of
+                     the suite, each with its count as a muted number. One line on
+                     a phone too: it scrolls sideways rather than wrapping. -->
+                <div class="overflow-x-auto scrollbar-thin">
+                    <div
+                        class="inline-flex items-center gap-0.5 aurora-segmented"
+                        role="group"
+                        :aria-label="t('suite.comments.title')"
+                    >
+                        <button
+                            v-for="tab in tabs"
+                            :key="tab.value"
+                            type="button"
+                            class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-sm transition-colors"
+                            :class="status === tab.value ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                            :aria-pressed="status === tab.value"
+                            v-on:click="status = tab.value"
+                        >
+                            {{ tab.label }}
+                            <span class="text-xs tabular-nums text-muted">{{ tab.count }}</span>
+                        </button>
+                    </div>
+                </div>
+            </template>
             <AppSearchInput v-model="search" :placeholder="t('suite.comments.search_placeholder')" />
         </AppListToolbar>
 
