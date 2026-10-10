@@ -580,13 +580,13 @@ suite:
         todo:
             title: "Pendiente"
             nothing: "Nada le espera por ahora."
-            countersign: "{count} contrato por contrafirmar | {count} contratos por contrafirmar"
-            missed: "{count} publicación perdida | {count} publicaciones perdidas"
-            late_review: "{count} revisión atrasada | {count} revisiones atrasadas"
-            changes_requested: "{count} contenido por revisar | {count} contenidos por revisar"
-            comments_pending: "{count} comentario pendiente | {count} comentarios pendientes"
-            posts_pending_review: "{count} publicación por revisar | {count} publicaciones por revisar"
-            reminders_overdue: "{count} recordatorio atrasado | {count} recordatorios atrasados"
+            countersign: "contrato por contrafirmar | contratos por contrafirmar"
+            missed: "publicación perdida | publicaciones perdidas"
+            late_review: "revisión atrasada | revisiones atrasadas"
+            changes_requested: "contenido por revisar | contenidos por revisar"
+            comments_pending: "comentario pendiente | comentarios pendientes"
+            posts_pending_review: "publicación por revisar | publicaciones por revisar"
+            reminders_overdue: "recordatorio atrasado | recordatorios atrasados"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

@@ -66,7 +66,11 @@ const TONES = {
                             :class="item.href ? 'hover:border-accent/40 hover:bg-surface-2/40' : ''"
                         >
                             <span class="text-2xl font-semibold leading-none tracking-tight tabular-nums" :class="TONES[item.tone] ?? 'text-primary'">{{ item.count }}</span>
-                            <span class="min-w-0 flex-1 text-sm text-primary/80">{{ t(item.labelKey, { count: item.count }) }}</span>
+                            <!-- The label without its number: the figure is already in
+                                 large type right before it, and "1 1 commentaire"
+                                 said it twice. The count still picks the
+                                 singular or the plural. -->
+                            <span class="min-w-0 flex-1 text-sm text-primary/80">{{ t(item.labelKey, { count: item.count }, item.count) }}</span>
                             <ChevronRight v-if="item.href" class="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" :stroke-width="2" />
                         </component>
                     </li>

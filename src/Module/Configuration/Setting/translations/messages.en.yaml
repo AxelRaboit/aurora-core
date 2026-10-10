@@ -581,13 +581,13 @@ suite:
         todo:
             title: "To do"
             nothing: "Nothing is waiting for you right now."
-            countersign: "{count} contract to countersign | {count} contracts to countersign"
-            missed: "{count} missed publication | {count} missed publications"
-            late_review: "{count} late review | {count} late reviews"
-            changes_requested: "{count} content item to rework | {count} content items to rework"
-            comments_pending: "{count} pending comment | {count} pending comments"
-            posts_pending_review: "{count} post to review | {count} posts to review"
-            reminders_overdue: "{count} overdue reminder | {count} overdue reminders"
+            countersign: "contract to countersign | contracts to countersign"
+            missed: "missed publication | missed publications"
+            late_review: "late review | late reviews"
+            changes_requested: "content item to rework | content items to rework"
+            comments_pending: "pending comment | pending comments"
+            posts_pending_review: "post to review | posts to review"
+            reminders_overdue: "overdue reminder | overdue reminders"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

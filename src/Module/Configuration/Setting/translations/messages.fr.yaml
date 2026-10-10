@@ -582,13 +582,13 @@ suite:
         todo:
             title: "À traiter"
             nothing: "Rien ne vous attend pour l'instant."
-            countersign: "{count} contrat à contresigner | {count} contrats à contresigner"
-            missed: "{count} parution manquée | {count} parutions manquées"
-            late_review: "{count} relecture en retard | {count} relectures en retard"
-            changes_requested: "{count} contenu à revoir | {count} contenus à revoir"
-            comments_pending: "{count} commentaire en attente | {count} commentaires en attente"
-            posts_pending_review: "{count} publication à relire | {count} publications à relire"
-            reminders_overdue: "{count} rappel en retard | {count} rappels en retard"
+            countersign: "contrat à contresigner | contrats à contresigner"
+            missed: "parution manquée | parutions manquées"
+            late_review: "relecture en retard | relectures en retard"
+            changes_requested: "contenu à revoir | contenus à revoir"
+            comments_pending: "commentaire en attente | commentaires en attente"
+            posts_pending_review: "publication à relire | publications à relire"
+            reminders_overdue: "rappel en retard | rappels en retard"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'
