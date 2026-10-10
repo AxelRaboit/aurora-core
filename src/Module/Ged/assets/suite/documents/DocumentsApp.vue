@@ -435,32 +435,34 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <!-- Where the list stands, as a plain line rather than a card: the
-             search used to sit squeezed inside it, its placeholder cut. Shown
-             inside the folder tree only; « Tous les documents » is already
-             what the menu panel highlights. -->
-        <nav
-            v-if="!allDocumentsView"
-            class="flex min-w-0 flex-wrap items-center gap-1 text-sm text-muted"
-            :aria-label="t('suite.ged.documents.folder')"
-        >
-            <AppTextLinkButton color="muted" size="sm" class="shrink-0 no-underline hover:no-underline" v-on:click="navigateToRoot">
-                <Home class="w-3.5 h-3.5" :stroke-width="2" />
-                {{ t("suite.ged.documents.root_folder") }}
-            </AppTextLinkButton>
-            <template v-for="crumb in breadcrumbs" :key="crumb.id">
-                <ChevronRight class="w-3 h-3 shrink-0" :stroke-width="2" />
-                <AppTextLinkButton color="muted" size="sm" class="truncate no-underline hover:no-underline" v-on:click="navigateTo(crumb.id)">
-                    {{ crumb.name }}
-                </AppTextLinkButton>
-            </template>
-        </nav>
+        <AppListToolbar :title="t('suite.nav.documents')" :subtitle="t('suite.nav.documents_description')">
+            <template #above>
+                <!-- Where the list stands, as a plain line rather than a card: the
+                     search used to sit squeezed inside it, its placeholder cut. Shown
+                     inside the folder tree only; « Tous les documents » is already
+                     what the menu panel highlights. -->
+                <nav
+                    v-if="!allDocumentsView"
+                    class="flex min-w-0 flex-wrap items-center gap-1 text-sm text-muted"
+                    :aria-label="t('suite.ged.documents.folder')"
+                >
+                    <AppTextLinkButton color="muted" size="sm" class="shrink-0 no-underline hover:no-underline" v-on:click="navigateToRoot">
+                        <Home class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("suite.ged.documents.root_folder") }}
+                    </AppTextLinkButton>
+                    <template v-for="crumb in breadcrumbs" :key="crumb.id">
+                        <ChevronRight class="w-3 h-3 shrink-0" :stroke-width="2" />
+                        <AppTextLinkButton color="muted" size="sm" class="truncate no-underline hover:no-underline" v-on:click="navigateTo(crumb.id)">
+                            {{ crumb.name }}
+                        </AppTextLinkButton>
+                    </template>
+                </nav>
 
-        <!-- The house list toolbar: the search on the left, the page
-             actions on the right. Four filters and « Plus de filtres » do
-             not fit beside a search with a 320 px menu: squeezed, their
-             placeholders broke over two lines. They take the row under it. -->
-        <AppListToolbar>
+                <!-- The house list toolbar: the search on the left, the page
+                     actions on the right. Four filters and « Plus de filtres » do
+                     not fit beside a search with a 320 px menu: squeezed, their
+                     placeholders broke over two lines. They take the row under it. -->
+            </template>
             <AppSearchInput v-model="searchInput" :placeholder="t('suite.ged.documents.search_placeholder')" v-on:search="onSearch" />
             <template v-if="pageActions.length" #actions>
                 <AppPageActions :actions="pageActions" class="w-full sm:w-auto" />
@@ -790,7 +792,7 @@ const pageActions = computed(() => {
 
                     <!-- Desktop table (list view) -->
                     <div v-show="viewMode === 'list' && !isNarrow" class="aurora-card overflow-x-auto scrollbar-thin">
-                        <table class="w-full text-sm">
+                        <table class="aurora-table w-full text-sm">
                             <thead>
                                 <tr class="bg-surface-2/50 border-b border-line/40">
                                     <th v-if="isSelecting" class="w-8 px-3 py-3" />

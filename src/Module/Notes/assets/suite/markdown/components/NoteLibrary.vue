@@ -1938,7 +1938,7 @@ defineExpose({
                  The table scrolls in its own container so that the page
                  never goes sideways. -->
                 <div v-else class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="aurora-table w-full text-sm">
                         <thead class="text-left text-xs uppercase tracking-wide text-muted">
                             <tr>
                                 <th scope="col" class="px-2 py-2 font-medium">{{ t('notes.markdown.library.columns.name') }}</th>

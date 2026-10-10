@@ -461,14 +461,20 @@ class PostRepository extends ResolveTargetEntityRepository
      *
      * @return array<string, int> status value → count, trashed posts excluded
      */
-    public function countByStatus(): array
+    public function countByStatus(?int $authorId = null): array
     {
-        $rows = $this->createQueryBuilder('p')
+        $queryBuilder = $this->createQueryBuilder('p')
             ->select('p.status AS status', 'COUNT(p.id) AS total')
             ->where('p.deletedAt IS NULL')
-            ->groupBy('p.status')
-            ->getQuery()
-            ->getArrayResult();
+            ->groupBy('p.status');
+
+        // The posts list counts with its own scope: a contributor reads the
+        // statuses of what they wrote, as the rows below them.
+        if (null !== $authorId) {
+            $queryBuilder->andWhere('p.author = :authorId')->setParameter('authorId', $authorId);
+        }
+
+        $rows = $queryBuilder->getQuery()->getArrayResult();
 
         $counts = [];
         foreach ($rows as $row) {

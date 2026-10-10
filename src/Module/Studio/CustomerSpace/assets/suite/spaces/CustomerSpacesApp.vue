@@ -212,15 +212,17 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <StudioSectionTabs
-            current="spaces"
-            :tabs="[
-                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
-                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
-            ]"
-            :label="t('suite.studio.spaces.tabs_label')"
-        />
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_spaces')" :subtitle="t('suite.nav.studio_spaces_description')">
+            <template #above>
+                <StudioSectionTabs
+                    current="spaces"
+                    :tabs="[
+                        { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                        { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+                    ]"
+                    :label="t('suite.studio.spaces.tabs_label')"
+                />
+            </template>
             <AppSearchInput
                 v-model="search"
                 :placeholder="t('suite.studio.spaces.search_placeholder')"
@@ -358,7 +360,7 @@ const pageActions = computed(() => {
             v-else
             class="aurora-card overflow-x-auto scrollbar-thin"
         >
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th

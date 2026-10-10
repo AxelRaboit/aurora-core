@@ -18,12 +18,40 @@
  * action across the full line.
  */
 import { useSlots } from "vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
+
+const props = defineProps({
+    /**
+     * The screen's name. Given one, the toolbar opens with the page heading
+     * (`AppPageHeading`) and the commands move up beside it; the search and
+     * the filters then hold their own line below (visual redesign of the
+     * suite, 10/10/2026). Without it, the toolbar draws as it always did.
+     */
+    title: { type: String, default: "" },
+    /** The line under the name: the list's figures, or what it is for. */
+    subtitle: { type: String, default: "" },
+});
 
 const slots = useSlots();
 </script>
 
 <template>
-    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+    <div v-if="props.title" class="flex flex-col gap-4">
+        <AppPageHeading :title="props.title" :subtitle="props.subtitle">
+            <template v-if="slots.actions" #actions>
+                <slot name="actions" />
+            </template>
+        </AppPageHeading>
+        <slot name="above" />
+        <div v-if="slots.inline" class="flex flex-col gap-2 min-w-0 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="flex-1 min-w-0 sm:min-w-72">
+                <slot />
+            </div>
+            <slot name="inline" />
+        </div>
+        <slot v-else />
+    </div>
+    <div v-else class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
         <!-- **The filters go under the search on a phone.** Placed next
              to it, two twelve-rem selects took the three hundred and fifty
              pixels of the line and the search dropped to zero, its icon

@@ -15,6 +15,10 @@ export function usePostsList(props) {
     const total = ref(props.posts.total ?? 0);
     const page = ref(props.posts.page ?? 1);
     const totalPages = ref(props.posts.totalPages ?? 1);
+    // One figure per status, over everything the reader may see, for the
+    // status switch and the heading. Refreshed with every reload, so a bulk
+    // publish moves the numbers.
+    const statusCounts = ref(props.posts.statusCounts ?? {});
     const loading = ref(false);
 
     const search = ref(props.search ?? "");
@@ -64,6 +68,7 @@ export function usePostsList(props) {
             total.value = data.total;
             page.value = data.page;
             totalPages.value = data.totalPages;
+            if (data.statusCounts) statusCounts.value = data.statusCounts;
 
             // Keeps the address bar in step without reloading the page, so a
             // filtered list survives a refresh and can be shared.
@@ -126,6 +131,7 @@ export function usePostsList(props) {
         total,
         page,
         totalPages,
+        statusCounts,
         loading,
         search,
         postTypeIds,

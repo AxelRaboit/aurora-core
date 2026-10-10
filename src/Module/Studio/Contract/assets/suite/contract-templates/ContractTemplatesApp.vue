@@ -314,13 +314,15 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <ContractsSectionTabs
-            v-if="contractsPath && templatesPath"
-            current="templates"
-            :contracts-path="contractsPath"
-            :templates-path="templatesPath"
-        />
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_contracts')" :subtitle="t('suite.nav.studio_contracts_description')">
+            <template #above>
+                <ContractsSectionTabs
+                    v-if="contractsPath && templatesPath"
+                    current="templates"
+                    :contracts-path="contractsPath"
+                    :templates-path="templatesPath"
+                />
+            </template>
             <AppSearchInput
                 v-model="search"
                 :placeholder="t('suite.studio.contract_templates.search_placeholder')"
@@ -441,7 +443,7 @@ const pageActions = computed(() => {
             v-else-if="viewMode === 'list'"
             class="aurora-card overflow-x-auto scrollbar-thin"
         >
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">

@@ -1499,6 +1499,17 @@ suite:
         filter_visibility: 'Visibility'
         filter_term: Term
         remove_filter: 'Remove "{value}" from the {filter} filter'
+        heading:
+            total: "{count} post | {count} posts"
+            live: "{count} live"
+            drafts: "{count} draft | {count} drafts"
+        status_tabs:
+            all: All
+            draft: Drafts
+            pending_review: In review
+            scheduled: Scheduled
+            published: Published
+            archived: Archived
         filter_all:
             type: All types
             status: All statuses

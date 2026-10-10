@@ -50,7 +50,7 @@ const props = defineProps({
 });
 
 const {
-    items, total, page, totalPages, loading,
+    items, total, page, totalPages, statusCounts, loading,
     search, postTypeIds, termIds, statuses, visibilities,
     goToPage, toggleIn, clearFilters,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
@@ -248,11 +248,6 @@ const allFilters = computed(() => [
         options: props.postTypes.map((postType) => ({ value: postType.id, label: postType.label })),
     },
     {
-        key: "status",
-        model: statuses,
-        options: props.statusOptions.map((status) => ({ value: status, label: t(`suite.posts.status.${status}`) })),
-    },
-    {
         key: "visibility",
         model: visibilities,
         options: props.visibilityOptions.map((visibility) => ({
@@ -275,6 +270,44 @@ const allFilters = computed(() => [
 // A filter with nothing to choose from is not offered (no term defined yet,
 // for instance).
 const filters = computed(() => allFilters.value.filter((filter) => filter.options.length));
+
+/**
+ * The status as a switch with its figures, rather than a fourth select: the
+ * statuses are the list's main division, and a select hid how many waited in
+ * each (validated screen mockups, 10/10/2026). One status at a time, or all;
+ * the address keeps `statuses` so an older link with several still filters.
+ */
+const statusTabs = computed(() => {
+    const counts = statusCounts.value;
+    const all = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+    return [
+        { key: "all", label: t("suite.posts.status_tabs.all"), count: all, values: [] },
+        ...props.statusOptions.map((status) => ({
+            key: status,
+            label: t(`suite.posts.status_tabs.${status}`),
+            count: counts[status] ?? 0,
+            values: [status],
+        })),
+    ];
+});
+
+const activeStatusTab = computed(() => (1 === statuses.value.length ? statuses.value[0] : "all"));
+
+function selectStatusTab(tab) {
+    statuses.value = [...tab.values];
+}
+
+/** "49 publications · 48 en ligne · 1 brouillon", from the same figures. */
+const headingSubtitle = computed(() => {
+    const counts = statusCounts.value;
+    const all = Object.values(counts).reduce((sum, count) => sum + count, 0);
+    const parts = [t("suite.posts.heading.total", { count: all }, all)];
+    if (counts.published) parts.push(t("suite.posts.heading.live", { count: counts.published }));
+    if (counts.draft) parts.push(t("suite.posts.heading.drafts", { count: counts.draft }, counts.draft));
+
+    return parts.join(" · ");
+});
 
 /**
  * One chip per chosen value, in the order of the toolbar. A value the
@@ -314,7 +347,24 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.posts')" :subtitle="headingSubtitle">
+            <template #above>
+                <div class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide" role="group" :aria-label="t('suite.posts.status_column')">
+                    <button
+                        v-for="tab in statusTabs"
+                        :key="tab.key"
+                        type="button"
+                        data-status-tab
+                        class="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+                        :class="activeStatusTab === tab.key ? 'bg-surface text-primary shadow-sm' : 'text-secondary hover:text-primary'"
+                        :aria-pressed="activeStatusTab === tab.key ? 'true' : 'false'"
+                        v-on:click="selectStatusTab(tab)"
+                    >
+                        {{ tab.label }}
+                        <span class="text-xs tabular-nums text-muted">{{ tab.count }}</span>
+                    </button>
+                </div>
+            </template>
             <AppSearchInput v-model="search" :placeholder="t('suite.posts.search_placeholder')" />
             <!-- No label, the placeholder says it (« Tous les statuts »).
                  When they do not fit beside the search, AppListToolbar puts
@@ -410,7 +460,7 @@ const pageActions = computed(() => {
         </p>
 
         <div v-if="!isNarrow" class="aurora-card overflow-x-auto scrollbar-thin">
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="w-10 px-4 py-2">

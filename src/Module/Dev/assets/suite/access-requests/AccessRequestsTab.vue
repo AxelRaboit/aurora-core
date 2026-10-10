@@ -98,7 +98,7 @@ const pageActions = computed(() => {
             </div>
 
             <div class="aurora-card hidden sm:block overflow-x-auto scrollbar-thin">
-                <table class="w-full text-sm">
+                <table class="aurora-table w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('suite.access_requests.requester') }}</th>

@@ -81,6 +81,7 @@ class PostsController extends AbstractController
             termIds: $filters['termIds'],
             statuses: $filters['statuses'],
             visibilities: $filters['visibilities'],
+            withStatusCounts: true,
         );
 
         // The filter bar re-fetches this same payload, so the page render and

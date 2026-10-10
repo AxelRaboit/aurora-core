@@ -85,14 +85,16 @@ const pageActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- The screen's how-to guide, next to what it explains; folded
-             or unfolded, the choice applies to every panel. -->
-        <AppGuide :title="t('suite.ged.categories.guide.title')" storage-key="ged-categories">
-            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`suite.ged.categories.guide.step_${step}`) }}</li>
-            </ol>
-        </AppGuide>
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.ged_categories')" :subtitle="t('suite.nav.ged_categories_description')">
+            <template #above>
+                <!-- The screen's how-to guide, next to what it explains; folded
+                     or unfolded, the choice applies to every panel. -->
+                <AppGuide :title="t('suite.ged.categories.guide.title')" storage-key="ged-categories">
+                    <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                        <li v-for="step in 5" :key="step">{{ t(`suite.ged.categories.guide.step_${step}`) }}</li>
+                    </ol>
+                </AppGuide>
+            </template>
             <AppSearchInput v-model="searchInput" :placeholder="t('suite.ged.categories.search_placeholder')" v-on:search="onSearch" />
             <template #actions>
                 <AppPageActions
@@ -123,7 +125,7 @@ const pageActions = computed(() => {
 
             <!-- Desktop table -->
             <div class="aurora-card hidden sm:block overflow-x-auto scrollbar-thin">
-                <table class="w-full text-sm">
+                <table class="aurora-table w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("suite.ged.categories.name") }}</th>

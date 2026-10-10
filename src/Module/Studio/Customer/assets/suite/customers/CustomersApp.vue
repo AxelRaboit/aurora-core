@@ -151,7 +151,7 @@ const pageActions = computed(() => {
 
 <template>
     <div ref="container" class="aurora-stack">
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_customers')" :subtitle="t('suite.nav.studio_customers_description')">
             <AppSearchInput
                 v-model="search"
                 :placeholder="t('suite.studio.customers.search_placeholder')"
@@ -246,7 +246,7 @@ const pageActions = computed(() => {
             v-else
             class="aurora-card overflow-x-auto scrollbar-thin"
         >
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th

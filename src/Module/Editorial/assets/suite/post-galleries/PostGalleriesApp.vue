@@ -44,8 +44,7 @@ function editPath(post) {
 <template>
     <div class="relative aurora-stack">
         <AppLoader :active="loading" />
-
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.post_galleries')" :subtitle="t('suite.nav.post_galleries_description')">
             <AppSearchInput
                 :model-value="search"
                 :placeholder="t('suite.post_galleries.search_placeholder')"

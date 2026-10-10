@@ -194,39 +194,41 @@ function spaceName(item) {
 
 <template>
     <div ref="container" class="relative aurora-stack">
-        <StudioSectionTabs
-            current="calendar"
-            :tabs="[
-                { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
-                { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
-            ]"
-            :label="t('suite.studio.spaces.tabs_label')"
-        />
         <AppLoader :active="loading" />
+        <AppListToolbar :title="t('suite.nav.studio_spaces')" :subtitle="t('suite.nav.studio_spaces_description')">
+            <template #above>
+                <StudioSectionTabs
+                    current="calendar"
+                    :tabs="[
+                        { key: 'spaces', label: t('suite.studio.spaces.tab_list'), path: spacesPath },
+                        { key: 'calendar', label: t('suite.studio.spaces.tab_calendar'), path: calendarPath },
+                    ]"
+                    :label="t('suite.studio.spaces.tabs_label')"
+                />
 
-        <!-- The scope tabs, like those of the space list: the scope changes
-             the spaces counted, so the page reloads. -->
-        <div
-            v-if="hasScopeChoice"
-            class="flex w-fit items-center gap-0.5 aurora-segmented"
-            role="group"
-            :aria-label="t('suite.studio.calendar.scope_label')"
-        >
-            <a
-                v-for="option in ['mine', 'all']"
-                :key="option"
-                :href="scopeHref(option)"
-                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
-                :class="option === scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
-                :aria-current="option === scope ? 'true' : undefined"
-            >
-                {{ t(`suite.studio.calendar.scopes.${option}`) }}
-            </a>
-        </div>
+                <!-- The scope tabs, like those of the space list: the scope changes
+                     the spaces counted, so the page reloads. -->
+                <div
+                    v-if="hasScopeChoice"
+                    class="flex w-fit items-center gap-0.5 aurora-segmented"
+                    role="group"
+                    :aria-label="t('suite.studio.calendar.scope_label')"
+                >
+                    <a
+                        v-for="option in ['mine', 'all']"
+                        :key="option"
+                        :href="scopeHref(option)"
+                        class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                        :class="option === scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                        :aria-current="option === scope ? 'true' : undefined"
+                    >
+                        {{ t(`suite.studio.calendar.scopes.${option}`) }}
+                    </a>
+                </div>
 
-        <!-- The list bar: the search, and the filters next to it rather than
-             as labelled fields on a separate line. -->
-        <AppListToolbar>
+                <!-- The list bar: the search, and the filters next to it rather than
+                     as labelled fields on a separate line. -->
+            </template>
             <AppSearchInput v-model="search" :placeholder="t('suite.studio.calendar.search_placeholder')" />
             <template #inline>
                 <AppSelect v-model="customer" :options="customerOptions" :placeholder="t('suite.studio.calendar.all_customers')" />

@@ -196,13 +196,15 @@ const pageActions = computed(() =>
 
 <template>
     <div class="aurora-stack">
-        <ContractsSectionTabs
-            v-if="contractsPath && templatesPath"
-            current="contracts"
-            :contracts-path="contractsPath"
-            :templates-path="templatesPath"
-        />
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.studio_contracts')" :subtitle="t('suite.nav.studio_contracts_description')">
+            <template #above>
+                <ContractsSectionTabs
+                    v-if="contractsPath && templatesPath"
+                    current="contracts"
+                    :contracts-path="contractsPath"
+                    :templates-path="templatesPath"
+                />
+            </template>
             <AppSearchInput v-model="search" :placeholder="t(`${FLOW_KEYS}.list.search`)" />
             <template #inline>
                 <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -250,7 +252,7 @@ const pageActions = computed(() =>
         <AppNoData v-if="!rows.length" :message="'all' === step ? t(`${CONTRACT_KEYS}.empty`) : t(`${FLOW_KEYS}.empty_step`)" />
 
         <div v-else class="aurora-card overflow-x-auto scrollbar-thin hidden md:block">
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40 text-left text-xs font-medium uppercase tracking-wider text-muted">
                         <th class="px-4 py-2">{{ t(`${FLOW_KEYS}.list.reference`) }}</th>
