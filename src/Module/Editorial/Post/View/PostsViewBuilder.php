@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\View;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Validation\Dto\PaginationRequest;
+use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
@@ -144,6 +145,10 @@ final readonly class PostsViewBuilder
             // What a page that follows the site's useful links will show, so
             // the editor can say so rather than show an empty list.
             'siteUsefulLinks' => $this->siteUsefulLinks->links(),
+            // The fonts a banner's title and text may take: the theme's list,
+            // from the server. The editor kept its own copy, and Sora, added
+            // to the enum in 4.9.0, never reached it (10/10/2026).
+            'bannerFonts' => ThemeFontEnum::choices(),
             ...$this->sharedContext(),
         ];
     }

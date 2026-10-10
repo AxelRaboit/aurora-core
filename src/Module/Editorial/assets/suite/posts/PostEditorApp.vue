@@ -1,7 +1,7 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { POST_STATUS_COLORS } from "@/shared/utils/format/statusStyles.js";
-import { computed, ref } from "vue";
+import { computed, provide, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
@@ -26,6 +26,7 @@ import BannerColorField from "./components/BannerColorField.vue";
 import ShareLinksField from "./components/ShareLinksField.vue";
 import UsefulLinksField from "./components/UsefulLinksField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
+import { BANNER_FONTS_KEY } from "./composables/usePostBanner.js";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
 import PostRevisionsModal from "./components/PostRevisionsModal.vue";
@@ -52,6 +53,8 @@ const props = defineProps({
     taxonomies: { type: Array, default: () => [] },
     decks: { type: Array, default: () => [] },
     forms: { type: Array, default: () => [] },
+    /** The fonts a banner may take, ThemeFontEnum::choices(): `{ value, label }`. */
+    bannerFonts: { type: Array, default: () => [] },
     siteUsefulLinks: { type: Array, default: () => [] },
     locales: { type: Array, default: () => [] },
     statusOptions: { type: Array, default: () => [] },
@@ -122,6 +125,10 @@ const postTypeOptions = props.postTypes.map((type) => ({ value: type.id, label: 
  */
 const formOptions = props.forms.map((form) => ({ value: form.id, label: form.title }));
 const deckOptions = props.decks.map((deck) => ({ value: deck.id, label: deck.title }));
+// Read by every banner panel, the page's own and those set in the grid as a
+// zone, two and three components down: handed down rather than threaded
+// through each level.
+provide(BANNER_FONTS_KEY, props.bannerFonts);
 
 /**
  * The taxonomies themselves, for the zone that draws a whole set of terms

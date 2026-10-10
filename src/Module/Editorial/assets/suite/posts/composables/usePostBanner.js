@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
     emptyBannerCarousel,
@@ -41,17 +41,12 @@ const WIDTHS = [
     { columns: 12, key: "quarter" },
 ];
 
-// Mirrors ThemeFontEnum: the families the site serves itself. Null follows
-// the theme's font, which is what every banner did before it could choose.
-const FONTS = [
-    { value: "poppins", label: "Poppins" },
-    { value: "inter", label: "Inter" },
-    { value: "work-sans", label: "Work Sans" },
-    { value: "nunito", label: "Nunito" },
-    { value: "lora", label: "Lora" },
-    { value: "playfair-display", label: "Playfair Display" },
-    { value: "space-grotesk", label: "Space Grotesk" },
-];
+/**
+ * The fonts a banner may take: ThemeFontEnum::choices(), provided by the post
+ * editor. No copy here any more: the list used to be redeclared in this file,
+ * and Sora, added to the enum in 4.9.0, never reached it (10/10/2026).
+ */
+export const BANNER_FONTS_KEY = Symbol("bannerFonts");
 
 function writable(get, set) {
     return computed({ get, set });
@@ -161,6 +156,7 @@ function newSlide(model) {
 
 export function usePostBanner(layout, texts) {
     const { t } = useI18n();
+    const fonts = inject(BANNER_FONTS_KEY, []);
 
     // Everything below reads the design here. `banner` is kept as the name so
     // the shape stays recognisable against BannerNormalizer's layout half.
@@ -351,8 +347,10 @@ export function usePostBanner(layout, texts) {
     ]);
 
     const fontOptions = computed(() => [
+        // Null follows the theme's font, which is what every banner did
+        // before it could choose.
         { value: null, label: t("suite.posts.banner.font_theme") },
-        ...FONTS,
+        ...fonts.map(({ value, label }) => ({ value, label })),
     ]);
 
     const items = computed(() => slideLayout().items);

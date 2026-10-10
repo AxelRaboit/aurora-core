@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { ref, isRef } from "vue";
-import { usePostBanner } from "./usePostBanner.js";
+import { createApp, defineComponent, ref, isRef } from "vue";
+import { BANNER_FONTS_KEY, usePostBanner } from "./usePostBanner.js";
 
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({ t: (key) => key }),
@@ -40,6 +40,53 @@ function make(overrides = {}) {
 
     return { layout, texts, api: usePostBanner(layout, texts) };
 }
+
+/** Runs the composable inside an app that provides the editor's font list. */
+function makeWithFonts(fonts) {
+    let api;
+    const app = createApp(
+        defineComponent({
+            setup() {
+                api = usePostBanner(makeLayout(), makeTexts());
+
+                return () => null;
+            },
+        }),
+    );
+    app.provide(BANNER_FONTS_KEY, fonts);
+    app.mount(document.createElement("div"));
+
+    return api;
+}
+
+describe("the banner's fonts", () => {
+    /**
+     * The list comes from the server (ThemeFontEnum::choices()), not from a
+     * copy in this file: the copy missed Sora, added to the enum in 4.9.0.
+     */
+    it("offers the fonts the editor is handed, after the theme's own", () => {
+        const api = makeWithFonts([
+            {
+                value: "sora",
+                label: "Sora",
+                descriptionKey: "x",
+                stack: "'Sora Variable'",
+            },
+            {
+                value: "lora",
+                label: "Lora",
+                descriptionKey: "y",
+                stack: "'Lora'",
+            },
+        ]);
+
+        expect(api.fontOptions.value).toEqual([
+            { value: null, label: "suite.posts.banner.font_theme" },
+            { value: "sora", label: "Sora" },
+            { value: "lora", label: "Lora" },
+        ]);
+    });
+});
 
 describe("usePostBanner", () => {
     /**
