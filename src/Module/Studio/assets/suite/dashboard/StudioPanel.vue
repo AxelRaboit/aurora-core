@@ -39,21 +39,40 @@ function calendarFor(state) {
     return path ? `${path}?scope=${props.stats.scope ?? "mine"}&view=list&state=${state}` : null;
 }
 
-const tiles = computed(() =>
-    [
+/** Null: a number this reader has no right to open. */
+function shown(tiles) {
+    return tiles
+        .filter((tile) => null !== tile.value && undefined !== tile.value)
+        .map((tile) => ({ ...tile, tone: tile.urgent && tile.value > 0 ? "attention" : "default" }));
+}
+
+/** The spaces' numbers, which follow the scope tabs above them. */
+const spaceTiles = computed(() =>
+    shown([
         { key: "missed", icon: CalendarX, value: props.stats.missed ?? 0, href: calendarFor("missed"), urgent: true },
         { key: "late_review", icon: AlarmClock, value: props.stats.lateReview ?? 0, href: calendarFor("late_review"), urgent: true },
         { key: "changes_requested", icon: MessageSquareWarning, value: props.stats.changesRequested ?? 0, href: calendarFor("changes_requested"), urgent: true },
         { key: "with_client", icon: UserRoundCheck, value: props.stats.withClient ?? 0, href: calendarFor("with_client") },
         { key: "upcoming", icon: CalendarClock, value: props.stats.upcoming ?? 0, href: calendarFor("upcoming") },
+    ]),
+);
+
+/**
+ * The numbers no scope applies to, under their own heading.
+ *
+ * They used to sit in the same grid, under « Mes espaces », while counting
+ * every contract: a contract names a customer rather than a space, and the
+ * list each tile opens has no space filter. Counting « my » contracts would
+ * have shown a number the list behind it does not, so the heading says what
+ * they count instead.
+ */
+const otherTiles = computed(() =>
+    shown([
         // What is waiting on my gesture, urgently, before what is waiting on the client.
         { key: "awaiting_countersignature", icon: PenLine, value: props.stats.awaitingCountersignature, href: props.stats.contractsToCountersignPath, urgent: true },
         { key: "awaiting_signature", icon: FileSignature, value: props.stats.awaitingSignature, href: props.stats.contractsWithCustomerPath },
         { key: "deliverables", icon: NotebookText, value: props.stats.deliverables, href: props.stats.deliverablesPath },
-    ]
-        // Null: a number this reader has no right to open.
-        .filter((tile) => null !== tile.value && undefined !== tile.value)
-        .map((tile) => ({ ...tile, tone: tile.urgent && tile.value > 0 ? "attention" : "default" })),
+    ]),
 );
 
 /** The same address, the other scope: the panel is recomputed on the server. */
@@ -88,9 +107,9 @@ function scopeHref(scope) {
             </a>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <AppStatTile
-                v-for="tile in tiles"
+                v-for="tile in spaceTiles"
                 :key="tile.key"
                 :href="tile.href ?? ''"
                 :icon="tile.icon"
@@ -99,6 +118,24 @@ function scopeHref(scope) {
                 :tone="tile.tone"
             />
         </div>
+
+        <section v-if="otherTiles.length" class="space-y-2">
+            <header>
+                <h3 class="text-sm font-medium text-primary">{{ t("suite.stats.studio.unscoped_title") }}</h3>
+                <p class="text-xs text-muted">{{ t("suite.stats.studio.unscoped_hint") }}</p>
+            </header>
+            <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <AppStatTile
+                    v-for="tile in otherTiles"
+                    :key="tile.key"
+                    :href="tile.href ?? ''"
+                    :icon="tile.icon"
+                    :label="t(`suite.stats.studio.${tile.key}`)"
+                    :value="tile.value"
+                    :tone="tile.tone"
+                />
+            </div>
+        </section>
 
         <AppSectionCard :title="t('suite.stats.studio.attention_title')">
             <p v-if="!(stats.attention ?? []).length" class="text-sm text-secondary">

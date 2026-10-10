@@ -29,6 +29,20 @@ registerDashboardPanel({
                 tone: "warning",
             },
             {
+                key: "contracts_refused",
+                labelKey: "suite.stats.todo.contracts_refused",
+                count: stats.contractsRefused ?? 0,
+                href: stats.contractsToSendPath,
+                tone: "warning",
+            },
+            {
+                key: "contracts_expired",
+                labelKey: "suite.stats.todo.contracts_expired",
+                count: stats.contractsExpired ?? 0,
+                href: stats.contractsToSendPath,
+                tone: "warning",
+            },
+            {
                 key: "missed",
                 labelKey: "suite.stats.todo.missed",
                 count: stats.missed ?? 0,

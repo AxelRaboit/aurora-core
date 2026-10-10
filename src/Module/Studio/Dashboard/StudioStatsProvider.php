@@ -89,6 +89,8 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         }
 
         $rows = $this->workload->forSpaces(array_values($spaces));
+        // Read once for every contract figure: one GROUP BY answers them all.
+        $contracts = $this->canSeeContracts() ? $this->contractRepository->countGroupedByStatus() : null;
         $sum = static fn (string $field): int => array_sum(array_map(static fn (SpaceWorkloadRow $row): int => $row->{$field}, $rows));
 
         return [
@@ -102,8 +104,13 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'missed' => $sum('missed'),
                 'upcoming' => $sum('upcoming'),
                 'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
-                'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
-                'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
+                'awaitingSignature' => $this->countContracts($contracts, self::WITH_CUSTOMER),
+                'awaitingCountersignature' => $this->countContracts($contracts, [ContractStatusEnum::SignedByCustomer]),
+                // Back from the customer without a signature, waiting for a
+                // decision: send a new version or cancel. Both used to leave
+                // « with the customer » for a list nobody was pointed at.
+                'contractsRefused' => $this->countContracts($contracts, [ContractStatusEnum::Refused]),
+                'contractsExpired' => $this->countContracts($contracts, [ContractStatusEnum::Expired]),
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
@@ -113,6 +120,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 // list.
                 'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
                 'contractsToCountersignPath' => $this->contractsPathFor('to_countersign'),
+                'contractsToSendPath' => $this->contractsPathFor('to_send'),
                 // The follow-ups due today or late, opening the customers list
                 // on them.
                 'followUpsDue' => $this->canSeeCustomers() ? $this->customerRepository->countFollowUpsDue($this->followUpCalendar->today()) : null,
@@ -125,15 +133,14 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
      * Null for a reader who may not look at contracts: no tile rather than a
      * figure they cannot open.
      *
+     * @param array<string, int>|null  $counts   null for that reader
      * @param list<ContractStatusEnum> $statuses
      */
-    private function countContracts(array $statuses): ?int
+    private function countContracts(?array $counts, array $statuses): ?int
     {
-        if (!$this->canSeeContracts()) {
+        if (null === $counts) {
             return null;
         }
-
-        $counts = $this->contractRepository->countGroupedByStatus();
 
         return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, $statuses));
     }

@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Service;
 use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Core\Notification\Repository\NotificationRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
@@ -181,8 +182,6 @@ final readonly class SpaceActivityNotifier
             ['id' => $space->getId(), ...($item instanceof SpaceContentItemInterface ? ['item' => $item->getId()] : []), ...$query],
         );
 
-        $title = $this->translator->trans($titleKey, $parameters);
-
         // Never the reason a client's message is lost: the caller has already
         // committed it, and this is an announcement about something that has
         // happened, not part of it happening. Hence the catch around each step.
@@ -202,6 +201,12 @@ final readonly class SpaceActivityNotifier
             }
 
             try {
+                // In the recipient's language, not the request's: the request
+                // is the client's page, and its language is the client's. A
+                // Spanish client wrote every bell of a French team in Spanish.
+                $locale = $recipient instanceof User ? $recipient->getLocale()->value : null;
+                $title = $this->translator->trans($titleKey, $parameters, null, $locale);
+
                 $this->notifications->notify($recipient, $type, $title, $space->getName(), $url, [
                     'spaceId' => $space->getId(),
                 ], flush: false);

@@ -651,6 +651,8 @@ suite:
             posts_pending_review: "post to review | posts to review"
             reminders_overdue: "overdue reminder | overdue reminders"
             follow_ups_due: "follow-up due | follow-ups due"
+            contracts_refused: "refused contract to rework | refused contracts to rework"
+            contracts_expired: "expired contract to resend | expired contracts to resend"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

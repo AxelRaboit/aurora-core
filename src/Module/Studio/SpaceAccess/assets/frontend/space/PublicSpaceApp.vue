@@ -157,6 +157,7 @@ const events = computed(() =>
             // The answer's state travels with the event. The grid ignores it;
             // the counter, the filter and the day list use it.
             approval: item.approval ?? "pending",
+            atClientStep: true === item.atClientStep,
         })),
 );
 
@@ -165,9 +166,15 @@ const events = computed(() =>
  *
  * `pending` means nobody has said anything, which is not a refusal: it is
  * exactly the set a client comes back looking for.
+ *
+ * **At the client's step, as the studio counts it.** A card the client can
+ * see in « En cours » is shown, and can still be answered, but nobody has
+ * asked for an answer yet: the page counted it as waiting for them while
+ * the studio's « chez le client » did not, and the two numbers disagreed on
+ * the same board. The rule is `isAtClientStep()`, sent with each card.
  */
 const pendingEvents = computed(() =>
-    events.value.filter((event) => "pending" === event.approval),
+    events.value.filter((event) => "pending" === event.approval && event.atClientStep),
 );
 
 /**

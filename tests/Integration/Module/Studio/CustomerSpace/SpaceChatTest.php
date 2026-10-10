@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
+use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -218,6 +219,34 @@ final class SpaceChatTest extends IntegrationTestCase
     }
 
     /**
+     * The bell and its email are written in the member's language.
+     *
+     * They were written in the language of the request that caused them,
+     * which is the client's page: a Spanish client turned every bell of a
+     * French team Spanish.
+     */
+    public function testTheStudioIsToldInItsOwnLanguage(): void
+    {
+        [$space, $url] = $this->givenLinkedSpace(canComment: true);
+        $this->givenMember($space);
+        $this->setAdminLocale(LocaleEnum::English);
+
+        try {
+            $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Hola.'], ['HTTP_ACCEPT_LANGUAGE' => 'es']);
+
+            $notifications = $this->entityManager->getRepository(Notification::class)
+                ->findBy(['recipient' => $this->admin, 'type' => 'studio.space.chat']);
+            self::assertCount(1, $notifications);
+            self::assertSame('Camille, gérante wrote to you', $notifications[0]->getTitle());
+
+            $this->runDigest($space);
+            self::assertStringContainsString('Something new in', (string) $this->mailerMessages()[0]->getSubject());
+        } finally {
+            $this->setAdminLocale(LocaleEnum::French);
+        }
+    }
+
+    /**
      * The studio writing does not notify the studio.
      *
      * What is announced is the thing that happens while nobody is looking.
@@ -395,6 +424,15 @@ final class SpaceChatTest extends IntegrationTestCase
         static::getContainer()->get(SpaceActivityDigestHandler::class)(
             new SpaceActivityDigestMessage((int) $this->admin->getId(), (int) $space->getId()),
         );
+    }
+
+    private function setAdminLocale(LocaleEnum $locale): void
+    {
+        $this->entityManager->createQuery(sprintf('UPDATE %s u SET u.locale = :locale WHERE u.id = :id', User::class))
+            ->setParameter('locale', $locale)
+            ->setParameter('id', $this->admin->getId())
+            ->execute();
+        $this->entityManager->clear();
     }
 
     private function markEverythingRead(): void

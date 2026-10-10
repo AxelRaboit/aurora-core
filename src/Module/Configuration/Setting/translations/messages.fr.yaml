@@ -652,6 +652,8 @@ suite:
             posts_pending_review: "publication à relire | publications à relire"
             reminders_overdue: "rappel en retard | rappels en retard"
             follow_ups_due: "relance à faire | relances à faire"
+            contracts_refused: "contrat refusé à reprendre | contrats refusés à reprendre"
+            contracts_expired: "contrat expiré à renvoyer | contrats expirés à renvoyer"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

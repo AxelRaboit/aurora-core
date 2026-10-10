@@ -120,6 +120,38 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertSame('camille@societe.test', $stored->getApprovalByLink()->getRecipientEmail());
     }
 
+    /**
+     * The client's « en attente de vous » and the studio's « chez le client »
+     * count with one rule. A card in « Programmé » is shown to the client and
+     * still unanswered, but nobody asked: the client's page counted it as
+     * waiting for them, the studio did not, and the same board gave two
+     * numbers. Each card now says whether it is at the client's step.
+     */
+    public function testOnlyTheReviewStepWaitsOnTheClient(): void
+    {
+        $space = $this->givenSpace();
+        $review = $this->givenItem($space, 'En relecture');
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
+            'title' => 'Déjà programmé',
+            'columnId' => $this->columnRepository->findForSpace($space)[3]->getId(),
+            'scheduledAt' => '2026-12-02T10:00',
+        ]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $scheduled = null;
+        foreach ($this->payload()['items'] as $item) {
+            if ('Déjà programmé' === $item['title']) {
+                $scheduled = $item;
+            }
+        }
+
+        self::assertNotNull($scheduled);
+        self::assertSame('pending', $scheduled['approval']);
+        self::assertTrue($review['atClientStep']);
+        self::assertFalse($scheduled['atClientStep']);
+    }
+
     public function testTheAnswerNeverMovesTheCard(): void
     {
         $space = $this->givenSpace();

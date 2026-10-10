@@ -650,6 +650,8 @@ suite:
             posts_pending_review: "publicación por revisar | publicaciones por revisar"
             reminders_overdue: "recordatorio atrasado | recordatorios atrasados"
             follow_ups_due: "seguimiento pendiente | seguimientos pendientes"
+            contracts_refused: "contrato rechazado por retomar | contratos rechazados por retomar"
+            contracts_expired: "contrato caducado por reenviar | contratos caducados por reenviar"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'
