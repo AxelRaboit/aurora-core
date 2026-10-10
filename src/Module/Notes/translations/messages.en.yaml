@@ -479,7 +479,6 @@ notes:
             some_refused: "{count} item could not be handled. | {count} items could not be handled."
             confirm_delete_selection: 'Send the {count} selected items to the trash?'
             new_folder: New folder
-            search_placeholder: Search the notes…
             preview:
                 empty: This note is empty.
             tag:
@@ -575,7 +574,6 @@ notes:
         title_placeholder: Note title…
         search_placeholder: Search the notes…
         search_no_results: No results
-        search_no_results_description: 'No note matches "{query}".'
         resize_handle: Drag to resize
         content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
         create_root: New note
@@ -706,7 +704,6 @@ notes:
             more: 'First {shown} of {total}: narrow the search to see the others.'
             clear: 'Clear'
             in_content: 'Search “{query}” in the content'
-            in_notebook: 'Search “{query}” in the whole notebook'
             replace:
                 toggle: "Replace"
                 find: "Find"

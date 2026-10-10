@@ -587,22 +587,19 @@ describe("the library", () => {
         });
 
         /**
-         * The trap of the one-letter shortcut: typing "nouvelle" in the
-         * search would create a note for each "n".
+         * The trap of the one-letter shortcut: typing "nouvelle" in a field
+         * - the menu's filter, say - would create a note for each "n".
          */
         it("keeps its hands off the keyboard while somebody types", async () => {
             const wrapper = render();
+            const input = document.createElement("input");
+            document.body.appendChild(input);
 
-            await press("/");
-            const input = wrapper.find("input");
-            expect(input.exists(), "la barre oblique ouvre la recherche").toBe(
-                true,
-            );
-
-            input.element.dispatchEvent(
+            input.dispatchEvent(
                 new KeyboardEvent("keydown", { key: "n", bubbles: true }),
             );
             await flushPromises();
+            input.remove();
 
             expect(wrapper.emitted("create-note")).toBeUndefined();
         });
@@ -748,54 +745,34 @@ describe("the library", () => {
     });
 
     /**
-     * An empty field taking a third of the bar costs that space to everything
-     * else, and nobody searches all the time.
+     * One search, the notebook's (10/10/2026): a second magnifier narrowed
+     * the folder on screen by title, next to the button that searches every
+     * note, and read as a duplicate.
      */
-    it("keeps the search folded until it is asked for", async () => {
-        const wrapper = render();
+    it("offers the notebook's search and no filter of its own", async () => {
+        const wrapper = render({ searchEnabled: true });
 
-        console.log(
-            "INPUTS:",
-            wrapper
-                .findAll("input")
-                .map(
-                    (input) =>
-                        input.attributes("type") +
-                        "/" +
-                        (input.attributes("placeholder") ?? ""),
-                )
-                .join(" | "),
-        );
         expect(wrapper.find("input").exists()).toBe(false);
 
-        await wrapper
-            .findAll("button")
-            .find(
-                (button) =>
-                    button.attributes("title") ===
-                    "notes.markdown.library.search_placeholder",
-            )
-            .trigger("click");
+        await wrapper.find("[data-library-search-all]").trigger("click");
 
-        expect(wrapper.find("input").exists()).toBe(true);
+        expect(wrapper.emitted("open-search")).toHaveLength(1);
     });
 
-    /** An active but invisible filter would make one wonder why the list is short. */
-    it("stays open while something is typed in it", async () => {
+    /** The slash belongs to the menu's filter, the same key on every screen. */
+    it("leaves the slash key to the menu", async () => {
         const wrapper = render();
+        const event = new KeyboardEvent("keydown", {
+            key: "/",
+            bubbles: true,
+            cancelable: true,
+        });
 
-        await wrapper
-            .findAll("button")
-            .find(
-                (button) =>
-                    button.attributes("title") ===
-                    "notes.markdown.library.search_placeholder",
-            )
-            .trigger("click");
-        await wrapper.find("input").setValue("racine");
-        await wrapper.find("input").trigger("keyup.esc");
+        window.dispatchEvent(event);
+        await flushPromises();
 
-        expect(wrapper.find("input").exists()).toBe(true);
+        expect(event.defaultPrevented).toBe(false);
+        expect(wrapper.find("input").exists()).toBe(false);
     });
 
     /**
@@ -826,7 +803,7 @@ describe("the library", () => {
     });
 
     /**
-     * And it folds when one leaves it, like the magnifier. The signal comes
+     * And it folds when one leaves it. The signal comes
      * from the selector itself: its panel is teleported into the `body`, so
      * a `focusout` set around it would fire on the click on an option,
      * before the choice arrives.
@@ -1239,26 +1216,6 @@ describe("the library", () => {
             .trigger("click");
 
         expect(wrapper.find("table").exists()).toBe(true);
-    });
-
-    it("filters what is on screen on what the reader typed", async () => {
-        const wrapper = render();
-
-        // The search is folded into a magnifier as long as nobody searches.
-        await wrapper
-            .findAll("button")
-            .find(
-                (button) =>
-                    button.attributes("title") ===
-                    "notes.markdown.library.search_placeholder",
-            )
-            .trigger("click");
-
-        await wrapper.find("input").setValue("racine");
-        await flushPromises();
-
-        expect(wrapper.text()).toContain("À la racine");
-        expect(wrapper.text()).not.toContain("Clients");
     });
 });
 

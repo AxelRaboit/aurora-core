@@ -483,7 +483,6 @@ notes:
             some_refused: "{count} élément n'a pas pu être traité. | {count} éléments n'ont pas pu être traités."
             confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
             new_folder: Nouveau dossier
-            search_placeholder: Rechercher une note…
             preview:
                 empty: Cette note est vide.
             tag:
@@ -579,7 +578,6 @@ notes:
         title_placeholder: Titre de la note…
         search_placeholder: Rechercher une note…
         search_no_results: Aucun résultat
-        search_no_results_description: 'Aucune note ne correspond à « {query} ».'
         resize_handle: Glisser pour redimensionner
         content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
         create_root: Nouvelle note
@@ -710,7 +708,6 @@ notes:
             more: '{shown} premiers sur {total} : précisez la recherche pour voir les autres.'
             clear: 'Effacer'
             in_content: 'Chercher « {query} » dans le contenu'
-            in_notebook: 'Chercher « {query} » dans tout le carnet'
             replace:
                 toggle: "Remplacer"
                 find: "Chercher"
