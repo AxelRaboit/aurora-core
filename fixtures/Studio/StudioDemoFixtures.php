@@ -704,8 +704,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         foreach ($this->hostedNoteContents() as $spaceName => [$authorEmail, $folders]) {
             $space = $this->spaceRepository->findOneBy(['name' => $spaceName]);
             $author = $this->userRepository->find($this->suiteUser($authorEmail));
+            if (!$space instanceof CustomerSpaceInterface) {
+                continue;
+            }
 
-            if (!$space instanceof CustomerSpaceInterface || !$author instanceof User) {
+            if (!$author instanceof User) {
                 continue;
             }
 
