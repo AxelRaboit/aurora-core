@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceContent\MessageHandler;
 
+use Aurora\Module\Studio\ClientNotice\MessageHandler\RemindClientReviewDeadlinesHandler;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceContent\Message\NotifyLateReviewsMessage;
@@ -13,10 +14,12 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 /**
  * The reminder of a review that is overdue, sent to the studio.
  *
- * **The studio, never the client.** The client has already been asked; what
+ * **The studio, not the client.** The client has already been asked; what
  * is late is the studio's to chase, by hand, with « Envoyer à relire » if it
  * wants to. An automatic email to somebody else's customer is the kind of
- * feature that becomes a complaint.
+ * feature that becomes a complaint, which is why the one reminder the client
+ * gets - the day before, {@see RemindClientReviewDeadlinesHandler} -
+ * only goes out from a space that chose to write to its client.
  *
  * Once a day, one notification per space that has any, counted by
  * {@see SpaceWorkload} like everywhere else. It is not repeated while the

@@ -31,7 +31,7 @@ class SpaceChatReadMarkerRepository extends ResolveTargetEntityRepository
 
     public function findFor(SpaceChatChannelInterface $channel, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): ?SpaceChatReadMarkerInterface
     {
-        return $this->findOneBy(null !== $user
+        return $this->findOneBy($user instanceof CoreUserInterface
             ? ['channel' => $channel, 'user' => $user]
             : ['channel' => $channel, 'link' => $link]);
     }
@@ -54,22 +54,22 @@ class SpaceChatReadMarkerRepository extends ResolveTargetEntityRepository
      */
     public function unreadByChannel(array $channels, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link, bool $fromClientOnly = false): array
     {
-        if ([] === $channels || (null === $user && null === $link)) {
+        if ([] === $channels || (!$user instanceof CoreUserInterface && !$link instanceof SpaceAccessLinkInterface)) {
             return [];
         }
 
         $builder = $this->getEntityManager()->createQueryBuilder()
             ->select('IDENTITY(m.channel) AS channel, COUNT(m.id) AS unread')
             ->from(SpaceChatMessageInterface::class, 'm')
-            ->leftJoin(SpaceChatReadMarkerInterface::class, 'r', 'WITH', null !== $user ? 'r.channel = m.channel AND r.user = :reader' : 'r.channel = m.channel AND r.link = :reader')
+            ->leftJoin(SpaceChatReadMarkerInterface::class, 'r', 'WITH', $user instanceof CoreUserInterface ? 'r.channel = m.channel AND r.user = :reader' : 'r.channel = m.channel AND r.link = :reader')
             ->where('m.channel IN (:channels)')
-            ->andWhere(null !== $user ? '(r.id IS NULL AND m.createdAt > :recent) OR m.createdAt > r.readAt' : 'r.id IS NULL OR m.createdAt > r.readAt')
-            ->andWhere(null !== $user ? 'm.authorUser IS NULL OR m.authorUser != :reader' : 'm.authorLink IS NULL OR m.authorLink != :reader')
+            ->andWhere($user instanceof CoreUserInterface ? '(r.id IS NULL AND m.createdAt > :recent) OR m.createdAt > r.readAt' : 'r.id IS NULL OR m.createdAt > r.readAt')
+            ->andWhere($user instanceof CoreUserInterface ? 'm.authorUser IS NULL OR m.authorUser != :reader' : 'm.authorLink IS NULL OR m.authorLink != :reader')
             ->setParameter('channels', $channels)
             ->setParameter('reader', $user ?? $link)
             ->groupBy('m.channel');
 
-        if (null !== $user) {
+        if ($user instanceof CoreUserInterface) {
             $builder->setParameter('recent', new DateTimeImmutable(sprintf('-%d days', self::UNMARKED_DAYS)));
         }
 

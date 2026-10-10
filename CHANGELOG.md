@@ -5,6 +5,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.12.0] - 2026-10-10
+
+### Ajouté
+- **Le client est prévenu de ce que fait le studio.** Un message de l'équipe dans un canal qu'il lit, un commentaire sur un contenu qu'il voit, un contenu qui arrive à l'étape Relecture, une validation effacée par une modification, un fichier, une ressource ou un livrable qu'on lui montre, une relecture attendue le lendemain : chaque nouvelle est notée pour chaque lien d'accès qu'elle concerne, selon ses droits.
+  - Sa page s'ouvre sur « Depuis votre dernière visite », chaque ligne menant à l'onglet concerné ; l'ouvrir les marque vues.
+  - Chaque espace choisit dans Réglages > Espace s'il écrit au client : jamais (par défaut, et pour tous les espaces existants), une demi-heure après le dernier geste du studio (un seul email pour une série), ou chaque matin à 8 h (heure du site). Le choix demande le droit de partager l'espace.
+- **Le lien d'un espace part par email.** À la création d'un lien, « Envoyer l'invitation par email » est coché par défaut ; un lien peut être renvoyé plus tard depuis sa ligne, sans révoquer l'adresse que le client a déjà. « Envoyer en relecture » ne révoque plus non plus l'adresse du client.
+- **Une langue sur la fiche client** (fr, en, es, ou celle du site) : les emails de l'espace l'utilisent, et un nouveau contrat la propose.
+- **Contrats : les deux côtés sont prévenus.** Le client reçoit un accusé quand il signe et quand il refuse. Une expiration sans signature prévient l'adresse du site. Signature, refus, expiration et date d'effet d'une résiliation arrivent dans la cloche de l'équipe des espaces du client, chacun dans sa langue. L'annulation d'un contrat envoyé et la résiliation proposent « Prévenir le client ». L'objet de l'email d'un avenant dit « avenant au contrat X ».
+- **Les contrats dans l'espace client**, pour un lien qui en a le droit (« Voit les contrats du client », décoché par défaut) : où en est chacun, « Lire et signer » pour celui qui attend (le lien reçu par email continue de marcher, le code par email reste demandé), et le PDF signé à télécharger.
+- **Messages non lus.** Chaque lecteur, compte du studio ou lien client, marque jusqu'où il a lu chaque canal quand il l'a sous les yeux. Les canaux, l'onglet Discussion de l'espace et l'onglet du client portent le nombre de messages non lus. Les conversations existantes partent lues.
+- **« À faire » sur la page du client** : contenus qui attendent son avis, contrats à signer.
+- **Tableau de bord, « À traiter »** : messages client non lus, contrats refusés à reprendre, contrats expirés à renvoyer, contrats sans réponse depuis plus de 3 jours, liens de signature qui expirent sous 3 jours, accès client qui expirent sous 14 jours. Un accès se prolonge d'un clic, à la même adresse. La liste des contrats signale les longues attentes quand la relance automatique est éteinte.
+- **Cloche à l'équipe** quand on est ajouté à l'équipe d'un espace ou invité dans un canal.
+
+### Corrigé
+- **Une seule règle « en attente du client ».** La page du client comptait comme en attente toute carte visible sans réponse, le studio seulement celles de l'étape Relecture : les deux compteurs disaient deux nombres sur le même tableau.
+- **Les notifications d'espace dans la langue de chaque membre**, et non dans celle de la page du client qui les déclenche ; leur email récapitulatif aussi.
+- **Les tuiles de contrats du tableau de bord** ne sont plus rangées sous « Mes espaces », qu'elles ne suivaient pas : elles ont leur propre groupe, qui dit qu'il compte tous les contrats.
+
+### Dans aurora-client
+**Quatre migrations**, jouées par `make aurora-update` : une colonne `locale` sur `core_customers`, une table `core_studio_client_notices` et une colonne `client_digest` sur les espaces (« off » partout), une table `core_studio_space_chat_read_markers` amorcée comme lue pour les membres et les liens existants, une colonne `can_see_contracts` sur les liens (fausse partout). Rien n'est envoyé à un client tant qu'un espace ne l'a pas choisi.
+
+Les emails différés et les envois du matin passent par le worker Messenger (`async` et `scheduler_main`), comme le récapitulatif du studio. Les classes étendues côté client reçoivent leurs nouveaux arguments en dernier et optionnels : voir `docs/aurora-client/MIGRATION_STUDIO.md`, section 16.
+
+---
+
 ## [4.11.0] - 2026-10-10
 
 ### Ajouté

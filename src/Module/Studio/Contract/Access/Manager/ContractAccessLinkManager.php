@@ -52,7 +52,9 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractLinkLifetime $lifetime,
-        protected readonly ContractTeamNotifier $teamNotifier,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?ContractTeamNotifier $teamNotifier = null,
         // Signs the token the client space opens a contract with. Last and
         // defaulted, so a subclass written before it still constructs.
         #[Autowire(param: 'kernel.secret')]
@@ -309,7 +311,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
 
-        $this->teamNotifier->expired($contract);
+        $this->teamNotifier?->expired($contract);
     }
 
     /**

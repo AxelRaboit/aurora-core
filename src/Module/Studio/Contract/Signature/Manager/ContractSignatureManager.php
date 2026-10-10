@@ -61,7 +61,9 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         protected readonly ContractPdfGenerator $pdfGenerator,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractSeal $seal,
-        protected readonly ContractTeamNotifier $teamNotifier,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?ContractTeamNotifier $teamNotifier = null,
     ) {}
 
     public function signAsCustomer(
@@ -98,7 +100,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
 
         $this->notifyProvider($signature);
         $this->acknowledgeToCustomer($signature);
-        $this->teamNotifier->signed($contract);
+        $this->teamNotifier?->signed($contract);
 
         return $signature;
     }

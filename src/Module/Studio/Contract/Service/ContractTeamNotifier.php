@@ -40,8 +40,11 @@ use Throwable;
 readonly class ContractTeamNotifier
 {
     public const string TYPE_SIGNED = 'studio.contract.signed';
+
     public const string TYPE_REFUSED = 'studio.contract.refused';
+
     public const string TYPE_EXPIRED = 'studio.contract.expired';
+
     public const string TYPE_TERMINATION_EFFECTIVE = 'studio.contract.termination_effective';
 
     public function __construct(

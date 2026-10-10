@@ -55,7 +55,9 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
-        protected readonly ContractTeamNotifier $teamNotifier,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?ContractTeamNotifier $teamNotifier = null,
     ) {}
 
     public function refuseAsCustomer(
@@ -92,7 +94,7 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
 
         $this->notifyProvider($contract);
         $this->acknowledgeToCustomer($contract);
-        $this->teamNotifier->refused($contract);
+        $this->teamNotifier?->refused($contract);
     }
 
     /**

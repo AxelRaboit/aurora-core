@@ -49,8 +49,16 @@ final readonly class RemindClientReviewDeadlinesHandler
         foreach ($this->itemRepository->findPendingReviewDueBetween($now, $now->modify('+3 days')) as $item) {
             $space = $item->getSpace();
             $reviewBy = $item->getReviewBy();
-
-            if (null === $reviewBy || !$space->getClientDigest()->sends() || !$item->isShownToClient() || !$item->isAtClientStep()) {
+            if (null === $reviewBy) {
+                continue;
+            }
+            if (!$space->getClientDigest()->sends()) {
+                continue;
+            }
+            if (!$item->isShownToClient()) {
+                continue;
+            }
+            if (!$item->isAtClientStep()) {
                 continue;
             }
 

@@ -48,7 +48,9 @@ class SpaceAccessController extends AbstractController
         protected readonly SpaceAccessViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly SpaceReviewInviter $reviewInviter,
-        protected readonly SpaceLinkMailer $linkMailer,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?SpaceLinkMailer $linkMailer = null,
     ) {}
 
     /**
@@ -148,7 +150,7 @@ class SpaceAccessController extends AbstractController
 
         // Written by the application when asked, which the screen does by
         // default: the address is still readable here, and only here.
-        $invited = true === ($payload['sendInvitation'] ?? false) && $this->linkMailer->invite($link);
+        $invited = true === ($payload['sendInvitation'] ?? false) && true === $this->linkMailer?->invite($link);
 
         return $this->jsonSuccess([...$this->viewBuilder->issuedPayload($space, $link), 'invited' => $invited]);
     }
@@ -168,7 +170,7 @@ class SpaceAccessController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $link);
 
-        if (!$this->linkMailer->invite($link)) {
+        if (true !== $this->linkMailer?->invite($link)) {
             return $this->jsonFailure('suite.studio.space_access.errors.invite_unusable', HttpStatusEnum::Conflict->value);
         }
 

@@ -61,7 +61,9 @@ class ContractsController extends AbstractController
         protected readonly ContractPdfGenerator $pdfGenerator,
         protected readonly ContractPdfExporter $pdfExporter,
         protected readonly TranslatorInterface $translator,
-        protected readonly ContractCustomerNotices $customerNotices,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?ContractCustomerNotices $customerNotices = null,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -302,7 +304,7 @@ class ContractsController extends AbstractController
         // Read before the status moves: afterwards every cancelled contract
         // looks the same, sent or not.
         $tellCustomer = true === ($this->decodeJson($request)['notifyCustomer'] ?? false)
-            && $this->customerNotices->cancellationIsNews($contract);
+            && true === $this->customerNotices?->cancellationIsNews($contract);
 
         try {
             $this->contractManager->cancel($contract);
@@ -367,7 +369,7 @@ class ContractsController extends AbstractController
         // Only when asked. A termination is most often the customer's own
         // letter being written down, and sending it back to them is noise.
         if (true === ($payload['notifyCustomer'] ?? false)) {
-            $this->customerNotices->terminated($contract);
+            $this->customerNotices?->terminated($contract);
         }
 
         return $this->jsonSuccess([

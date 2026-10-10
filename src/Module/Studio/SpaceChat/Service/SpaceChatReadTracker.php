@@ -34,13 +34,13 @@ readonly class SpaceChatReadTracker
     public function markRead(SpaceChatChannelInterface $channel, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link = null): void
     {
         $reader = $user ?? $link;
-        if (null === $reader || ($link instanceof SpaceAccessLinkInterface && null === $user && $link->isPreview())) {
+        if (null === $reader || ($link instanceof SpaceAccessLinkInterface && !$user instanceof CoreUserInterface && $link->isPreview())) {
             return;
         }
 
         $metadata = $this->entityManager->getClassMetadata(SpaceChatReadMarkerInterface::class);
         $sequence = $metadata->sequenceGeneratorDefinition['sequenceName'] ?? 'seq_core_space_chat_read_marker_id';
-        $column = null !== $user ? 'user_id' : 'link_id';
+        $column = $user instanceof CoreUserInterface ? 'user_id' : 'link_id';
 
         $this->entityManager->getConnection()->executeStatement(
             sprintf(

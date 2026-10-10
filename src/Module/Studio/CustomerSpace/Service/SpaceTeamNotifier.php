@@ -29,6 +29,7 @@ use Throwable;
 readonly class SpaceTeamNotifier
 {
     public const string TYPE_ADDED = 'studio.space.team_added';
+
     public const string TYPE_CHANNEL = 'studio.space.channel_invited';
 
     public function __construct(

@@ -65,7 +65,7 @@ readonly class DeliverableManager
          * with its own constructor keeps booting: without it, the client is
          * simply not told of this gesture.
          */
-        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
+        protected ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     /**
@@ -252,7 +252,7 @@ readonly class DeliverableManager
 
             // A page or a deck reaching the client's « Documents » tab.
             $space = $deliverable->getSpace();
-            if (!$wasVisible && null !== $space) {
+            if (!$wasVisible && $space instanceof CustomerSpaceInterface) {
                 $this->clientNoticeRecorder?->record($space, ClientNoticeTypeEnum::DeliverableShared, $deliverable->getTitle());
             }
         } else {

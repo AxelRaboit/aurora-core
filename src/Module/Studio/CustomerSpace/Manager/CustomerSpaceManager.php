@@ -269,7 +269,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
      */
     protected function applyClientDigest(CustomerSpaceInterface $space, ?ClientDigestModeEnum $mode): void
     {
-        if (null === $mode || $mode === $space->getClientDigest()) {
+        if (!$mode instanceof ClientDigestModeEnum || $mode === $space->getClientDigest()) {
             return;
         }
 

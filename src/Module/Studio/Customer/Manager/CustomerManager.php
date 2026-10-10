@@ -34,7 +34,9 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly TranslatorInterface $translator,
         protected readonly PipelineManagerInterface $pipelineManager,
-        protected readonly LocaleContextInterface $localeContext,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?LocaleContextInterface $localeContext = null,
     ) {}
 
     public function create(CustomerInputInterface $input): CustomerInterface
@@ -160,7 +162,7 @@ class CustomerManager implements CustomerManagerInterface
      */
     protected function assertLocaleIsActive(?string $locale): void
     {
-        if (null !== $locale && !in_array($locale, $this->localeContext->getActiveLocales(), true)) {
+        if (null !== $locale && $this->localeContext instanceof LocaleContextInterface && !in_array($locale, $this->localeContext->getActiveLocales(), true)) {
             throw new FieldException('locale', $this->translator->trans('suite.studio.customers.errors.locale_invalid'));
         }
     }

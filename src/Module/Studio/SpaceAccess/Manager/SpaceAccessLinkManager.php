@@ -171,7 +171,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
      */
     public function extend(SpaceAccessLinkInterface $link): void
     {
-        if (null !== $link->getRevokedAt() || $link->isPreview()) {
+        if ($link->getRevokedAt() instanceof DateTimeImmutable || $link->isPreview()) {
             return;
         }
 
