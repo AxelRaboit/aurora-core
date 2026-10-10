@@ -54,6 +54,22 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
 - La barre du haut porte un interrupteur clair / sombre, encadré comme ses
   voisines (`TOPBAR_BUTTON`).
 
+- **Un écran s'ouvre sur `AppPageHeading`** (nom en 26 px, une ligne de
+  chiffres, commandes à droite) ; une liste le reçoit par `AppListToolbar`
+  `title`/`subtitle`, ce qui était au-dessus passe dans le slot `above`.
+- **Réglages en sections** : `ApplicationParameterEnum::getSection()` (ou
+  `SettingFieldDescriptor::$sectionKey` pour un onglet de module), titres sous
+  `suite.settings.sections.<clé>`. Une section n'appartient qu'à un onglet
+  (`SettingSectionsTest`). Enregistrer, Annuler et « N modifications en
+  attente » (`pendingCount`/`resetGroup` de `useSettingsForm`) sont dans les
+  `actions` de l'en-tête de l'onglet : Axel a refusé le 10/10 une carte en bas
+  qui ne portait qu'un bouton. Pas de barre collante.
+- **Fiche client** : monogramme, bande de chiffres, trois cartes titrées
+  (`CustomerFormFields framed`), colonne de droite collante ; les statuts de
+  contrat de `CustomerRelatedLists` passent par `contractStatusColor`.
+  Écart à la maquette : « Actions » et « Enregistrer » restent dans
+  `AppPageBar`, la barre de tout écran de détail, pas à côté du titre.
+
 ## Pourquoi
 
 Axel voulait une suite « encore plus pro ». La maquette montrait surtout de la

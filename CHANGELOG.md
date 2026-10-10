@@ -19,9 +19,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - **Les encarts « Comment ça marche »** sont des cartes pleines, plus des cadres en pointillés ; repliés, ils gardent leur cadre autour d'une seule ligne.
 - **Les commutateurs** (modules du tableau de bord, Contrats / Trames, Clients / Prospects, filtres de statut…) deviennent une bande en creux sans bordure, l'option choisie en relief. Une seule règle pour les vingt et un de la suite.
 - **La courbe des publications** dit sa période (« novembre 2025 à octobre 2026 »), marque le mois en cours et écrit ses deux valeurs utiles : le mois le plus haut et le mois en cours.
+- **Les libellés de champ s'écrivent comme des phrases** : 13 px, la couleur du texte, plus de petites capitales (gardées pour les titres de section).
+- **Chaque liste s'ouvre sur son titre.** Le nom de l'écran en grand, une ligne de chiffres dessous, les commandes à droite ; les onglets et les encarts passent sous ce titre. Quinze listes l'ont, dont Utilisateurs. La liste des publications remplace son menu de statut par un commutateur qui donne un chiffre par statut, et dit « 17 publications · 13 en ligne · 1 brouillon » sous son nom. Les dix-huit tableaux de liste respirent davantage : 12 px autour de chaque cellule, en-têtes lisibles.
+- **Les Réglages par sections.** Chaque onglet s'ouvre sur son nom et sa phrase, puis range ses champs sous des sections titrées (Identité du site, Adresses, Langues…) : titre et explication à gauche, carte à droite. « Enregistrer » passe en haut, à droite du titre de l'onglet, grisé tant que rien n'a changé ; à côté, le nombre de modifications en attente et « Annuler ». Plus de carte en bas pour un bouton seul.
+- **La fiche d'un client** s'ouvre sur un monogramme, le nom, le statut et ce qu'est l'entreprise sur une ligne ; une bande résume ses contrats, ses espaces, ses livrables et son contact. La fiche devient trois cartes titrées (Identité légale ; Représentant et contact ; Liens et notes), la colonne de droite reste visible en défilant, et chaque contrat y porte son statut en pastille, aux couleurs de la liste des contrats (aussi dans l'onglet Informations d'un espace).
 
 ### Dans aurora-client
-Rien à faire. Un module client peut afficher le nombre de ses éléments dans le menu en implémentant `NavItemCountProviderInterface` (voir `docs/aurora-client/extending/add_module.md`).
+Rien à faire. Un module client peut afficher le nombre de ses éléments dans le menu en implémentant `NavItemCountProviderInterface` (voir `docs/aurora-client/extending/add_module.md`). Un onglet de réglages peut ranger ses champs en sections avec `SettingFieldDescriptor::$sectionKey` (titre et phrase sous `suite.settings.sections.<clé>.title` et `.lead`) ; sans section, il garde une seule carte.
 
 ---
 

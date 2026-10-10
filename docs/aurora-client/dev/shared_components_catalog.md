@@ -19,7 +19,7 @@
 - [Feedback](#feedback) - `AppBadge`, `AppMessage`, `AppNoData`, `AppProgressBar`, `AppSelectionCheck`
 - [Overlay](#overlay) - `AppModal`, `AppModalFooter`, `AppTooltip`
 - [Nav](#nav) - `AppLink`, `AppNavLink`, `AppNavButton`, `AppPagination`, `AppLoadMore`, `AppTab`, `AppStagePicker`
-- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppBetaBadge`, `AppLogo`, `AppStatTile`, `AppSectionCard`, `AppChart`
+- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppBetaBadge`, `AppLogo`, `AppStatTile`, `AppSectionCard`, `AppPageHeading`, `AppChart`
 
 ---
 
@@ -828,6 +828,24 @@ total, une période, un lien vers l'écran complet.
 </AppSectionCard>
 ```
 
+### `AppPageHeading`
+
+Le haut d'un écran : son nom en grand (26 px), une ligne dessous (ce qu'il
+contient, ses chiffres), et dans le slot `actions`, à droite, les commandes de
+tout l'écran. Sur téléphone, les commandes passent sous le titre, pleine
+largeur. Une liste le reçoit par `AppListToolbar` (`title`, `subtitle`).
+
+| Prop | Type | Défaut |
+|---|---|---|
+| `title` | `String` | requis |
+| `subtitle` | `String` | `""` |
+
+```vue
+<AppPageHeading :title="t('…tabs.general')" :subtitle="t('…tabs.general_description')">
+    <template #actions><AppButton variant="primary">…</AppButton></template>
+</AppPageHeading>
+```
+
 ### `AppShareBar` (`@shared/components/chart/`)
 
 Comment un total se répartit, en **une** barre horizontale empilée. La forme
@@ -917,6 +935,20 @@ d'`AppNavLink` (qui est sidemenu desktop).
 
 Toolbar standard au-dessus d'une liste admin : slot pour `AppSearchInput`,
 filtres, bouton "Nouveau", bulk actions. Réutilisé par `useListPage`.
+
+Avec `title` (et `subtitle`), la liste s'ouvre sur `AppPageHeading`, les
+`actions` à droite du titre ; ce qui se pose entre le titre et la recherche
+(onglets de section, encart « Comment ça marche ») va dans le slot `above`.
+
+```vue
+<AppListToolbar :title="t('…title')" :subtitle="t('…count', { count }, count)">
+    <template #above><AppGuide …/></template>
+    <template #search><AppSearchInput v-model="search" v-on:search="onSearch" /></template>
+    <template #actions><AppButton v-on:click="openCreate">{{ $t('common.new') }}</AppButton></template>
+</AppListToolbar>
+```
+
+Sans titre :
 
 ```vue
 <AppListToolbar>
