@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [4.9.0] - 2026-10-10
 
 ### Modifié
 - **Refonte visuelle de la suite**, d'après la maquette validée. La barre du haut passe à 60 px et ses commandes (menu, recherche, clair/sombre, notifications) deviennent des carrés encadrés de 36 px, l'avatar aussi en 36 px. Le haut du menu latéral (site, « Voir le site », filtre, descriptions) tient en un seul bloc, et le pied signe à gauche, lisible.
