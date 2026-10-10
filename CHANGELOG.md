@@ -30,6 +30,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ### Corrigé
 - **Une seule règle « en attente du client ».** La page du client comptait comme en attente toute carte visible sans réponse, le studio seulement celles de l'étape Relecture : les deux compteurs disaient deux nombres sur le même tableau.
 - **Les notifications d'espace dans la langue de chaque membre**, et non dans celle de la page du client qui les déclenche ; leur email récapitulatif aussi.
+- **Minimum de `symfony/dependency-injection` relevé à 7.4.16.** Avec 7.4.0 à 7.4.15, le conteneur refusait l'autoconfiguration d'une interface déclarée deux fois (« has already been autoconfigured ») ; les projets qui ont le verrou à jour ne sont pas concernés.
 - **Les tuiles de contrats du tableau de bord** ne sont plus rangées sous « Mes espaces », qu'elles ne suivaient pas : elles ont leur propre groupe, qui dit qu'il compte tous les contrats.
 
 ### Dans aurora-client
