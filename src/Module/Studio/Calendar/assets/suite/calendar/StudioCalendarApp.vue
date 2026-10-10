@@ -262,13 +262,13 @@ function spaceName(item) {
             </h2>
 
             <div class="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
-                <div class="flex flex-1 overflow-hidden rounded-lg border border-line sm:flex-none" role="group" :aria-label="t('suite.studio.calendar.view_label')">
+                <div class="flex flex-1 items-center gap-0.5 aurora-segmented sm:flex-none" role="group" :aria-label="t('suite.studio.calendar.view_label')">
                     <button
                         v-for="option in VIEWS"
                         :key="option"
                         type="button"
-                        class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 min-h-7.5 sm:min-h-0 sm:flex-none"
-                        :class="view === option ? 'bg-accent-600 text-white font-medium' : 'text-secondary hover:bg-surface-2'"
+                        class="flex-1 cursor-pointer rounded-md px-2.5 py-1 text-sm transition-colors min-h-7.5 sm:min-h-0 sm:flex-none"
+                        :class="view === option ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
                         :aria-pressed="view === option"
                         v-on:click="view = option"
                     >

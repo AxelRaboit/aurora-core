@@ -296,6 +296,7 @@ suite:
         media: Médias
         media_description: "Bibliothèque centralisée des images, vidéos et fichiers réutilisables."
         profile: Mon profil
+        profile_description: "Votre photo, votre nom, votre mot de passe et vos préférences."
         settings: Réglages
         settings_description: "Réglages globaux de l'application et préférences par défaut."
         themes: Thèmes

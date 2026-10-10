@@ -296,6 +296,7 @@ suite:
         media: Media
         media_description: "The shared library of reusable images, videos and files."
         profile: My profile
+        profile_description: "Your photo, your name, your password and your preferences."
         settings: Settings
         settings_description: "Application-wide settings and default preferences."
         themes: Themes

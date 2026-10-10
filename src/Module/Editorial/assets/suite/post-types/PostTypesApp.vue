@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -129,369 +130,357 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <!-- The screen's how-to guide, next to what it explains; collapsed
-         or expanded, the choice applies to every guide. -->
-    <AppGuide :title="t('suite.post_types.guide.title')" storage-key="post-types" class="mb-[var(--aurora-page-margin)]">
-        <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-            <li v-for="step in 5" :key="step">{{ t(`suite.post_types.guide.step_${step}`) }}</li>
-        </ol>
-    </AppGuide>
-    <AppNoData v-if="!items.length" :message="t('suite.post_types.empty')">
-        <template v-if="can('editorial.post_types.create')" #action>
-            <AppButton variant="primary" size="md" v-on:click="openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("suite.post_types.create") }}
-            </AppButton>
-        </template>
-    </AppNoData>
+    <div class="aurora-stack">
+        <!-- The screen is the open record: its name is the page's title, its
+             slug and what it carries under it, its own menu and the create
+             button on the right (visual redesign of the suite, 10/10/2026).
+             The side menu lists the records, one entry and one address each. -->
+        <AppPageHeading :title="selected ? selected.label : t('suite.nav.post_types')" :subtitle="selected ? '' : t('suite.nav.post_types_description')">
+            <template v-if="selected">
+                <span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-muted">{{ selected.slug }}</span>
+                <AppBadge v-for="support in selected.supports" :key="support" color="gray">
+                    {{ t(`suite.post_types.supports_${support}`) }}
+                </AppBadge>
+                <AppBadge v-if="selected.hasArchive" color="accent">
+                    {{ t("suite.post_types.has_archive") }}
+                </AppBadge>
+            </template>
+            <template v-if="(selected && typeActions(selected).length) || pageActions.length" #actions>
+                <AppRowActions
+                    v-if="selected && typeActions(selected).length"
+                    :actions="typeActions(selected)"
+                    :label="selected.label"
+                />
+                <AppPageActions v-if="pageActions.length" :actions="pageActions" />
+            </template>
+        </AppPageHeading>
 
-    <div v-else class="aurora-stack">
-        <!-- No picker column: the side menu lists the post types, one entry
-             per record and one address each. The create button stays, because
-             a group header in the menu has nowhere to put one - and it is the
-             only way to make the next type. -->
-        <!-- Full width below `sm`: the page's only gesture, it takes the
-             line rather than squeezing into a corner.
+        <!-- The screen's how-to guide, next to what it explains; collapsed
+             or expanded, the choice applies to every guide. -->
+        <AppGuide :title="t('suite.post_types.guide.title')" storage-key="post-types">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`suite.post_types.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
-             The width is set on the rendered child and not on the component:
-             {@see AppActionSheet} has two roots - the trigger and its modal
-             - and Vue then drops the attributes passed to it. It is the same
-             answer as in {@see AppListToolbar}. -->
-        <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
-            <AppPageActions :actions="pageActions" />
-        </div>
+        <AppNoData v-if="!items.length" :message="t('suite.post_types.empty')">
+            <template v-if="can('editorial.post_types.create')" #action>
+                <AppButton variant="primary" size="md" v-on:click="openCreate">
+                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("suite.post_types.create") }}
+                </AppButton>
+            </template>
+        </AppNoData>
 
-        <!-- Selected type -->
-        <section v-if="selected" class="space-y-4">
-            <div class="aurora-card p-3 sm:p-5 space-y-4">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <h2 class="text-lg font-semibold text-primary truncate">{{ selected.label }}</h2>
-                        <p class="text-xs text-muted font-mono mt-0.5">{{ selected.slug }}</p>
-                    </div>
-                    <AppRowActions
-                        v-if="typeActions(selected).length"
-                        class="shrink-0"
-                        :actions="typeActions(selected)"
-                        :label="selected.label"
-                    />
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2">
-                    <AppBadge v-for="support in selected.supports" :key="support" color="gray">
-                        {{ t(`suite.post_types.supports_${support}`) }}
-                    </AppBadge>
-                    <AppBadge v-if="selected.hasArchive" color="accent">
-                        {{ t("suite.post_types.has_archive") }}
-                    </AppBadge>
-                </div>
-            </div>
-
-            <!-- Custom fields -->
-            <div class="aurora-card p-3 sm:p-5 space-y-3">
-                <div class="flex items-center justify-between gap-3">
-                    <h3 class="text-sm font-semibold text-primary">{{ t("suite.post_types.fields.title") }}</h3>
-                    <!-- The plus alone on a phone: "Ajouter un champ" facing
+        <div v-else class="aurora-stack">
+            <!-- Selected type -->
+            <section v-if="selected" class="space-y-4">
+                <!-- Custom fields -->
+                <div class="aurora-card p-3 sm:p-5 space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("suite.post_types.fields.title") }}</h3>
+                        <!-- The plus alone on a phone: "Ajouter un champ" facing
                          the block's title takes two lines for three words the
                          sign already says, where people look for them. The
                          label comes back with the room. -->
-                    <AppButton
-                        v-if="can('editorial.post_types.edit')"
-                        class="shrink-0"
-                        variant="ghost"
-                        size="sm"
-                        :title="t('suite.post_types.fields.create')"
-                        v-on:click="openFieldCreate"
-                    >
-                        <Plus class="w-3.5 h-3.5" :stroke-width="2" />
-                        <span class="sr-only sm:not-sr-only">
-                            {{ t("suite.post_types.fields.create") }}
-                        </span>
-                    </AppButton>
-                </div>
+                        <AppButton
+                            v-if="can('editorial.post_types.edit')"
+                            class="shrink-0"
+                            variant="ghost"
+                            size="sm"
+                            :title="t('suite.post_types.fields.create')"
+                            v-on:click="openFieldCreate"
+                        >
+                            <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                            <span class="sr-only sm:not-sr-only">
+                                {{ t("suite.post_types.fields.create") }}
+                            </span>
+                        </AppButton>
+                    </div>
 
-                <AppNoData v-if="!selected.fields.length" :message="t('suite.post_types.fields.empty')" />
+                    <AppNoData v-if="!selected.fields.length" :message="t('suite.post_types.fields.empty')" />
 
-                <div class="divide-y divide-line/40">
-                    <div
-                        v-for="field in selected.fields"
-                        :key="field.id"
-                        class="flex items-center justify-between gap-3 py-2.5 text-sm"
-                    >
-                        <div class="min-w-0">
-                            <p class="font-medium text-primary truncate">{{ field.label }}</p>
-                            <p class="text-xs text-muted font-mono mt-0.5 truncate">{{ field.name }}</p>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <AppBadge color="gray">{{ t(`suite.post_types.fields.types.${field.type}`) }}</AppBadge>
-                            <AppBadge v-if="field.required" color="amber">{{ t("suite.post_types.fields.required") }}</AppBadge>
-                            <AppBadge v-if="field.translatable" color="sky">{{ t("suite.post_types.fields.translatable") }}</AppBadge>
-                            <AppRowActions
-                                v-if="fieldActions(field).length"
-                                :actions="fieldActions(field)"
-                                :label="field.label"
-                            />
+                    <div class="divide-y divide-line/40">
+                        <div
+                            v-for="field in selected.fields"
+                            :key="field.id"
+                            class="flex items-center justify-between gap-3 py-2.5 text-sm"
+                        >
+                            <div class="min-w-0">
+                                <p class="font-medium text-primary truncate">{{ field.label }}</p>
+                                <p class="text-xs text-muted font-mono mt-0.5 truncate">{{ field.name }}</p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <AppBadge color="gray">{{ t(`suite.post_types.fields.types.${field.type}`) }}</AppBadge>
+                                <AppBadge v-if="field.required" color="amber">{{ t("suite.post_types.fields.required") }}</AppBadge>
+                                <AppBadge v-if="field.translatable" color="sky">{{ t("suite.post_types.fields.translatable") }}</AppBadge>
+                                <AppRowActions
+                                    v-if="fieldActions(field).length"
+                                    :actions="fieldActions(field)"
+                                    :label="field.label"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
         <!-- Create / edit a type -->
-    </div>
+        </div>
 
-    <!-- Outside the `v-else` on purpose. These modals used to live inside it,
+        <!-- Outside the `v-else` on purpose. These modals used to live inside it,
          so with nothing created yet the branch was not rendered and neither
          were they: the empty state's button set the flag and nothing existed
          to react. The first item could never be created, and only the first -
          once one existed the branch rendered and the button worked. -->
-    <AppModal
-        :show="showCreate"
-        :title="t('suite.post_types.create')"
-        :icon="LayoutTemplate"
-        :closeable="false"
-        v-on:close="showCreate = false"
-    >
-        <form class="space-y-4" v-on:submit.prevent="submitCreate">
-            <AppInput
-                v-model="createForm.label"
-                :label="t('suite.post_types.label')"
-                :placeholder="t('suite.post_types.label_placeholder')"
-                :error="createErrors.label"
-                required
-            />
-            <!-- What this type is for, in the author's words. The side menu
+        <AppModal
+            :show="showCreate"
+            :title="t('suite.post_types.create')"
+            :icon="LayoutTemplate"
+            :closeable="false"
+            v-on:close="showCreate = false"
+        >
+            <form class="space-y-4" v-on:submit.prevent="submitCreate">
+                <AppInput
+                    v-model="createForm.label"
+                    :label="t('suite.post_types.label')"
+                    :placeholder="t('suite.post_types.label_placeholder')"
+                    :error="createErrors.label"
+                    required
+                />
+                <!-- What this type is for, in the author's words. The side menu
                  shows it under the name; left blank it says how many posts the
                  type holds instead. -->
-            <AppTextarea
-                v-model="createForm.description"
-                :label="t('suite.post_types.description')"
-                :placeholder="t('suite.post_types.description_placeholder')"
-                :rows="2"
-            />
-            <AppInput
-                v-model="createForm.slug"
-                :label="t('suite.post_types.slug')"
-                :placeholder="t('shared.placeholders.slug')"
-                :error="createErrors.slug"
-                required
-            />
-            <AppInput
-                v-model="createForm.icon"
-                :label="t('suite.post_types.icon')"
-                :placeholder="t('suite.post_types.icon_placeholder')"
-            />
-            <AppCheckbox v-model="createForm.hasArchive" :label="t('suite.post_types.has_archive')" :hint="t('suite.post_types.has_archive_hint')" />
-            <!-- Both belong to the listing page, so both appear with it: a
+                <AppTextarea
+                    v-model="createForm.description"
+                    :label="t('suite.post_types.description')"
+                    :placeholder="t('suite.post_types.description_placeholder')"
+                    :rows="2"
+                />
+                <AppInput
+                    v-model="createForm.slug"
+                    :label="t('suite.post_types.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :error="createErrors.slug"
+                    required
+                />
+                <AppInput
+                    v-model="createForm.icon"
+                    :label="t('suite.post_types.icon')"
+                    :placeholder="t('suite.post_types.icon_placeholder')"
+                />
+                <AppCheckbox v-model="createForm.hasArchive" :label="t('suite.post_types.has_archive')" :hint="t('suite.post_types.has_archive_hint')" />
+                <!-- Both belong to the listing page, so both appear with it: a
                  type with no archive has no page to name and no header to
                  give it. -->
-            <template v-if="createForm.hasArchive">
-                <AppInput
-                    v-model="createForm.archiveTitle"
-                    :label="t('suite.post_types.archive_title')"
-                    :hint="t('suite.post_types.archive_title_hint')"
-                    :placeholder="t('suite.post_types.archive_title_placeholder')"
-                />
-                <AppMultiselect
-                    v-model="createForm.archivePostId"
-                    :label="t('suite.post_types.archive_post')"
-                    :hint="t('suite.post_types.archive_post_hint')"
-                    :placeholder="t('suite.post_types.archive_post_placeholder')"
-                    :options="postOptions"
-                    allow-empty
-                />
-                <!-- Only means anything once a publication is designated: what
+                <template v-if="createForm.hasArchive">
+                    <AppInput
+                        v-model="createForm.archiveTitle"
+                        :label="t('suite.post_types.archive_title')"
+                        :hint="t('suite.post_types.archive_title_hint')"
+                        :placeholder="t('suite.post_types.archive_title_placeholder')"
+                    />
+                    <AppMultiselect
+                        v-model="createForm.archivePostId"
+                        :label="t('suite.post_types.archive_post')"
+                        :hint="t('suite.post_types.archive_post_hint')"
+                        :placeholder="t('suite.post_types.archive_post_placeholder')"
+                        :options="postOptions"
+                        allow-empty
+                    />
+                    <!-- Only means anything once a publication is designated: what
                      it switches off is the automatic list, and switching that
                      off with nothing composed above would leave the page
                      empty. -->
-                <AppCheckbox
-                    v-if="createForm.archivePostId"
-                    v-model="createForm.archiveShowsList"
-                    :label="t('suite.post_types.archive_shows_list')"
-                    :hint="t('suite.post_types.archive_shows_list_hint')"
-                />
+                    <AppCheckbox
+                        v-if="createForm.archivePostId"
+                        v-model="createForm.archiveShowsList"
+                        :label="t('suite.post_types.archive_shows_list')"
+                        :hint="t('suite.post_types.archive_shows_list_hint')"
+                    />
+                </template>
+                <div class="space-y-2">
+                    <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.post_types.supports") }}</label>
+                    <AppCheckbox
+                        v-for="support in supportOptions"
+                        :key="support"
+                        :model-value="createForm.supports.includes(support)"
+                        :label="t(`suite.post_types.supports_${support}`)"
+                        v-on:update:model-value="toggleSupport(createForm, support)"
+                    />
+                </div>
+            </form>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+                </AppModalFooter>
             </template>
-            <div class="space-y-2">
-                <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.post_types.supports") }}</label>
-                <AppCheckbox
-                    v-for="support in supportOptions"
-                    :key="support"
-                    :model-value="createForm.supports.includes(support)"
-                    :label="t(`suite.post_types.supports_${support}`)"
-                    v-on:update:model-value="toggleSupport(createForm, support)"
-                />
-            </div>
-        </form>
-        <template #footer>
-            <AppModalFooter>
-                <AppButton variant="ghost" size="md" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-            </AppModalFooter>
-        </template>
-    </AppModal>
+        </AppModal>
 
-    <AppModal
-        :show="showEdit"
-        :title="t('suite.post_types.edit')"
-        :icon="Pencil"
-        :closeable="false"
-        v-on:close="showEdit = false"
-    >
-        <form class="space-y-4" v-on:submit.prevent="submitEdit">
-            <AppInput
-                v-model="editForm.label"
-                :label="t('suite.post_types.label')"
-                :placeholder="t('suite.post_types.label_placeholder')"
-                :error="editErrors.label"
-                required
-            />
-            <!-- What this type is for, in the author's words. The side menu
+        <AppModal
+            :show="showEdit"
+            :title="t('suite.post_types.edit')"
+            :icon="Pencil"
+            :closeable="false"
+            v-on:close="showEdit = false"
+        >
+            <form class="space-y-4" v-on:submit.prevent="submitEdit">
+                <AppInput
+                    v-model="editForm.label"
+                    :label="t('suite.post_types.label')"
+                    :placeholder="t('suite.post_types.label_placeholder')"
+                    :error="editErrors.label"
+                    required
+                />
+                <!-- What this type is for, in the author's words. The side menu
                  shows it under the name; left blank it says how many posts the
                  type holds instead. -->
-            <AppTextarea
-                v-model="editForm.description"
-                :label="t('suite.post_types.description')"
-                :placeholder="t('suite.post_types.description_placeholder')"
-                :rows="2"
-            />
-            <AppInput
-                v-model="editForm.slug"
-                :label="t('suite.post_types.slug')"
-                :placeholder="t('shared.placeholders.slug')"
-                :error="editErrors.slug"
-                :disabled="editing?.isBuiltIn"
-                :hint="editing?.isBuiltIn ? t('suite.post_types.slug_locked') : null"
-            />
-            <AppInput
-                v-model="editForm.icon"
-                :label="t('suite.post_types.icon')"
-                :placeholder="t('suite.post_types.icon_placeholder')"
-            />
-            <AppCheckbox v-model="editForm.hasArchive" :label="t('suite.post_types.has_archive')" :hint="t('suite.post_types.has_archive_hint')" />
-            <!-- Both belong to the listing page, so both appear with it: a
+                <AppTextarea
+                    v-model="editForm.description"
+                    :label="t('suite.post_types.description')"
+                    :placeholder="t('suite.post_types.description_placeholder')"
+                    :rows="2"
+                />
+                <AppInput
+                    v-model="editForm.slug"
+                    :label="t('suite.post_types.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :error="editErrors.slug"
+                    :disabled="editing?.isBuiltIn"
+                    :hint="editing?.isBuiltIn ? t('suite.post_types.slug_locked') : null"
+                />
+                <AppInput
+                    v-model="editForm.icon"
+                    :label="t('suite.post_types.icon')"
+                    :placeholder="t('suite.post_types.icon_placeholder')"
+                />
+                <AppCheckbox v-model="editForm.hasArchive" :label="t('suite.post_types.has_archive')" :hint="t('suite.post_types.has_archive_hint')" />
+                <!-- Both belong to the listing page, so both appear with it: a
                  type with no archive has no page to name and no header to
                  give it. -->
-            <template v-if="editForm.hasArchive">
-                <AppInput
-                    v-model="editForm.archiveTitle"
-                    :label="t('suite.post_types.archive_title')"
-                    :hint="t('suite.post_types.archive_title_hint')"
-                    :placeholder="t('suite.post_types.archive_title_placeholder')"
-                />
-                <AppMultiselect
-                    v-model="editForm.archivePostId"
-                    :label="t('suite.post_types.archive_post')"
-                    :hint="t('suite.post_types.archive_post_hint')"
-                    :placeholder="t('suite.post_types.archive_post_placeholder')"
-                    :options="postOptions"
-                    allow-empty
-                />
-                <!-- Only means anything once a publication is designated: what
+                <template v-if="editForm.hasArchive">
+                    <AppInput
+                        v-model="editForm.archiveTitle"
+                        :label="t('suite.post_types.archive_title')"
+                        :hint="t('suite.post_types.archive_title_hint')"
+                        :placeholder="t('suite.post_types.archive_title_placeholder')"
+                    />
+                    <AppMultiselect
+                        v-model="editForm.archivePostId"
+                        :label="t('suite.post_types.archive_post')"
+                        :hint="t('suite.post_types.archive_post_hint')"
+                        :placeholder="t('suite.post_types.archive_post_placeholder')"
+                        :options="postOptions"
+                        allow-empty
+                    />
+                    <!-- Only means anything once a publication is designated: what
                      it switches off is the automatic list, and switching that
                      off with nothing composed above would leave the page
                      empty. -->
-                <AppCheckbox
-                    v-if="editForm.archivePostId"
-                    v-model="editForm.archiveShowsList"
-                    :label="t('suite.post_types.archive_shows_list')"
-                    :hint="t('suite.post_types.archive_shows_list_hint')"
-                />
+                    <AppCheckbox
+                        v-if="editForm.archivePostId"
+                        v-model="editForm.archiveShowsList"
+                        :label="t('suite.post_types.archive_shows_list')"
+                        :hint="t('suite.post_types.archive_shows_list_hint')"
+                    />
+                </template>
+                <div class="space-y-2">
+                    <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.post_types.supports") }}</label>
+                    <AppCheckbox
+                        v-for="support in supportOptions"
+                        :key="support"
+                        :model-value="editForm.supports.includes(support)"
+                        :label="t(`suite.post_types.supports_${support}`)"
+                        v-on:update:model-value="toggleSupport(editForm, support)"
+                    />
+                </div>
+            </form>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+                </AppModalFooter>
             </template>
-            <div class="space-y-2">
-                <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.post_types.supports") }}</label>
-                <AppCheckbox
-                    v-for="support in supportOptions"
-                    :key="support"
-                    :model-value="editForm.supports.includes(support)"
-                    :label="t(`suite.post_types.supports_${support}`)"
-                    v-on:update:model-value="toggleSupport(editForm, support)"
+        </AppModal>
+
+        <!-- Create / edit a field -->
+        <AppModal
+            :show="showField"
+            :title="editingField ? t('suite.post_types.fields.edit') : t('suite.post_types.fields.create')"
+            :icon="editingField ? Pencil : Plus"
+            :closeable="false"
+            v-on:close="showField = false"
+        >
+            <form class="space-y-4" v-on:submit.prevent="submitField">
+                <AppInput
+                    v-model="fieldForm.label"
+                    :label="t('suite.post_types.fields.label')"
+                    :placeholder="t('suite.post_types.fields.label_placeholder')"
+                    :error="fieldErrors.label"
+                    required
                 />
-            </div>
-        </form>
-        <template #footer>
-            <AppModalFooter>
-                <AppButton variant="ghost" size="md" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-            </AppModalFooter>
-        </template>
-    </AppModal>
+                <AppInput
+                    v-model="fieldForm.name"
+                    :label="t('suite.post_types.fields.name')"
+                    :placeholder="t('suite.post_types.fields.name_placeholder')"
+                    :error="fieldErrors.name"
+                    required
+                />
+                <AppSelect v-model="fieldForm.type" :label="t('suite.post_types.fields.type')" :options="fieldTypeOptions" />
 
-    <!-- Create / edit a field -->
-    <AppModal
-        :show="showField"
-        :title="editingField ? t('suite.post_types.fields.edit') : t('suite.post_types.fields.create')"
-        :icon="editingField ? Pencil : Plus"
-        :closeable="false"
-        v-on:close="showField = false"
-    >
-        <form class="space-y-4" v-on:submit.prevent="submitField">
-            <AppInput
-                v-model="fieldForm.label"
-                :label="t('suite.post_types.fields.label')"
-                :placeholder="t('suite.post_types.fields.label_placeholder')"
-                :error="fieldErrors.label"
-                required
-            />
-            <AppInput
-                v-model="fieldForm.name"
-                :label="t('suite.post_types.fields.name')"
-                :placeholder="t('suite.post_types.fields.name_placeholder')"
-                :error="fieldErrors.name"
-                required
-            />
-            <AppSelect v-model="fieldForm.type" :label="t('suite.post_types.fields.type')" :options="fieldTypeOptions" />
+                <AppTextarea
+                    v-if="fieldForm.type === 'select'"
+                    v-model="fieldForm.choices"
+                    :label="t('suite.post_types.fields.choices')"
+                    :placeholder="t('shared.placeholders.one_per_line')"
+                    :hint="t('suite.post_types.fields.choices_hint')"
+                    :rows="4"
+                />
 
-            <AppTextarea
-                v-if="fieldForm.type === 'select'"
-                v-model="fieldForm.choices"
-                :label="t('suite.post_types.fields.choices')"
-                :placeholder="t('shared.placeholders.one_per_line')"
-                :hint="t('suite.post_types.fields.choices_hint')"
-                :rows="4"
-            />
+                <AppCheckbox v-model="fieldForm.required" :label="t('suite.post_types.fields.required')" />
+                <AppCheckbox v-model="fieldForm.translatable" :label="t('suite.post_types.fields.translatable')" />
+            </form>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="showField = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="primary" size="md" :loading="fieldLoading" v-on:click="submitField"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
-            <AppCheckbox v-model="fieldForm.required" :label="t('suite.post_types.fields.required')" />
-            <AppCheckbox v-model="fieldForm.translatable" :label="t('suite.post_types.fields.translatable')" />
-        </form>
-        <template #footer>
-            <AppModalFooter>
-                <AppButton variant="ghost" size="md" v-on:click="showField = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                <AppButton variant="primary" size="md" :loading="fieldLoading" v-on:click="submitField"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-            </AppModalFooter>
-        </template>
-    </AppModal>
+        <!-- Deletions -->
+        <AppModal
+            :show="!!pendingDelete"
+            max-width="sm"
+            :closeable="false"
+            :title="t('shared.common.delete')"
+            :icon="Trash2"
+            v-on:close="pendingDelete = null"
+        >
+            <p class="text-sm text-primary">{{ t("suite.post_types.delete_confirm", { label: pendingDelete?.label ?? "" }) }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
-    <!-- Deletions -->
-    <AppModal
-        :show="!!pendingDelete"
-        max-width="sm"
-        :closeable="false"
-        :title="t('shared.common.delete')"
-        :icon="Trash2"
-        v-on:close="pendingDelete = null"
-    >
-        <p class="text-sm text-primary">{{ t("suite.post_types.delete_confirm", { label: pendingDelete?.label ?? "" }) }}</p>
-        <template #footer>
-            <AppModalFooter>
-                <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-            </AppModalFooter>
-        </template>
-    </AppModal>
-
-    <AppModal
-        :show="!!pendingFieldDelete"
-        max-width="sm"
-        :closeable="false"
-        :title="t('shared.common.delete')"
-        :icon="Trash2"
-        v-on:close="pendingFieldDelete = null"
-    >
-        <p class="text-sm text-primary">{{ t("suite.post_types.fields.delete_confirm", { label: pendingFieldDelete?.label ?? "" }) }}</p>
-        <template #footer>
-            <AppModalFooter>
-                <AppButton variant="ghost" size="md" v-on:click="pendingFieldDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                <AppButton variant="danger" size="md" :loading="fieldDeleteLoading" v-on:click="deleteField"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-            </AppModalFooter>
-        </template>
-    </AppModal>
+        <AppModal
+            :show="!!pendingFieldDelete"
+            max-width="sm"
+            :closeable="false"
+            :title="t('shared.common.delete')"
+            :icon="Trash2"
+            v-on:close="pendingFieldDelete = null"
+        >
+            <p class="text-sm text-primary">{{ t("suite.post_types.fields.delete_confirm", { label: pendingFieldDelete?.label ?? "" }) }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingFieldDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="danger" size="md" :loading="fieldDeleteLoading" v-on:click="deleteField"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+    </div>
 </template>

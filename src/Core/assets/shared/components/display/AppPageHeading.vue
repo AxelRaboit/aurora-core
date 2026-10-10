@@ -12,6 +12,9 @@
  * An `h2`: the page header's strip holds the page's heading already, and a
  * second top-level heading would leave the document outline with two tops.
  *
+ * The default slot sits under that line, for what qualifies the thing the
+ * screen shows rather than counts it: a slug, the chips of its capabilities.
+ *
  * The commands wrap under the title on a phone, full width, as everywhere else
  * a page's commands sit (`AppListToolbar`, `AppModalFooter`).
  */
@@ -26,6 +29,9 @@ defineProps({
         <div class="min-w-0">
             <h2 class="text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">{{ title }}</h2>
             <p v-if="subtitle" class="mt-1 text-[0.8125rem] tabular-nums text-secondary">{{ subtitle }}</p>
+            <div v-if="$slots.default" class="mt-2 flex flex-wrap items-center gap-1.5">
+                <slot />
+            </div>
         </div>
         <div
             v-if="$slots.actions"

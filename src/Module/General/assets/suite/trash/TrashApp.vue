@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { useI18n } from "vue-i18n";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -75,12 +76,12 @@ function itemActions(trash, item) {
 
 <template>
     <div class="aurora-stack">
-        <!-- The retention alone: what the trash is and how a restore goes
-             are told by the guide below, said a second time above it and a
-             third time under the list. -->
-        <p class="text-xs text-muted">
-            {{ retentionDays > 0 ? t("suite.trash.retention", { days: retentionDays }) : t("suite.trash.retention_off") }}
-        </p>
+        <!-- The retention under the name: what the trash is and how a
+             restore goes are told by the guide below. -->
+        <AppPageHeading
+            :title="t('suite.nav.trash')"
+            :subtitle="retentionDays > 0 ? t('suite.trash.retention', { days: retentionDays }) : t('suite.trash.retention_off')"
+        />
 
         <!-- The screen's how-to guide, next to what it explains; folded
              or unfolded, the choice applies to every panel. -->

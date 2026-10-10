@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
@@ -163,13 +164,11 @@ const pageActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <!-- No heading: `suite.themes.title` and `suite.nav.themes` are the
-             same word, and the second is already in the topbar. What is left is
-             the one control this row exists for, so it sits on its own at the
-             end. -->
-        <div v-if="pageActions.length" class="flex items-center justify-end *:w-full sm:*:w-auto">
-            <AppPageActions :actions="pageActions" />
-        </div>
+        <AppPageHeading :title="t('suite.nav.themes')" :subtitle="t('suite.nav.themes_description')">
+            <template v-if="pageActions.length" #actions>
+                <AppPageActions :actions="pageActions" />
+            </template>
+        </AppPageHeading>
 
         <!-- The screen's how-to guide, next to what it explains;
      folded or unfolded, the choice applies to every panel. -->
@@ -471,14 +470,15 @@ const pageActions = computed(() => {
                     </div>
                     <template v-if="section.key === 'header'">
                         <div class="space-y-2">
-                            <span class="text-xs text-secondary uppercase tracking-wide">{{ t('suite.themes.header_content') }}</span>
-                            <div class="flex gap-2">
+                            <span class="block text-[0.8125rem] font-medium text-primary">{{ t('suite.themes.header_content') }}</span>
+                            <div class="flex items-center gap-0.5 aurora-segmented" role="group" :aria-label="t('suite.themes.header_content')">
                                 <button
                                     v-for="mode in [{k:'default',l:t('suite.themes.header_mode_default')},{k:'text',l:t('suite.themes.header_mode_text')},{k:'image',l:t('suite.themes.header_mode_image')}]"
                                     :key="mode.k"
                                     type="button"
-                                    class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
-                                    :class="headerMode === mode.k ? 'bg-accent-600 text-white border-accent-600' : 'bg-surface-2 text-secondary border-line hover:text-primary'"
+                                    class="flex-1 rounded-md px-3 py-1 text-sm transition-colors"
+                                    :class="headerMode === mode.k ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                                    :aria-pressed="headerMode === mode.k"
                                     v-on:click="headerMode = mode.k"
                                 >
                                     {{ mode.l }}

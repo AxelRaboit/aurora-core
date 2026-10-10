@@ -292,6 +292,7 @@ suite:
         media: Medios
         media_description: 'Biblioteca centralizada de imágenes, vídeos y archivos reutilizables.'
         profile: 'Mi perfil'
+        profile_description: "Su foto, su nombre, su contraseña y sus preferencias."
         settings: Ajustes
         settings_description: 'Ajustes globales de la aplicación y preferencias por defecto.'
         themes: Temas

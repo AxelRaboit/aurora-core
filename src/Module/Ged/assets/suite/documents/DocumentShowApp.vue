@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import { computed, ref } from "vue";
@@ -151,7 +152,7 @@ function isPdf(mimeType) {
 </script>
 
 <template>
-    <div class="aurora-stack max-w-3xl">
+    <div class="aurora-stack">
         <!-- Four buttons and a chip on a row that could not wrap: on a phone
              they were squeezed to slivers. The download stays reachable, and
              more than once - the file block further down offers it beside the
@@ -172,6 +173,15 @@ function isPdf(mimeType) {
             />
         </AppPageBar>
 
+        <!-- The title as the page opens, as on every record of the suite;
+             the reference beside its status, the one people quote to each
+             other (visual redesign of the suite, 10/10/2026). -->
+        <AppPageHeading :title="currentDocument.title ?? ''" :subtitle="currentDocument.description ?? ''">
+            <span v-if="currentDocument.reference" class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-muted">{{ currentDocument.reference }}</span>
+            <AppBadge v-if="currentDocument.trashed" color="rose">{{ t("suite.ged.documents.trashed.badge") }}</AppBadge>
+            <AppBadge v-else :color="DOCUMENT_STATUS_BADGE[currentDocument.status]">{{ currentDocument.statusLabel }}</AppBadge>
+        </AppPageHeading>
+
         <AppMessage v-if="currentDocument.trashed" variant="trash">
             <p class="font-medium">{{ t("suite.ged.documents.trashed.title") }}</p>
             <p class="mt-0.5">{{ t("suite.ged.documents.trashed.body", { date: formatDate(currentDocument.deletedAt) }) }}</p>
@@ -189,58 +199,11 @@ function isPdf(mimeType) {
                 <li v-for="step in 4" :key="step">{{ t(`suite.ged.documents.show_guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
-        <!-- Main card -->
-        <div class="aurora-card divide-y divide-line/40">
-            <!-- Reference + status.
-                 No title: it is already in the topbar, which takes the last
-                 breadcrumb, and the trail spells it out just under. A third copy
-                 here was the same string three times on one screen.
-
-                 The reference leads instead, and steps up a size to do it. It is
-                 the other thing that identifies a document, it is the one people
-                 quote to each other, and unlike the title it appears nowhere else
-                 on the page. -->
-            <div class="px-4 py-5 sm:px-6">
-                <div class="flex items-start justify-between gap-4">
-                    <p v-if="currentDocument.reference" class="font-mono text-sm text-secondary">{{ currentDocument.reference }}</p>
-                    <AppBadge v-if="currentDocument.trashed" color="rose" class="shrink-0">{{ t("suite.ged.documents.trashed.badge") }}</AppBadge>
-                    <AppBadge v-else :color="DOCUMENT_STATUS_BADGE[currentDocument.status]" class="shrink-0">{{ currentDocument.statusLabel }}</AppBadge>
-                </div>
-                <p v-if="currentDocument.description" class="mt-3 text-sm text-secondary leading-relaxed">{{ currentDocument.description }}</p>
-            </div>
-
-            <!-- Metadata grid -->
-            <div class="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 sm:px-6 gap-4">
-                <div v-if="currentDocument.categoryName">
-                    <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.category") }}</p>
-                    <p class="text-sm text-primary">{{ currentDocument.categoryName }}</p>
-                </div>
-                <div v-if="currentDocument.folderName">
-                    <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.folder") }}</p>
-                    <p class="text-sm text-primary flex items-center gap-1.5">
-                        <Folder class="w-3.5 h-3.5 text-muted" :stroke-width="2" /> {{ currentDocument.folderName }}
-                    </p>
-                </div>
-                <div v-if="currentDocument.tags?.length">
-                    <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.tags") }}</p>
-                    <div class="flex flex-wrap gap-1.5">
-                        <DocumentTagChip v-for="tag in currentDocument.tags" :key="tag.id" :tag="tag" />
-                    </div>
-                </div>
-                <div v-if="currentDocument.width && currentDocument.height">
-                    <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("suite.ged.documents.dimensions") }}</p>
-                    <p class="text-sm text-primary">{{ currentDocument.width }} × {{ currentDocument.height }} px</p>
-                </div>
-                <div>
-                    <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("shared.common.dates") }}</p>
-                    <p class="text-xs text-secondary">{{ t("shared.common.created") }} {{ formatDate(currentDocument.createdAt) }}</p>
-                    <p class="text-xs text-secondary">{{ t("shared.common.updated") }} {{ formatDate(currentDocument.updatedAt) }}</p>
-                </div>
-            </div>
-
-            <!-- File -->
-            <div v-if="currentDocument.fileUrl" class="px-4 py-4 sm:px-6">
-                <p class="text-xs text-muted uppercase tracking-wide mb-3">{{ t("suite.ged.documents.file") }}</p>
+        <!-- The file on the left, what describes it on the right and in view
+             while the preview scrolls; one under the other elsewhere. -->
+        <div class="grid grid-cols-1 items-start aurora-gap" :class="currentDocument.fileUrl ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : ''">
+            <section v-if="currentDocument.fileUrl" class="aurora-card min-w-0 space-y-3 p-4 sm:p-5" data-document-file>
+                <h3 class="m-0 text-[0.9375rem] font-semibold text-primary">{{ t("suite.ged.documents.file") }}</h3>
                 <template v-if="isImage(currentDocument.fileMime)">
                     <AppImagePreview :src="currentDocument.fileUrl" :alt="currentDocument.fileName" size="lg" />
                     <div class="flex justify-end items-center gap-4 mt-2">
@@ -284,7 +247,38 @@ function isPdf(mimeType) {
                         <Download class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.download") }}
                     </a>
                 </div>
-            </div>
+            </section>
+
+            <section class="aurora-card min-w-0 space-y-4 p-4 sm:p-5 lg:sticky lg:top-[calc(var(--aurora-topbar)+1rem)]" data-document-details>
+                <h3 class="m-0 text-[0.9375rem] font-semibold text-primary">{{ t("suite.ged.documents.details_title") }}</h3>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div v-if="currentDocument.categoryName">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">{{ t("suite.ged.documents.category") }}</p>
+                        <p class="text-sm text-primary">{{ currentDocument.categoryName }}</p>
+                    </div>
+                    <div v-if="currentDocument.folderName">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">{{ t("suite.ged.documents.folder") }}</p>
+                        <p class="text-sm text-primary flex items-center gap-1.5">
+                            <Folder class="w-3.5 h-3.5 text-muted" :stroke-width="2" /> {{ currentDocument.folderName }}
+                        </p>
+                    </div>
+                    <div v-if="currentDocument.tags?.length">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">{{ t("suite.ged.documents.tags") }}</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <DocumentTagChip v-for="tag in currentDocument.tags" :key="tag.id" :tag="tag" />
+                        </div>
+                    </div>
+                    <div v-if="currentDocument.width && currentDocument.height">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">{{ t("suite.ged.documents.dimensions") }}</p>
+                        <p class="text-sm text-primary">{{ currentDocument.width }} × {{ currentDocument.height }} px</p>
+                    </div>
+                    <div>
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">{{ t("shared.common.dates") }}</p>
+                        <p class="text-xs text-secondary">{{ t("shared.common.created") }} {{ formatDate(currentDocument.createdAt) }}</p>
+                        <p class="text-xs text-secondary">{{ t("shared.common.updated") }} {{ formatDate(currentDocument.updatedAt) }}</p>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <!-- Edit modal -->

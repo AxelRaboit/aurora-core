@@ -142,6 +142,7 @@ suite:
             status: Statut
             category: Catégorie
             file: Fichier
+            details_title: Informations
             size: Taille
             add: Ajouter un document
             create: Nouveau document
