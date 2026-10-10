@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.10.0] - 2026-10-10
+
+### Ajouté
+- **Suivi des prospects.** L'onglet Prospects de Clients se lit aussi en tableau : une colonne par étape, les cartes glissées d'une étape à l'autre. Chaque carte dit le montant estimé, la prochaine relance (en retard, aujourd'hui ou à venir) et la date du dernier échange ; chaque colonne fait le total de ses montants. Les étapes se règlent depuis le tableau (nom, couleur, ordre, ajout, suppression) et arrivent avec cinq par défaut : Nouveau, Contacté, Proposition envoyée, Gagné, Perdu.
+  - Deux étapes ont un rôle. Déposer un prospect sur **Gagné** ouvre la conversion en client (l'e-mail contractuel est demandé) ; convertir un prospect d'ailleurs le range aussi en Gagné. Déposer sur **Perdu** demande pourquoi, facultativement, et retire sa relance. Un client reste en Gagné. Ces deux colonnes ne montrent que les 30 derniers jours.
+  - Sur téléphone, la liste remplace le tableau (une colonne d'étape et de relance s'y ajoute).
+- **Relances.** Une fiche porte une date de relance et une ligne « à propos de ». Le matin du jour dit (8 h 30, heure du site), une notification part à chaque personne qui voit les clients, une seule fois par date. Les relances du jour et en retard ont leur onglet dans Clients (« Relances à faire », lien `?followUps=due`), leur ligne dans « À traiter » du tableau de bord, et une pastille à côté de « Clients » dans le menu latéral.
+- **Historique des échanges.** Sur la page d'un client, prospect ou non : appels, e-mails, rendez-vous, messages et notes, datés à l'heure du site, avec leur auteur. Noter un échange propose la relance suivante et remplace celle qui était prévue (vide, elle est retirée). Le client ne voit pas cet historique.
+- **Montant estimé et origine** sur la fiche (formulaire du site, recommandation, réseau, salon, réseaux sociaux, autre). Le montant sert à peser le tableau ; rien n'est facturé, la facturation reste hors d'Aurora.
+- **Une réponse de formulaire devient un prospect.** Dans Formulaires > Réponses, « Créer un prospect » crée la fiche (nom = premier champ texte, e-mail et téléphone repris), avec la réponse en premier échange de son historique ; le bouton devient « Voir le prospect » et une même réponse ne crée jamais deux fiches. Les deux modules ne se connaissent pas : ils passent par `ProspectDirectoryInterface` (cœur), et le bouton n'existe que si Studio et ses clients sont allumés pour la personne qui lit.
+- **Une pastille d'alerte dans le menu latéral**, distincte du chiffre gris : `NavItemAttentionProviderInterface` dit combien de choses attendent derrière une entrée, et la pastille ne s'affiche que s'il y en a.
+
+### Dans aurora-client
+**Une migration**, jouée par `make aurora-update` : deux tables (`core_studio_pipeline_stages`, `core_studio_customer_interactions`) et des colonnes optionnelles sur `core_customers`. Rien n'est perdu ni modifié : les clients existants arrivent dans la première étape, sans relance. Les étapes par défaut se créent à la première ouverture du tableau.
+
+---
+
 ## [4.9.2] - 2026-10-10
 
 ### Corrigé

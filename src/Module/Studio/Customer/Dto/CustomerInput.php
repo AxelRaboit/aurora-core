@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Customer\Dto;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\Customer\Validator\Siren;
 use Aurora\Module\Studio\Customer\Validator\Siret;
+use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -78,6 +80,17 @@ class CustomerInput implements CustomerInputInterface
         public readonly array $links = [],
         #[Assert\Length(max: 5000, maxMessage: 'suite.studio.customers.errors.notes_too_long')]
         public readonly ?string $informationNotes = null,
+        // The follow-up: when, and about what. Any date is accepted, a past
+        // one included - it is simply due already.
+        public readonly ?DateTimeImmutable $nextFollowUpOn = null,
+        #[Assert\Length(max: 255, maxMessage: 'suite.studio.customers.errors.follow_up_note_too_long')]
+        public readonly ?string $followUpNote = null,
+        public readonly ?CustomerSourceEnum $source = null,
+        #[Assert\PositiveOrZero(message: 'suite.studio.customers.errors.estimated_value_invalid')]
+        public readonly ?int $estimatedValueCents = null,
+        public readonly ?CurrencyEnum $estimatedValueCurrency = null,
+        #[Assert\Length(max: 255, maxMessage: 'suite.studio.customers.errors.lost_reason_too_long')]
+        public readonly ?string $lostReason = null,
     ) {}
 
     /**
@@ -212,5 +225,35 @@ class CustomerInput implements CustomerInputInterface
     public function getInformationNotes(): ?string
     {
         return $this->informationNotes;
+    }
+
+    public function getNextFollowUpOn(): ?DateTimeImmutable
+    {
+        return $this->nextFollowUpOn;
+    }
+
+    public function getFollowUpNote(): ?string
+    {
+        return $this->followUpNote;
+    }
+
+    public function getSource(): ?CustomerSourceEnum
+    {
+        return $this->source;
+    }
+
+    public function getEstimatedValueCents(): ?int
+    {
+        return $this->estimatedValueCents;
+    }
+
+    public function getEstimatedValueCurrency(): ?CurrencyEnum
+    {
+        return $this->estimatedValueCurrency;
+    }
+
+    public function getLostReason(): ?string
+    {
+        return $this->lostReason;
     }
 }

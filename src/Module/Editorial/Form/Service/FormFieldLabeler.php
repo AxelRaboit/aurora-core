@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Form\Service;
 use Aurora\Module\Editorial\Form\Entity\FormFieldInterface;
 use Aurora\Module\Editorial\Form\Entity\FormInterface;
 use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
+use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
 
 /**
  * Turns a submission back into question-and-answer pairs.
@@ -42,6 +43,28 @@ final readonly class FormFieldLabeler
         }
 
         return $pairs;
+    }
+
+    /**
+     * The first non-blank answer to a field of this type, in field order: the
+     * address of an email field, the name of the first text field.
+     */
+    public function firstAnswerOfType(FormInterface $form, FormSubmissionInterface $submission, FormFieldTypeEnum $type): ?string
+    {
+        $data = $submission->getData();
+
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() !== $type) {
+                continue;
+            }
+
+            $value = $data[(string) $field->getId()] ?? null;
+            if (is_string($value) && '' !== mb_trim($value)) {
+                return mb_trim($value);
+            }
+        }
+
+        return null;
     }
 
     public function label(FormFieldInterface $field, string $locale): string

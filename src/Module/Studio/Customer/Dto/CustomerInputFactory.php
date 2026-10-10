@@ -6,7 +6,9 @@ namespace Aurora\Module\Studio\Customer\Dto;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Support\Str;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
+use DateTimeImmutable;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function is_array;
@@ -23,6 +25,7 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
     public function fromArray(array $data): CustomerInputInterface
     {
         $capital = $this->centsFromArray($data, 'shareCapital');
+        $estimate = $this->centsFromArray($data, 'estimatedValue');
 
         return new CustomerInput(
             legalName: Str::trimFromArray($data, 'legalName'),
@@ -53,6 +56,16 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
             landline: Str::trimOrNullFromArray($data, 'landline'),
             links: $this->links($data),
             informationNotes: Str::trimOrNullFromArray($data, 'informationNotes'),
+            nextFollowUpOn: $this->dateOrNull($data, 'nextFollowUpOn'),
+            followUpNote: Str::trimOrNullFromArray($data, 'followUpNote'),
+            source: CustomerSourceEnum::tryFrom(Str::trimFromArray($data, 'source')),
+            estimatedValueCents: $estimate,
+            // Same rule as the capital: the currency exists exactly when the
+            // amount does, euro unless said otherwise.
+            estimatedValueCurrency: null === $estimate
+                ? null
+                : (CurrencyEnum::tryFrom(Str::trimFromArray($data, 'estimatedValueCurrency')) ?? CurrencyEnum::EUR),
+            lostReason: Str::trimOrNullFromArray($data, 'lostReason'),
         );
     }
 
@@ -153,6 +166,27 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
         // the constraint is what reports a bad number, and swallowing it here
         // would validate a null and save nothing.
         return '' === $digits ? null : $digits;
+    }
+
+    /**
+     * A calendar day, as the date field sends it ("2026-10-14"), or null.
+     *
+     * Strict on the format: a date picker sends exactly this, and anything
+     * else is better read as "no date" than guessed at.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function dateOrNull(array $data, string $key): ?DateTimeImmutable
+    {
+        $raw = $this->rawOrNull($data, $key);
+
+        if (null === $raw) {
+            return null;
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $raw);
+
+        return false === $date ? null : $date;
     }
 
     /**

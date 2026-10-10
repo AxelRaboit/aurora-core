@@ -6,7 +6,10 @@ namespace Aurora\Module\Studio\Customer\Entity;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
+use Aurora\Module\Studio\Pipeline\Entity\PipelineStageInterface;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -189,6 +192,90 @@ abstract class AbstractCustomer implements CustomerInterface
      */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $informationNotes = null;
+
+    /**
+     * Where this customer stands in the prospect pipeline, or nowhere yet.
+     *
+     * **Null is "the first stage"**, not "outside the pipeline": every
+     * prospect created before the pipeline existed, or created from a space,
+     * shows in the first stage in progress until somebody moves it. Storing a
+     * stage on every insert would have tied the creation of a customer to a
+     * board it may never be looked at on.
+     *
+     * `SET NULL` on delete, though a stage holding customers cannot be
+     * deleted: the Manager refuses, and this only covers a stage removed
+     * around it.
+     */
+    #[ORM\ManyToOne(targetEntity: PipelineStageInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?PipelineStageInterface $pipelineStage = null;
+
+    /** Order inside its stage, top to bottom. */
+    #[ORM\Column(options: ['default' => 0])]
+    protected int $pipelinePosition = 0;
+
+    /**
+     * When the customer last changed stage.
+     *
+     * What lets the board say "for 12 days", and lets the outcome stages show
+     * only what was decided recently rather than every deal ever closed.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $pipelineStageChangedAt = null;
+
+    /**
+     * The day somebody should get back to this customer.
+     *
+     * A date and not a moment: "call them back Tuesday" is how a follow-up is
+     * decided, and an hour would be invented precision.
+     */
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $nextFollowUpOn = null;
+
+    /** What the follow-up is about, in one line: "send the revised quote". */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $followUpNote = null;
+
+    /**
+     * The follow-up date a reminder was already sent for.
+     *
+     * Cleared whenever the date changes (see `setNextFollowUpOn`), so moving
+     * a follow-up to next week rings again next week, and a reminder never
+     * rings twice for the same day.
+     */
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $followUpNotifiedOn = null;
+
+    #[ORM\Column(length: 20, nullable: true, enumType: CustomerSourceEnum::class)]
+    protected ?CustomerSourceEnum $source = null;
+
+    /**
+     * What the customer was created from, when it was created from something:
+     * the reference of a website form's submission.
+     *
+     * A reference rather than a relation: the submission belongs to another
+     * module, and a module may not hold a relation to another module's
+     * entity. It is also what stops one submission from making two prospects.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $sourceReference = null;
+
+    /**
+     * What the deal is thought to be worth, in cents.
+     *
+     * An estimate to weigh the pipeline with, not an amount anything is
+     * invoiced from: invoicing lives outside Aurora.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?int $estimatedValueCents = null;
+
+    /** Null exactly when there is no estimate. */
+    #[ORM\Column(length: 3, nullable: true, enumType: CurrencyEnum::class)]
+    protected ?CurrencyEnum $estimatedValueCurrency = null;
+
+    /** Why the deal was lost, when it was: "went with an agency", "no budget". */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $lostReason = null;
 
     abstract public function getId(): ?int;
 
@@ -423,6 +510,145 @@ abstract class AbstractCustomer implements CustomerInterface
     public function setInformationNotes(?string $informationNotes): static
     {
         $this->informationNotes = $informationNotes;
+
+        return $this;
+    }
+
+    public function getPipelineStage(): ?PipelineStageInterface
+    {
+        return $this->pipelineStage;
+    }
+
+    public function setPipelineStage(?PipelineStageInterface $pipelineStage): static
+    {
+        $this->pipelineStage = $pipelineStage;
+
+        return $this;
+    }
+
+    public function getPipelinePosition(): int
+    {
+        return $this->pipelinePosition;
+    }
+
+    public function setPipelinePosition(int $pipelinePosition): static
+    {
+        $this->pipelinePosition = $pipelinePosition;
+
+        return $this;
+    }
+
+    public function getPipelineStageChangedAt(): ?DateTimeImmutable
+    {
+        return $this->pipelineStageChangedAt;
+    }
+
+    public function setPipelineStageChangedAt(?DateTimeImmutable $pipelineStageChangedAt): static
+    {
+        $this->pipelineStageChangedAt = $pipelineStageChangedAt;
+
+        return $this;
+    }
+
+    public function getNextFollowUpOn(): ?DateTimeImmutable
+    {
+        return $this->nextFollowUpOn;
+    }
+
+    /**
+     * A new date is a new reminder: the one already sent was for another day.
+     */
+    public function setNextFollowUpOn(?DateTimeImmutable $nextFollowUpOn): static
+    {
+        if ($nextFollowUpOn?->format('Y-m-d') !== $this->nextFollowUpOn?->format('Y-m-d')) {
+            $this->followUpNotifiedOn = null;
+        }
+
+        $this->nextFollowUpOn = $nextFollowUpOn;
+
+        return $this;
+    }
+
+    public function getFollowUpNote(): ?string
+    {
+        return $this->followUpNote;
+    }
+
+    public function setFollowUpNote(?string $followUpNote): static
+    {
+        $this->followUpNote = $followUpNote;
+
+        return $this;
+    }
+
+    public function getFollowUpNotifiedOn(): ?DateTimeImmutable
+    {
+        return $this->followUpNotifiedOn;
+    }
+
+    public function setFollowUpNotifiedOn(?DateTimeImmutable $followUpNotifiedOn): static
+    {
+        $this->followUpNotifiedOn = $followUpNotifiedOn;
+
+        return $this;
+    }
+
+    public function getSource(): ?CustomerSourceEnum
+    {
+        return $this->source;
+    }
+
+    public function setSource(?CustomerSourceEnum $source): static
+    {
+        $this->source = $source;
+
+        return $this;
+    }
+
+    public function getSourceReference(): ?string
+    {
+        return $this->sourceReference;
+    }
+
+    public function setSourceReference(?string $sourceReference): static
+    {
+        $this->sourceReference = $sourceReference;
+
+        return $this;
+    }
+
+    public function getEstimatedValueCents(): ?int
+    {
+        return $this->estimatedValueCents;
+    }
+
+    public function setEstimatedValueCents(?int $estimatedValueCents): static
+    {
+        $this->estimatedValueCents = $estimatedValueCents;
+
+        return $this;
+    }
+
+    public function getEstimatedValueCurrency(): ?CurrencyEnum
+    {
+        return $this->estimatedValueCurrency;
+    }
+
+    public function setEstimatedValueCurrency(?CurrencyEnum $estimatedValueCurrency): static
+    {
+        $this->estimatedValueCurrency = $estimatedValueCurrency;
+
+        return $this;
+    }
+
+    public function getLostReason(): ?string
+    {
+        return $this->lostReason;
+    }
+
+    public function setLostReason(?string $lostReason): static
+    {
+        $this->lostReason = $lostReason;
 
         return $this;
     }

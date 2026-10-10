@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Form\Controller\Suite;
 
+use Aurora\Core\Contact\Prospect\ProspectDirectoryInterface;
+use Aurora\Core\Contact\Prospect\WebsiteContact;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Core\Support\TreeReorderParser;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Core\Validation\Exception\FieldException;
@@ -17,15 +20,19 @@ use Aurora\Module\Editorial\Form\Dto\FormFieldInputInterface;
 use Aurora\Module\Editorial\Form\Dto\FormInputFactoryInterface;
 use Aurora\Module\Editorial\Form\Entity\Form;
 use Aurora\Module\Editorial\Form\Entity\FormFieldInterface;
+use Aurora\Module\Editorial\Form\Entity\FormSubmission;
 use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
+use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
 use Aurora\Module\Editorial\Form\Enum\FormTemplateEnum;
 use Aurora\Module\Editorial\Form\Manager\FormManagerInterface;
 use Aurora\Module\Editorial\Form\Repository\FormSubmissionRepository;
 use Aurora\Module\Editorial\Form\Serializer\FormSerializerInterface;
+use Aurora\Module\Editorial\Form\Service\FormFieldLabeler;
 use Aurora\Module\Editorial\Form\Service\FormSubmissionExporter;
 use Aurora\Module\Editorial\Form\Service\FormTemplateApplier;
 use Aurora\Module\Editorial\Form\View\FormsViewBuilder;
 use InvalidArgumentException;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -52,6 +59,9 @@ class FormsController extends AbstractController
         private readonly PayloadValidator $payloadValidator,
         private readonly LocaleContextInterface $localeContext,
         private readonly FormTemplateApplier $templateApplier,
+        private readonly ProspectDirectoryInterface $prospectDirectory,
+        private readonly FormFieldLabeler $labeler,
+        private readonly PathTemplateGenerator $pathTemplateGenerator,
     ) {}
 
     /**
@@ -203,15 +213,78 @@ class FormsController extends AbstractController
 
         $result = $this->submissionRepository->findPaginatedByForm($form, $pagination->page, $pagination->limit);
 
+        // The prospect each message already became, when prospects are at
+        // hand: the button turns into a link, and nobody creates it twice.
+        $canCreateProspect = $this->prospectDirectory->isAvailable();
+        $prospectPaths = $canCreateProspect
+            ? $this->prospectDirectory->pathsForSources(array_map($this->sourceReferenceOf(...), $result['items']))
+            : [];
+
         return $this->jsonSuccess([
             'submissions' => array_map(
-                fn (FormSubmissionInterface $submission): array => $this->formSerializer->serializeSubmission($submission, $locale),
+                fn (FormSubmissionInterface $submission): array => [
+                    ...$this->formSerializer->serializeSubmission($submission, $locale),
+                    'prospectPath' => $prospectPaths[$this->sourceReferenceOf($submission)] ?? null,
+                ],
                 $result['items'],
             ),
+            'canCreateProspect' => $canCreateProspect,
+            'prospectCreatePath' => $canCreateProspect
+                ? $this->pathTemplateGenerator->generate('suite_editorial_forms_submission_prospect', ['id' => $form->getId(), 'submissionId' => '__id__'])
+                : null,
             'total' => $result['total'],
             'page' => $result['page'],
             'totalPages' => $result['totalPages'],
         ]);
+    }
+
+    /**
+     * A message from the website becomes a prospect, its answers the first
+     * line of the prospect's history.
+     *
+     * The name is the first text field, the convention the contact signal
+     * already follows; it is usually the person's name, and it is renamed on
+     * the sheet when it should be the company's. Answers the address of the
+     * prospect's page, which the screen opens.
+     */
+    #[Route('/{id}/submissions/{submissionId}/prospect', name: '_submission_prospect', requirements: ['id' => '\\d+', 'submissionId' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function createProspect(Form $form, #[MapEntity(id: 'submissionId')] FormSubmission $submission): JsonResponse
+    {
+        if ($submission->getForm()->getId() !== $form->getId()) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$this->prospectDirectory->isAvailable()) {
+            return $this->jsonForbidden();
+        }
+
+        $locale = $this->localeContext->getDefaultLocale();
+        $email = $this->labeler->firstAnswerOfType($form, $submission, FormFieldTypeEnum::Email);
+        $lines = array_map(
+            static fn (array $pair): string => $pair['label'].' : '.$pair['value'],
+            $this->labeler->pairs($form, $submission, $locale),
+        );
+
+        $path = $this->prospectDirectory->createFromWebsiteContact(new WebsiteContact(
+            name: $this->labeler->firstAnswerOfType($form, $submission, FormFieldTypeEnum::Text) ?? $email ?? $this->sourceReferenceOf($submission),
+            email: $email,
+            phone: $this->labeler->firstAnswerOfType($form, $submission, FormFieldTypeEnum::Tel),
+            sourceReference: $this->sourceReferenceOf($submission),
+            sourceLabel: $this->labeler->title($form, $locale),
+            summary: implode("\n", $lines),
+            receivedAt: $submission->getSubmittedAt(),
+        ));
+
+        return $this->jsonSuccess(['prospectPath' => $path]);
+    }
+
+    /**
+     * What a submission is known by outside this module. Its reference, or
+     * its id for the rows written before references existed.
+     */
+    private function sourceReferenceOf(FormSubmissionInterface $submission): string
+    {
+        return $submission->getReference() ?? 'form-submission-'.$submission->getId();
     }
 
     #[Route('/{id}/submissions/export', name: '_submissions_export', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Get->value])]

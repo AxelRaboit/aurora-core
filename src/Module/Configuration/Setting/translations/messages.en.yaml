@@ -644,6 +644,7 @@ suite:
             comments_pending: "pending comment | pending comments"
             posts_pending_review: "post to review | posts to review"
             reminders_overdue: "overdue reminder | overdue reminders"
+            follow_ups_due: "follow-up due | follow-ups due"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

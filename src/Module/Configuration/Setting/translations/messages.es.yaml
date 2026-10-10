@@ -643,6 +643,7 @@ suite:
             comments_pending: "comentario pendiente | comentarios pendientes"
             posts_pending_review: "publicación por revisar | publicaciones por revisar"
             reminders_overdue: "recordatorio atrasado | recordatorios atrasados"
+            follow_ups_due: "seguimiento pendiente | seguimientos pendientes"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

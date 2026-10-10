@@ -53,6 +53,15 @@ suite:
                     updated: Customer updated
                     deleted: Customer deleted
                     information_updated: Customer sheet updated
+                    stage_changed: "Prospect moved to another stage"
+                customer_interaction:
+                    created: "Exchange logged"
+                    updated: "Exchange edited"
+                    deleted: "Exchange deleted"
+                pipeline_stage:
+                    created: "Pipeline stage created"
+                    updated: "Pipeline stage edited"
+                    deleted: "Pipeline stage deleted"
                 customer_space:
                     created: Client space created
                     updated: Client space updated
@@ -780,6 +789,8 @@ suite:
                 step_3: "Then fill in the SIRET, the legal form, the registered office and the representative: contracts use them."
                 step_4: "Open a record to complete it: legal identity, representative, contact, links and notes. It belongs to the client, not to a space: each of their spaces shows it as it is."
                 step_5: "A record with contracts or spaces, even in the trash, cannot be deleted."
+                step_6: "Prospects can also be read as a board: one column per stage. Drag a card to move it forward; dropping it on “Won” converts it into a client, on “Lost” asks why."
+                step_7: "A follow-up date rings a notification on the morning of that day, and the “Follow-ups due” tab gathers today's and the late ones."
             title: Customers
             spaces: Their spaces
             spaces_description: "Opens this customer's spaces in the list."
@@ -872,6 +883,7 @@ suite:
                 step_2: "This is the only place it is edited. The Information tab of each of their spaces shows it as it is, and that is what the client reads there."
                 step_3: "On the right, what surrounds them: their spaces, their contracts and the Studio deliverables written for them, one click away."
                 step_4: "A prospect is converted to a customer from the « … » button, which asks for their contractual email."
+                step_5: "On the right, the follow-up: the stage, the next follow-up, the estimated value and where they came from. Write down every call or meeting in the history: that is where the next follow-up is decided."
             facts:
                 contracts: "Contracts"
                 spaces: "Spaces"
@@ -898,6 +910,17 @@ suite:
                 convert_description: "Enter the contractual email its contracts will go to"
                 delete_description: Delete this customer
 
+            source: "Source"
+            source_reference: "Created from submission {reference}"
+            sources:
+                none: "Not specified"
+                website_form: "Website form"
+                referral: "Referral"
+                network: "Network"
+                event: "Trade show or event"
+                social_media: "Social media"
+                other: "Other"
+
             errors:
                 legal_name_required: "The legal name is required."
                 legal_name_too_long: "The legal name cannot exceed 180 characters."
@@ -918,6 +941,100 @@ suite:
                 link_url_required: This link has no address.
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
+                follow_up_note_too_long: "This reminder cannot exceed 255 characters."
+                estimated_value_invalid: "The estimated value cannot be negative."
+                lost_reason_too_long: "The reason cannot exceed 255 characters."
+        pipeline:
+            card_title: "Follow-up"
+            card_hint: "Where the deal stands, and when to get back to them."
+            stage: "Stage"
+            stage_hint: "Changes at once, without waiting for Save. “Won” converts into a client."
+            stage_changed: "Stage changed."
+            estimated_value: "Estimated value"
+            estimated_value_placeholder: "1500"
+            estimated_value_hint: "An estimate to weigh the board with; nothing is invoiced."
+            shape_board: "Board"
+            shape_list: "List"
+            col_follow_up: "Follow-up"
+            move_card: "Move"
+            move_stage: "Move the stage"
+            edit_stage: "Edit stage"
+            add_stage: "Add a stage"
+            empty_stage: "No prospect here."
+            outcome_window: "Last {days} days"
+            last_interaction: "Latest exchange"
+            stage_name: "Name"
+            stage_name_placeholder: "Meeting booked"
+            stage_colour: "Colour"
+            stage_role: "Role"
+            stage_role_hint: "“Won” receives the prospects converted into clients, “Lost” those no longer followed. One stage per role."
+            stage_saved: "Stage saved."
+            stage_deleted: "Stage deleted."
+            delete_stage_title: "Delete the stage {name}?"
+            delete_stage_body: "A stage that still holds prospects cannot be deleted: move them first."
+            lost_title: "{name}: deal lost"
+            lost_reason: "Reason"
+            lost_reason_placeholder: "Budget, timing, went with someone else…"
+            lost_reason_hint: "Optional. Their follow-up is removed."
+            mark_lost: "Mark as lost"
+            marked_lost: "Deal marked as lost."
+            stage_roles:
+                none: "Stage in progress"
+                won: "Won"
+                lost: "Lost"
+            default_stages:
+                new: "New"
+                contacted: "Contacted"
+                proposal_sent: "Proposal sent"
+                won: "Won"
+                lost: "Lost"
+            follow_up:
+                tab: "Follow-ups due"
+                date: "Next follow-up"
+                date_hint: "A notification arrives on the morning of that day."
+                note: "About"
+                note_placeholder: "Send the revised quote"
+                states:
+                    late: "Late · {date}"
+                    today: "Today"
+                    upcoming: "{date}"
+                due_count: "{count} follow-up due | {count} follow-ups due"
+                notification_title: "Follow up with {name}"
+                notification_body: "The follow-up planned for today."
+            errors:
+                stage_name_required: "The stage name is required."
+                stage_name_too_long: "A stage name cannot exceed 100 characters."
+                stage_not_empty: "This stage holds {count} customer. Move it before deleting the stage. | This stage holds {count} customers. Move them before deleting the stage."
+                role_taken: "The stage {name} already has this role."
+                stage_last_in_progress: "At least one stage in progress must remain: it is where new prospects arrive."
+                won_needs_conversion: "A won prospect is converted into a client: use “Convert to client”."
+                client_stays_won: "A client stays in the “Won” stage."
+        customer_interactions:
+            title: "Exchange history"
+            hint: "Calls, emails, meetings: what was said, to know where things were left. The client does not see it."
+            add: "Log an exchange"
+            edit: "Edit the exchange"
+            empty: "No exchange logged yet."
+            kind: "Type"
+            occurred_at: "When"
+            summary: "What was said"
+            summary_placeholder: "Wants a redesign before spring, budget around €2,000. Call back after their trade show."
+            next_follow_up: "Next follow-up"
+            next_follow_up_hint: "Leave empty to remove the planned follow-up."
+            saved: "Exchange saved."
+            deleted: "Exchange deleted."
+            delete_title: "Delete this exchange?"
+            delete_body: "It disappears from this customer's history."
+            kinds:
+                call: "Call"
+                email: "Email"
+                meeting: "Meeting"
+                message: "Message"
+                note: "Note"
+            errors:
+                occurred_at_required: "The date of the exchange is required."
+                summary_required: "Write down what was said."
+                summary_too_long: "An exchange cannot exceed 5000 characters."
         spaces:
             guide:
                 title: "How spaces work"

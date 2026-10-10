@@ -138,6 +138,8 @@ use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureChallengeInt
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\CustomerInteraction\Entity\CustomerInteraction;
+use Aurora\Module\Studio\CustomerInteraction\Entity\CustomerInteractionInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
@@ -151,6 +153,8 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Slides\Entity\Slide;
 use Aurora\Module\Studio\Deliverable\Slides\Entity\SlideInterface;
+use Aurora\Module\Studio\Pipeline\Entity\PipelineStage;
+use Aurora\Module\Studio\Pipeline\Entity\PipelineStageInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
@@ -308,6 +312,8 @@ class AuroraBundle extends AbstractBundle
                     TaxonomyTermInterface::class => TaxonomyTerm::class,
                     TaxonomyTermTranslationInterface::class => TaxonomyTermTranslation::class,
                     CustomerInterface::class => Customer::class,
+                    CustomerInteractionInterface::class => CustomerInteraction::class,
+                    PipelineStageInterface::class => PipelineStage::class,
                     CustomerSpaceInterface::class => CustomerSpace::class,
                     CustomerSpaceMemberInterface::class => CustomerSpaceMember::class,
                     SpaceContentColumnInterface::class => SpaceContentColumn::class,

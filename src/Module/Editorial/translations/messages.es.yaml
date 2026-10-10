@@ -1911,6 +1911,9 @@ suite:
             empty: "Ninguna pregunta en este paso."
             add_question_here: "Añadir una pregunta aquí"
         submissions:
+            create_prospect: "Crear un prospecto"
+            see_prospect: "Ver el prospecto"
+            prospect_created: "Prospecto creado: su mensaje abre su historial."
             title: "Respuestas"
             intro: "Las más recientes primero. La exportación incluye todas las respuestas, para una hoja de cálculo."
             empty: "Todavía no hay respuestas."

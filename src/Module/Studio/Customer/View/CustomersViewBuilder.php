@@ -8,9 +8,14 @@ use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerSerializerInterface;
+use Aurora\Module\Studio\CustomerInteraction\Enum\CustomerInteractionKindEnum;
+use Aurora\Module\Studio\CustomerInteraction\Repository\CustomerInteractionRepository;
+use Aurora\Module\Studio\CustomerInteraction\Serializer\CustomerInteractionSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
+use Aurora\Module\Studio\Pipeline\View\PipelineViewBuilder;
 use Aurora\Module\Studio\StudioContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -27,6 +32,9 @@ final readonly class CustomersViewBuilder
         private ContractRepository $contractRepository,
         private AuthorizationCheckerInterface $authorizationChecker,
         private CustomerRelatedViewBuilder $relatedViewBuilder,
+        private PipelineViewBuilder $pipelineViewBuilder,
+        private CustomerInteractionRepository $interactionRepository,
+        private CustomerInteractionSerializerInterface $interactionSerializer,
     ) {}
 
     /**
@@ -50,6 +58,10 @@ final readonly class CustomersViewBuilder
             'showPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_show', ['id' => '__id__']),
             'convertPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplateGenerator->generate('suite_studio_customers_delete', ['id' => '__id__']),
+            // The prospects' second layout: the same rows, drawn by stage.
+            'pipeline' => $this->pipelineViewBuilder->board(),
+            'pipelinePaths' => $this->pipelineViewBuilder->paths(),
+            'sources' => $this->sourceOptions(),
         ];
     }
 
@@ -98,10 +110,30 @@ final readonly class CustomersViewBuilder
         );
     }
 
+    /** @return list<array{value: string, labelKey: string}> */
+    private function sourceOptions(): array
+    {
+        return array_map(
+            static fn (CustomerSourceEnum $source): array => ['value' => $source->value, 'labelKey' => $source->getLabelKey()],
+            CustomerSourceEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function interactionKindOptions(): array
+    {
+        return array_map(
+            static fn (CustomerInteractionKindEnum $kind): array => ['value' => $kind->value, 'labelKey' => $kind->getLabelKey()],
+            CustomerInteractionKindEnum::cases(),
+        );
+    }
+
     /** @return array<string, mixed> */
     public function listPayload(): array
     {
-        return ['success' => true, 'customers' => $this->customers()];
+        // The board with the list: converting a prospect files it under won,
+        // deleting one takes its card away.
+        return ['success' => true, 'customers' => $this->customers(), 'pipeline' => $this->pipelineViewBuilder->board()];
     }
 
     /** @return array<string, mixed> */
@@ -110,6 +142,7 @@ final readonly class CustomersViewBuilder
         return [
             'customer' => $this->customerSerializer->serialize($customer),
             'customers' => $this->customers(),
+            'pipeline' => $this->pipelineViewBuilder->board(),
         ];
     }
 
@@ -143,6 +176,19 @@ final readonly class CustomersViewBuilder
             'contractsPath' => $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view')
                 ? $this->urlGenerator->generate('suite_studio_contracts', ['customer' => $id])
                 : null,
+            // The pipeline: the stages to name and change the customer's own,
+            // and the history of exchanges, newest first.
+            'stages' => $this->pipelineViewBuilder->stages(),
+            'movePath' => $this->urlGenerator->generate('suite_studio_customers_pipeline_move'),
+            'sources' => $this->sourceOptions(),
+            'interactionKinds' => $this->interactionKindOptions(),
+            'interactions' => array_map(
+                $this->interactionSerializer->serialize(...),
+                $this->interactionRepository->findForCustomer($customer),
+            ),
+            'interactionCreatePath' => $this->urlGenerator->generate('suite_studio_customers_interactions_create', ['id' => $id]),
+            'interactionUpdatePath' => $this->pathTemplateGenerator->generate('suite_studio_customers_interactions_update', ['id' => $id, 'interactionId' => '__id__']),
+            'interactionDeletePath' => $this->pathTemplateGenerator->generate('suite_studio_customers_interactions_delete', ['id' => $id, 'interactionId' => '__id__']),
         ];
     }
 
