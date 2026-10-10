@@ -653,6 +653,10 @@ suite:
             follow_ups_due: "follow-up due | follow-ups due"
             contracts_refused: "refused contract to rework | refused contracts to rework"
             contracts_expired: "expired contract to resend | expired contracts to resend"
+            unread_client_messages: "unread client message | unread client messages"
+            contracts_waiting_long: "contract unanswered for more than 3 days | contracts unanswered for more than 3 days"
+            contract_links_expiring: "signing link expiring within 3 days | signing links expiring within 3 days"
+            space_links_expiring: "client access expiring within 14 days | client accesses expiring within 14 days"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

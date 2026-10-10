@@ -10,6 +10,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Access\Manager\ContractAccessLinkManagerInterface;
+use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
 use Aurora\Module\Studio\Contract\Entity\Contract;
@@ -18,6 +19,8 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Message\NotifyEffectiveTerminationsMessage;
+use Aurora\Module\Studio\Contract\MessageHandler\NotifyEffectiveTerminationsHandler;
 use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
@@ -228,6 +231,39 @@ final class ContractNoticesTest extends IntegrationTestCase
         $mail = $this->mailTo('contact@durand.test');
         self::assertNotNull($mail);
         self::assertStringContainsString('31/12/2026', (string) $mail->getHtmlBody());
+    }
+
+    /** A send unanswered for days, and a link about to lapse, are counted. */
+    public function testLongWaitsAndLapsingLinksAreCounted(): void
+    {
+        [$id] = $this->sentContract();
+        $links = static::getContainer()->get(ContractAccessLinkRepository::class);
+
+        self::assertCount(0, $links->findWaitingSentBefore(new DateTimeImmutable('-3 days')));
+        self::assertSame(0, $links->countWaitingWithLinkExpiringBefore(new DateTimeImmutable('+3 days')));
+
+        $this->entityManager->getConnection()->executeStatement(
+            "UPDATE core_contract_access_links SET sent_at = NOW() - INTERVAL '4 days', expires_at = NOW() + INTERVAL '1 day' WHERE contract_id = :id",
+            ['id' => $id],
+        );
+
+        self::assertCount(1, $links->findWaitingSentBefore(new DateTimeImmutable('-3 days')));
+        self::assertSame(1, $links->countWaitingWithLinkExpiringBefore(new DateTimeImmutable('+3 days')));
+    }
+
+    /** The morning a termination takes effect, the customer's team hears of it. */
+    public function testATerminationTakingEffectTodayIsTold(): void
+    {
+        $this->givenSpaceForTheCustomer();
+        $id = $this->concludedContract();
+        $this->entityManager->getConnection()->executeStatement(
+            'UPDATE core_contracts SET termination_noticed_at = CURRENT_DATE, termination_effective_at = CURRENT_DATE, termination_origin = :origin WHERE id = :id',
+            ['origin' => 'provider', 'id' => $id],
+        );
+
+        static::getContainer()->get(NotifyEffectiveTerminationsHandler::class)(new NotifyEffectiveTerminationsMessage());
+
+        self::assertCount(1, $this->bellTitles(ContractTeamNotifier::TYPE_TERMINATION_EFFECTIVE));
     }
 
     /**

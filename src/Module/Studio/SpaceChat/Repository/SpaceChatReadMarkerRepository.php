@@ -13,6 +13,7 @@ use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatReadMarker;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatReadMarkerInterface;
 use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
+use DateTimeImmutable;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -20,6 +21,9 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SpaceChatReadMarkerRepository extends ResolveTargetEntityRepository
 {
+    /** How far back a studio account's never-opened room counts as unread. */
+    public const int UNMARKED_DAYS = 7;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, SpaceChatReadMarker::class, SpaceChatReadMarkerInterface::class);
@@ -35,11 +39,14 @@ class SpaceChatReadMarkerRepository extends ResolveTargetEntityRepository
     /**
      * Unread messages per room for one reader, a room with none left out.
      *
-     * Unread is after the reader's mark and by somebody else. A room the
-     * reader has never opened counts from its first message: it is all new to
+     * Unread is after the reader's mark and by somebody else. A room a client
+     * link has never opened counts from its first message: it is all new to
      * them, which is what a client given a link to a running conversation
-     * should see. `$fromClientOnly` keeps what the client wrote, for the
-     * studio's « messages client non lus ».
+     * should see. A room a studio account never opened counts the last
+     * {@see self::UNMARKED_DAYS} days only: an administrator looking at a
+     * colleague's space for the first time has not missed its whole history.
+     * `$fromClientOnly` keeps what the client wrote, for the studio's
+     * « messages client non lus ».
      *
      * @param list<SpaceChatChannelInterface> $channels
      *
@@ -56,11 +63,15 @@ class SpaceChatReadMarkerRepository extends ResolveTargetEntityRepository
             ->from(SpaceChatMessageInterface::class, 'm')
             ->leftJoin(SpaceChatReadMarkerInterface::class, 'r', 'WITH', null !== $user ? 'r.channel = m.channel AND r.user = :reader' : 'r.channel = m.channel AND r.link = :reader')
             ->where('m.channel IN (:channels)')
-            ->andWhere('r.id IS NULL OR m.createdAt > r.readAt')
+            ->andWhere(null !== $user ? '(r.id IS NULL AND m.createdAt > :recent) OR m.createdAt > r.readAt' : 'r.id IS NULL OR m.createdAt > r.readAt')
             ->andWhere(null !== $user ? 'm.authorUser IS NULL OR m.authorUser != :reader' : 'm.authorLink IS NULL OR m.authorLink != :reader')
             ->setParameter('channels', $channels)
             ->setParameter('reader', $user ?? $link)
             ->groupBy('m.channel');
+
+        if (null !== $user) {
+            $builder->setParameter('recent', new DateTimeImmutable(sprintf('-%d days', self::UNMARKED_DAYS)));
+        }
 
         if ($fromClientOnly) {
             $builder->andWhere('m.fromClient = true');
@@ -104,11 +115,12 @@ class SpaceChatReadMarkerRepository extends ResolveTargetEntityRepository
             ->leftJoin(SpaceChatReadMarkerInterface::class, 'r', 'WITH', 'r.channel = m.channel AND r.user = :user')
             ->where('m.space IN (:spaces)')
             ->andWhere('m.fromClient = true')
-            ->andWhere('r.id IS NULL OR m.createdAt > r.readAt')
+            ->andWhere('(r.id IS NULL AND m.createdAt > :recent) OR m.createdAt > r.readAt')
             ->andWhere(sprintf('c.kind = :main OR EXISTS (SELECT cm.id FROM %s cm WHERE cm.channel = c AND cm.user = :user)', SpaceChatChannelMemberInterface::class))
             ->setParameter('spaces', $spaceIds)
             ->setParameter('user', $user)
             ->setParameter('main', SpaceChatChannelKindEnum::Main)
+            ->setParameter('recent', new DateTimeImmutable(sprintf('-%d days', self::UNMARKED_DAYS)))
             ->groupBy('m.space')
             ->getQuery()
             ->getScalarResult();

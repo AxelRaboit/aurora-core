@@ -36,6 +36,9 @@ interface SpaceAccessLinkManagerInterface
 
     public function revoke(SpaceAccessLinkInterface $link): void;
 
+    /** Gives a link the default validity again, from today. A revoked link stays closed. */
+    public function extend(SpaceAccessLinkInterface $link): void;
+
     public function delete(SpaceAccessLinkInterface $link): void;
 
     /**

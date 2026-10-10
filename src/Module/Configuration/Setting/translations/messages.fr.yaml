@@ -654,6 +654,10 @@ suite:
             follow_ups_due: "relance à faire | relances à faire"
             contracts_refused: "contrat refusé à reprendre | contrats refusés à reprendre"
             contracts_expired: "contrat expiré à renvoyer | contrats expirés à renvoyer"
+            unread_client_messages: "message client non lu | messages client non lus"
+            contracts_waiting_long: "contrat sans réponse depuis plus de 3 jours | contrats sans réponse depuis plus de 3 jours"
+            contract_links_expiring: "lien de signature qui expire sous 3 jours | liens de signature qui expirent sous 3 jours"
+            space_links_expiring: "accès client qui expire sous 14 jours | accès client qui expirent sous 14 jours"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

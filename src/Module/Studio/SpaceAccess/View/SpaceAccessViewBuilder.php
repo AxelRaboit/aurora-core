@@ -44,6 +44,7 @@ final readonly class SpaceAccessViewBuilder
             'aliasPath' => $this->pathTemplateGenerator->generate('workspace_space_access_alias', ['id' => $space->getId(), 'linkId' => '__id__']),
             'aliasRemovePath' => $this->pathTemplateGenerator->generate('workspace_space_access_alias_remove', ['id' => $space->getId(), 'linkId' => '__id__']),
             'invitePath' => $this->pathTemplateGenerator->generate('workspace_space_access_invite', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'extendPath' => $this->pathTemplateGenerator->generate('workspace_space_access_extend', ['id' => $space->getId(), 'linkId' => '__id__']),
         ];
     }
 

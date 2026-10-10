@@ -107,6 +107,7 @@ suite:
                     alias_given: "Short address given to a client link"
                     alias_removed: "Short address removed from a client link"
                     invitation_sent: Access link sent by email
+                    extended: Client access link extended
                 space_file:
                     added: File added to a space
                     sent_by_client: File sent by the client to a space
@@ -546,6 +547,9 @@ suite:
                     no_history: Nothing recorded yet.
                     version_outdated: 'Version {number}; version {latest} has been in force since.'
                     version: 'version {number}'
+                waiting_long: "{count} contract has been awaiting a signature for more than {days} days. | {count} contracts have been awaiting a signature for more than {days} days."
+                waiting_long_manual: "The automatic reminder is off (Settings > Studio): remind them from their page."
+                waiting_long_show: Show them
             status:
                 draft: Draft
                 sealed: Sealed
@@ -1305,6 +1309,8 @@ suite:
             invited: 'Link sent to {email}.'
             can_see_contracts: Sees the customer's contracts
             can_see_contracts_hint: "A Contracts tab lists what was sent to them, offers to sign the one waiting and to download the signed copies. Signing still asks for the code sent to the contractual address."
+            extend: 'Extend by {days} days'
+            extended: 'Access extended by {days} days, at the same address.'
         client_visibility:
             share_needed: "Only someone who can share the space shows it to the client or hides it from them."
         space_files:
@@ -2375,6 +2381,8 @@ suite:
             approved_many: "%who% approved %count% content items"
             changes_requested: "%who% answered “Changes requested” on \"%item%\""
             late_review: '{1}One review overdue|]1,Inf[%count% reviews overdue'
+            team_added: 'You are on the team of %space%'
+            channel_invited: 'You were added to the %channel% room (%space%)'
         space_chat:
             guide:
                 title: "How the chat works"

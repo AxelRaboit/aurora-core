@@ -107,6 +107,7 @@ suite:
                     alias_given: "Adresse courte donnée à un lien client"
                     alias_removed: "Adresse courte retirée d'un lien client"
                     invitation_sent: Lien d'accès envoyé par email
+                    extended: Lien d'accès client prolongé
                 space_file:
                     added: Fichier ajouté à un espace
                     sent_by_client: Fichier envoyé par le client dans un espace
@@ -546,6 +547,9 @@ suite:
                     no_history: Rien d'enregistré pour l'instant.
                     version_outdated: 'Version {number} ; la version {latest} est en vigueur depuis.'
                     version: 'version {number}'
+                waiting_long: "{count} contrat attend une signature depuis plus de {days} jours. | {count} contrats attendent une signature depuis plus de {days} jours."
+                waiting_long_manual: "La relance automatique est éteinte (Réglages > Studio) : relancez-les depuis leur page."
+                waiting_long_show: Les voir
             status:
                 draft: Brouillon
                 sealed: Scellé
@@ -1305,6 +1309,8 @@ suite:
             invited: 'Lien envoyé à {email}.'
             can_see_contracts: Voit les contrats du client
             can_see_contracts_hint: "Un onglet Contrats liste ce qui lui a été envoyé, propose de signer celui qui attend et de télécharger les copies signées. La signature demande toujours le code envoyé à l'adresse contractuelle."
+            extend: 'Prolonger de {days} jours'
+            extended: 'Accès prolongé de {days} jours, à la même adresse.'
         client_visibility:
             share_needed: "Seule une personne qui peut partager l'espace le montre au client ou le lui cache."
         space_files:
@@ -2382,6 +2388,8 @@ suite:
             approved_many: '%who% a validé %count% contenus'
             changes_requested: "%who% a répondu « À revoir » sur « %item% »"
             late_review: '{1}Une relecture en retard|]1,Inf[%count% relectures en retard'
+            team_added: 'Vous faites partie de l''équipe de %space%'
+            channel_invited: 'Vous avez été ajouté au canal %channel% (%space%)'
         space_chat:
             guide:
                 title: "Comment fonctionne la discussion"

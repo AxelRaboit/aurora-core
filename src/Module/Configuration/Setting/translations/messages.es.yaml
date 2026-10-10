@@ -652,6 +652,10 @@ suite:
             follow_ups_due: "seguimiento pendiente | seguimientos pendientes"
             contracts_refused: "contrato rechazado por retomar | contratos rechazados por retomar"
             contracts_expired: "contrato caducado por reenviar | contratos caducados por reenviar"
+            unread_client_messages: "mensaje de cliente sin leer | mensajes de cliente sin leer"
+            contracts_waiting_long: "contrato sin respuesta desde hace más de 3 días | contratos sin respuesta desde hace más de 3 días"
+            contract_links_expiring: "enlace de firma que caduca en menos de 3 días | enlaces de firma que caducan en menos de 3 días"
+            space_links_expiring: "acceso de cliente que caduca en menos de 14 días | accesos de cliente que caducan en menos de 14 días"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

@@ -107,6 +107,7 @@ suite:
                     alias_given: "Dirección corta asignada a un enlace de cliente"
                     alias_removed: "Dirección corta retirada de un enlace de cliente"
                     invitation_sent: Enlace de acceso enviado por correo
+                    extended: Enlace de acceso de cliente prolongado
                 space_file:
                     added: 'Archivo añadido a un espacio'
                     sent_by_client: Archivo enviado por el cliente a un espacio
@@ -546,6 +547,9 @@ suite:
                     no_history: Nada registrado por ahora.
                     version_outdated: 'Versión {number}; la versión {latest} está en vigor desde entonces.'
                     version: 'versión {number}'
+                waiting_long: "{count} contrato espera una firma desde hace más de {days} días. | {count} contratos esperan una firma desde hace más de {days} días."
+                waiting_long_manual: "El recordatorio automático está desactivado (Ajustes > Studio): recuérdelos desde su página."
+                waiting_long_show: Verlos
             status:
                 draft: Borrador
                 sealed: Sellado
@@ -1284,6 +1288,8 @@ suite:
             invited: 'Enlace enviado a {email}.'
             can_see_contracts: Ve los contratos del cliente
             can_see_contracts_hint: "Una pestaña Contratos lista lo que se le envió, propone firmar el pendiente y descargar las copias firmadas. La firma sigue pidiendo el código enviado a la dirección contractual."
+            extend: 'Prolongar {days} días'
+            extended: 'Acceso prolongado {days} días, en la misma dirección.'
         client_visibility:
             share_needed: "Solo una persona que puede compartir el espacio lo muestra al cliente o se lo oculta."
         space_files:
@@ -2351,6 +2357,8 @@ suite:
             approved_many: '%who% ha validado %count% contenidos'
             changes_requested: "%who% respondió «Por revisar» en «%item%»"
             late_review: '{1}Una revisión atrasada|]1,Inf[%count% revisiones atrasadas'
+            team_added: 'Forma parte del equipo de %space%'
+            channel_invited: 'Le han añadido al canal %channel% (%space%)'
         space_chat:
             guide:
                 title: "Cómo funciona la conversación"

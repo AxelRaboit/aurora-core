@@ -227,6 +227,20 @@ class SpaceAccessController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->listPayload($space));
     }
 
+    #[Route('/{linkId}/extend', name: '_extend', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.share')]
+    public function extend(
+        CustomerSpace $space,
+        #[MapEntity(id: 'linkId')]
+        SpaceAccessLink $link,
+    ): JsonResponse {
+        $this->assertOwned($space, $link);
+
+        $this->links->extend($link);
+
+        return $this->jsonSuccess($this->viewBuilder->listPayload($space));
+    }
+
     #[Route('/{linkId}/delete', name: '_delete', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.share')]
     public function delete(

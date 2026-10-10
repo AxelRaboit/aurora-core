@@ -36,7 +36,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import { Ban, Copy, Eye, Link, Link2, Mail, Trash2, Unlink, X } from "lucide-vue-next";
+import { Ban, CalendarPlus, Copy, Eye, Link, Link2, Mail, Trash2, Unlink, X } from "lucide-vue-next";
 
 const { t, d: formatDate } = useI18n();
 const { can } = usePrivileges();
@@ -60,6 +60,8 @@ const props = defineProps({
     aliasRemovePath: { type: String, default: "" },
     /** With `__id__`: writes the link's address to its recipient again. */
     invitePath: { type: String, default: "" },
+    /** With `__id__`: the full validity again, from today, same address. */
+    extendPath: { type: String, default: "" },
 });
 
 const canShare = computed(() => can("studio.spaces.share"));
@@ -201,6 +203,29 @@ async function invite(link) {
     }
 }
 
+const extending = ref(null);
+
+/** Renewed in place: the client's address and the mails already sent keep working. */
+async function extend(link) {
+    extending.value = link.id;
+    try {
+        const data = await request(buildPath(props.extendPath, { id: link.id }));
+        if (data) {
+            applyLinks(data);
+            toast.success(t("suite.studio.space_access.extended", { days: props.defaultValidDays }));
+        }
+    } finally {
+        extending.value = null;
+    }
+}
+
+/** A live link that runs out within two weeks, or one that already has. */
+function expiresSoon(link) {
+    if (link.revoked) return false;
+
+    return link.expired || new Date(link.expiresAt).getTime() - Date.now() < 14 * 24 * 3600 * 1000;
+}
+
 const revoking = ref(null);
 
 async function revoke(link) {
@@ -242,6 +267,15 @@ function linkActions(link) {
             icon: Eye,
             title: t("suite.studio.space_access.preview"),
             onSelect: () => window.open(buildPath(props.previewPath, { id: link.id }), "_blank", "noopener"),
+        });
+    }
+    if (props.extendPath && expiresSoon(link)) {
+        actions.push({
+            key: "extend",
+            icon: CalendarPlus,
+            title: t("suite.studio.space_access.extend", { days: props.defaultValidDays }),
+            loading: extending.value === link.id,
+            onSelect: () => extend(link),
         });
     }
     if (props.invitePath && link.usable) {

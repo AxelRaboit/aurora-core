@@ -161,6 +161,27 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
     }
 
     /**
+     * Gives a link its full validity again, counted from today.
+     *
+     * The address does not change, so the client's bookmark and the mails
+     * already sent keep working: renewing an access used to mean issuing a
+     * new link and sending it again, which is why accesses were left to run
+     * out. A revoked link is a decision and stays closed; an expired one can
+     * be brought back, which is the case this is most often for.
+     */
+    public function extend(SpaceAccessLinkInterface $link): void
+    {
+        if (null !== $link->getRevokedAt() || $link->isPreview()) {
+            return;
+        }
+
+        $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', static::DEFAULT_VALID_DAYS)));
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'space_access_link.extended', 'SpaceAccessLink', $link->getId(), $this->auditPayload($link));
+    }
+
+    /**
      * Deleting a link rather than revoking it.
      *
      * Both exist because they say different things. Revoking closes an address
