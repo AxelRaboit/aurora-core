@@ -20,6 +20,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
   - Une seule façon de compter : les taxonomies et les types de contenu portent leur chiffre à droite, comme Publications, au lieu de « 6 termes » en description (`NavItem::$count`).
   - Une section d'une seule entrée (Calendrier, Notes) n'affiche plus de titre qui la répète : l'entrée seule, précédée du point de la section. Repliée (« Tout replier »), elle se replie comme les autres et son titre revient.
   - Studio a sa vue module, comme Éditorial, la GED ou les notes.
+  - Dans Configuration, Thèmes passe dans la section Réglages, juste après Apparence. Il était dans un groupe à part sans titre : sous les onglets, il avait l'air d'en être un, mais restait affiché quand on repliait Réglages.
   - Les panneaux des modules suivent la grammaire du menu : mêmes titres de bloc, chiffres alignés à droite (les actions prennent leur place au survol), poignées de glissement visibles au survol seulement ; le panneau du Calendrier perd ses deux cartes encadrées.
   - Clavier et lecteurs d'écran : `aria-current="page"` sur la page ouverte, `aria-expanded` sur les sections pliables, contour de focus dans la couleur d'accent.
   - Le Calendrier passe du sarcelle au cyan : contre l'émeraude de Studio, l'écart sous daltonisme passait de 3,2 à 6,2.

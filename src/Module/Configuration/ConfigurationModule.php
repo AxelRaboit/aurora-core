@@ -116,6 +116,8 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
 
         $groups = [];
 
+        $themes = $this->configurationContext->isThemesEnabled() ? $this->themesNavItem() : null;
+
         if ($this->configurationContext->isSettingsEnabled()) {
             $items = [];
 
@@ -133,6 +135,22 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
                     // them at once.
                     key: sprintf('configuration.settings.tab.%s', $tab->id),
                 );
+
+                // Themes inside the Réglages section, right after Apparence,
+                // the other entry about colours. It sat in a second group
+                // with no header: drawn under the tabs it looked like one of
+                // them, yet stayed in view when Réglages was folded (Axel,
+                // 10/10/2026).
+                if ('appearance' === $tab->id && null !== $themes) {
+                    $items[] = $themes;
+                    $themes = null;
+                }
+            }
+
+            // No Apparence tab for this reader: the end of the section.
+            if (null !== $themes && [] !== $items) {
+                $items[] = $themes;
+                $themes = null;
             }
 
             if ([] !== $items) {
@@ -140,16 +158,9 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
             }
         }
 
-        if ($this->configurationContext->isThemesEnabled()) {
-            $groups[] = new ModuleNavGroup('appearance', [
-                new NavItem(
-                    'suite_configuration_themes',
-                    'suite.nav.themes',
-                    'palette',
-                    requiredPrivilege: 'configuration.themes.manage',
-                    descriptionKey: 'suite.nav.themes_description',
-                ),
-            ]);
+        // Settings switched off: themes alone, in a group of their own.
+        if (null !== $themes) {
+            $groups[] = new ModuleNavGroup('appearance', [$themes]);
         }
 
         if ([] === $groups) {
@@ -157,6 +168,17 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
         }
 
         return new ModuleNavView('configuration', $groups);
+    }
+
+    private function themesNavItem(): NavItem
+    {
+        return new NavItem(
+            'suite_configuration_themes',
+            'suite.nav.themes',
+            'palette',
+            requiredPrivilege: 'configuration.themes.manage',
+            descriptionKey: 'suite.nav.themes_description',
+        );
     }
 
     public function getToggles(): array

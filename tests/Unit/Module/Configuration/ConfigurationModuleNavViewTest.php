@@ -32,7 +32,7 @@ final class ConfigurationModuleNavViewTest extends TestCase
 {
     public function testEveryVisibleTabBecomesADestination(): void
     {
-        $view = $this->makeModule(['general', 'seo', 'navigation'])->getModuleNavView();
+        $view = $this->makeModule(['general', 'seo', 'navigation'], themes: false)->getModuleNavView();
 
         self::assertNotNull($view);
         self::assertSame('configuration', $view->moduleId);
@@ -49,7 +49,7 @@ final class ConfigurationModuleNavViewTest extends TestCase
     // every one of them would read as the active row.
     public function testTabsShareARouteNameButNotAStableKey(): void
     {
-        $settings = $this->group($this->makeModule(['general', 'seo'])->getModuleNavView()->groups, 'settings');
+        $settings = $this->group($this->makeModule(['general', 'seo'], themes: false)->getModuleNavView()->groups, 'settings');
 
         $routes = array_map(static fn (NavItem $item): string => $item->route, $settings->items);
         self::assertSame(
@@ -89,18 +89,31 @@ final class ConfigurationModuleNavViewTest extends TestCase
         self::assertSame('sliders-horizontal', $settings->items[0]->icon);
     }
 
-    public function testThemesSitsBesideTheTabsRatherThanAmongThem(): void
+    /**
+     * Themes is a page of its own, not a tab, but it reads as part of
+     * Réglages: inside the section, right after Apparence. In a headerless
+     * group of its own it looked like a tab and stayed in view when Réglages
+     * was folded (10/10/2026).
+     */
+    public function testThemesSitsInsideTheSettingsAfterAppearance(): void
     {
-        $view = $this->makeModule(['general'])->getModuleNavView();
+        $view = $this->makeModule(['general', 'appearance', 'seo'])->getModuleNavView();
 
-        self::assertSame(['settings', 'appearance'], array_map(
+        self::assertSame(['settings'], array_map(
             static fn (ModuleNavGroup $group): string => $group->id,
             $view->groups,
         ));
         self::assertSame(
-            'suite_configuration_themes',
-            $this->group($view->groups, 'appearance')->items[0]->route,
+            ['suite_configuration_settings_tab', 'suite_configuration_settings_tab', 'suite_configuration_themes', 'suite_configuration_settings_tab'],
+            array_map(static fn (NavItem $item): string => $item->route, $this->group($view->groups, 'settings')->items),
         );
+    }
+
+    public function testThemesClosesTheSettingsWhenThereIsNoAppearanceTab(): void
+    {
+        $items = $this->group($this->makeModule(['general'])->getModuleNavView()->groups, 'settings')->items;
+
+        self::assertSame('suite_configuration_themes', $items[array_key_last($items)]->route);
     }
 
     public function testNoViewWhenTheModuleSuiteIsOff(): void
