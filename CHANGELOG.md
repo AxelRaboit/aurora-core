@@ -18,7 +18,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
   - La page ouverte se voit : teinte et nom dans la couleur d'accent, trait de 2 px à gauche, pour tous les modules ; le survol reste gris. Même état dans l'arbre des notes, les dossiers de la GED et la navigation d'un espace client.
   - Les entrées sont plus serrées (68 px au lieu de 74 avec leur description, deux lignes au plus, la phrase entière au survol).
   - Une seule façon de compter : les taxonomies et les types de contenu portent leur chiffre à droite, comme Publications, au lieu de « 6 termes » en description (`NavItem::$count`).
-  - Une section d'une seule entrée (Calendrier, Notes) n'affiche plus de titre qui la répète : l'entrée seule, précédée du point de la section.
+  - Une section d'une seule entrée (Calendrier, Notes) n'affiche plus de titre qui la répète : l'entrée seule, précédée du point de la section. Repliée (« Tout replier »), elle se replie comme les autres et son titre revient.
   - Studio a sa vue module, comme Éditorial, la GED ou les notes.
   - Les panneaux des modules suivent la grammaire du menu : mêmes titres de bloc, chiffres alignés à droite (les actions prennent leur place au survol), poignées de glissement visibles au survol seulement ; le panneau du Calendrier perd ses deux cartes encadrées.
   - Clavier et lecteurs d'écran : `aria-current="page"` sur la page ouverte, `aria-expanded` sur les sections pliables, contour de focus dans la couleur d'accent.

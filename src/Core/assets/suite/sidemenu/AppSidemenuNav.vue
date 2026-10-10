@@ -72,8 +72,13 @@ function isFoldable(section) {
  * A section holding a single plain entry: Calendrier > Calendrier, Notes >
  * Notes Markdown. Its header said the same thing one line above the entry,
  * so the entry stands alone with the section's dot before its name, where
- * the header's dot sat (visual redesign of the suite, 10/10/2026). Nothing
- * to fold either: the entry is the section.
+ * the header's dot sat (visual redesign of the suite, 10/10/2026).
+ *
+ * Folded, it folds like any other: the header comes back in place of the
+ * entry, so a folded menu is a plain list of sections, and a click on it
+ * opens the entry again. Shown unfolded with no header, it could not be
+ * folded on its own, and "fold all" left those entries standing (Axel,
+ * 10/10/2026).
  */
 function isSingle(section) {
     return isFoldable(section) && 1 === section.items.length && !section.items[0].children?.length;
@@ -116,7 +121,7 @@ defineProps({
 <template>
     <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
-            v-if="!navFilter && isFoldable(section) && !isSingle(section)"
+            v-if="!navFilter && isFoldable(section) && (!isSingle(section) || !nav.isSectionExpanded(section))"
             type="button"
             class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider transition-colors"
             :class="[theme.headerClasses(themeId(section)), theme.labelClasses(themeId(section))]"
@@ -135,7 +140,7 @@ defineProps({
         </button>
 
         <template v-for="item in section.items" :key="item.route">
-            <template v-if="navFilter || !isFoldable(section) || isSingle(section) || nav.isSectionExpanded(section)">
+            <template v-if="navFilter || !isFoldable(section) || nav.isSectionExpanded(section)">
                 <!-- A group parent: the label navigates, the chevron unfolds.
                      Two targets in one row, because the parent is itself a
                      page - collapsing them into one would cost the page. -->
