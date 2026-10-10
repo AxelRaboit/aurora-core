@@ -23,7 +23,8 @@ prospect est déjà un `Customer` au statut `prospect`, le suivi s'ajoute dessus
 - **Le tableau tient des ids, la liste des clients** : `PipelineViewBuilder::board()`
   rend `{stages, columns:[{stageId, customerIds}], lastInteractions}` ; la page
   dessine les cartes avec les lignes de `customers`. Gagné/perdu ne montrent
-  que `OUTCOME_WINDOW_DAYS` (30) jours. Chaque geste répond `{customers, pipeline}`.
+  que les derniers jours réglés dans Réglages > Studio (`StudioPipelineOutcomeDays`,
+  30 par défaut, borné 1-365 par `PipelineOutcomeWindow`, réglage depuis la 4.11.0). Chaque geste répond `{customers, pipeline}`.
 - **Relance** : `nextFollowUpOn` (jour, heure du site via `FollowUpCalendar`),
   `followUpNotifiedOn` remis à nul dès que la date change. Notification
   quotidienne 8 h 30 (`FollowUpReminders`, type `studio.follow_up`) à tous ceux

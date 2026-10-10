@@ -10,6 +10,7 @@ use Aurora\Module\Studio\CustomerInteraction\Repository\CustomerInteractionRepos
 use Aurora\Module\Studio\Pipeline\Entity\PipelineStageInterface;
 use Aurora\Module\Studio\Pipeline\Manager\PipelineStageManagerInterface;
 use Aurora\Module\Studio\Pipeline\Serializer\PipelineStageSerializerInterface;
+use Aurora\Module\Studio\Pipeline\Service\PipelineOutcomeWindow;
 use DateTimeImmutable;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -28,15 +29,6 @@ use const DATE_ATOM;
  */
 final readonly class PipelineViewBuilder
 {
-    /**
-     * How long a won or lost deal stays on the board.
-     *
-     * A month: long enough to see what was decided recently, short enough
-     * that the outcome columns do not grow into an archive the stages in
-     * progress get lost behind. The deals stay on the list either way.
-     */
-    public const int OUTCOME_WINDOW_DAYS = 30;
-
     public function __construct(
         private PipelineStageManagerInterface $stageManager,
         private PipelineStageSerializerInterface $stageSerializer,
@@ -44,6 +36,7 @@ final readonly class PipelineViewBuilder
         private CustomerInteractionRepository $interactionRepository,
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplateGenerator,
+        private PipelineOutcomeWindow $outcomeWindow,
     ) {}
 
     /**
@@ -79,7 +72,9 @@ final readonly class PipelineViewBuilder
             }
         }
 
-        $since = new DateTimeImmutable('-'.self::OUTCOME_WINDOW_DAYS.' days');
+        // How far back won and lost deals are shown: Settings > Studio.
+        $outcomeDays = $this->outcomeWindow->days();
+        $since = new DateTimeImmutable('-'.$outcomeDays.' days');
 
         foreach ($this->customerRepository->findForPipeline($since) as $customer) {
             $stage = $customer->getPipelineStage() ?? $firstInProgress;
@@ -114,7 +109,7 @@ final readonly class PipelineViewBuilder
                 $columns,
             ),
             'lastInteractions' => $latest,
-            'outcomeWindowDays' => self::OUTCOME_WINDOW_DAYS,
+            'outcomeWindowDays' => $outcomeDays,
         ];
     }
 

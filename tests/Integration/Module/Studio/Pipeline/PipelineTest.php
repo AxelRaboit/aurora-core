@@ -7,6 +7,8 @@ namespace Aurora\Tests\Integration\Module\Studio\Pipeline;
 use Aurora\Core\Contact\Prospect\ProspectDirectoryInterface;
 use Aurora\Core\Contact\Prospect\WebsiteContact;
 use Aurora\Core\Notification\Entity\Notification;
+use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
+use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
@@ -67,6 +69,7 @@ final class PipelineTest extends IntegrationTestCase
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
         $this->entityManager->createQuery(sprintf("DELETE FROM %s n WHERE n.type = '%s'", Notification::class, FollowUpReminders::TYPE))->execute();
+        static::getContainer()->get(SettingRepository::class)->set(ApplicationParameterEnum::StudioPipelineOutcomeDays->value, null);
 
         parent::tearDown();
     }
@@ -137,6 +140,26 @@ final class PipelineTest extends IntegrationTestCase
         self::assertSame("Budget repoussé à l'an prochain", $saved?->getLostReason());
         self::assertNull($saved->getNextFollowUpOn());
         self::assertNull($saved->getFollowUpNote());
+    }
+
+    public function testTheOutcomeColumnsShowHowFarBackTheSettingSays(): void
+    {
+        $lost = $this->stages()[4];
+        $prospect = $this->prospect('Bistrot du Canal');
+        $this->post('/suite/studio/customers/pipeline/move', ['stageId' => $lost->getId(), 'customerIds' => [$prospect->getId()]]);
+        $this->entityManager->clear();
+        $this->customerRepository->find($prospect->getId())?->setPipelineStageChangedAt(new DateTimeImmutable('-5 days'));
+        $this->entityManager->flush();
+
+        $payload = $this->post('/suite/studio/customers/pipeline/stages/reorder', ['stageIds' => []]);
+        self::assertSame([(int) $prospect->getId()], $this->columnOf($payload, $lost), 'within the default thirty days');
+        self::assertSame(30, $payload['pipeline']['outcomeWindowDays']);
+
+        static::getContainer()->get(SettingRepository::class)->set(ApplicationParameterEnum::StudioPipelineOutcomeDays->value, '3');
+
+        $payload = $this->post('/suite/studio/customers/pipeline/stages/reorder', ['stageIds' => []]);
+        self::assertSame([], $this->columnOf($payload, $lost), 'lost five days ago, the board shows three');
+        self::assertSame(3, $payload['pipeline']['outcomeWindowDays']);
     }
 
     public function testAProspectIsNotDroppedOnWonWithoutBeingConverted(): void

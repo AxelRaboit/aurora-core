@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.11.0] - 2026-10-10
+
+### Ajouté
+- **La durée d'affichage des affaires gagnées et perdues se règle.** Réglages > Studio, nouvelle section « Suivi des prospects » : « Affaires gagnées et perdues affichées (jours) », entre 1 et 365, 30 par défaut (la valeur fixe de la 4.10.0). Les colonnes Gagné et Perdu du tableau des prospects suivent le réglage, et leur en-tête dit la durée choisie. Les affaires plus anciennes restent dans la liste.
+
+### Dans aurora-client
+Rien à faire.
+
+---
+
 ## [4.10.0] - 2026-10-10
 
 ### Ajouté

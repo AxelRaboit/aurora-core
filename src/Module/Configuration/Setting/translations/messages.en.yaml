@@ -53,6 +53,9 @@ suite:
             contract_follow_up:
                 title: "Contract follow-up"
                 lead: "How long contracts are kept, and the reminders for a contract left unanswered."
+            prospect_pipeline:
+                title: "Prospect follow-up"
+                lead: "What the prospect board shows."
         studio_guide:
             title: "Your identity in contracts"
             step_1: "These fields fill in the provider identity block of each contract when it is sealed, and contracts already sealed keep their values."
@@ -589,6 +592,9 @@ suite:
         studio_contract_link_days:
             label: Signing link validity (days)
             description: "How many days the address sent to the client stays open. Between 1 and 365; a new send hands out a fresh one."
+        studio_pipeline_outcome_days:
+            label: "Won and lost deals shown (days)"
+            description: "How many days a won or lost deal stays in its column of the prospect board. Between 1 and 365; it always stays in the list."
         nav_section_aliases:
             label: Navigation section aliases
             description: JSON map of section aliases (managed via the UI).
