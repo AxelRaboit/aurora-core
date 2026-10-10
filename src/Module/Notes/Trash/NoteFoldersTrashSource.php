@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
@@ -24,7 +24,7 @@ use function count;
  * Like {@see NotesTrashSource}, the count is the count of the person looking
  * at the screen, not the installation's.
  */
-final readonly class NoteFoldersTrashSource implements TrashSourceInterface
+final readonly class NoteFoldersTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(
         private NoteFolderRepository $folderRepository,
@@ -39,6 +39,13 @@ final readonly class NoteFoldersTrashSource implements TrashSourceInterface
     public function getRequiredPrivilege(): string
     {
         return 'notes.markdown.use';
+    }
+
+    public function countTrashed(): int
+    {
+        $user = $this->security->getUser();
+
+        return $user instanceof CoreUserInterface ? count($this->folderRepository->findTrashedRootsForUser($user)) : 0;
     }
 
     public function getSummary(int $limit): TrashSummary

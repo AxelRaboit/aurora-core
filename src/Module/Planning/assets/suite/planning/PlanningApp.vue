@@ -8,6 +8,7 @@
  * turning a click into a request.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { onPanelRequest, tellPanels } from "@/shared/nav/modulePanelBridge.js";
@@ -332,6 +333,8 @@ onUnmounted(() => {
         <AppLoader :active="loading" />
 
         <div class="min-w-0 aurora-stack">
+            <AppPageHeading :title="t('suite.nav.planning')" :subtitle="t('suite.nav.planning_description')" />
+
             <!-- The guide to the screen, next to what it explains;
                  collapsed or expanded, the choice applies to all panels. -->
             <AppGuide :title="t('suite.plannings.guide.title')" storage-key="planning">
@@ -366,15 +369,15 @@ onUnmounted(() => {
                          exclusive choices where the current one has to be
                          readable at a glance, which is what a calendar's reader
                          checks before trusting what they are looking at. -->
-                    <div class="flex flex-1 overflow-hidden rounded-lg border border-line sm:flex-none">
+                    <div class="flex flex-1 items-center gap-0.5 aurora-segmented sm:flex-none">
                         <button
                             v-for="option in viewOptions"
                             :key="option.value"
                             type="button"
-                            class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 min-h-7.5 sm:min-h-0 sm:flex-none"
+                            class="flex-1 cursor-pointer rounded-md px-2.5 py-1 text-sm transition-colors min-h-7.5 sm:min-h-0 sm:flex-none"
                             :class="view === option.value
-                                ? 'bg-accent-600 text-white font-medium'
-                                : 'text-secondary hover:bg-surface-2'"
+                                ? 'bg-surface font-medium text-primary shadow-sm'
+                                : 'text-muted hover:text-primary'"
                             :aria-pressed="view === option.value"
                             v-on:click="setView(option.value)"
                         >

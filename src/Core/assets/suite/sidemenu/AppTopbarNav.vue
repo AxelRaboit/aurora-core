@@ -13,25 +13,24 @@
 import { useI18n } from "vue-i18n";
 import { ArrowLeft, ArrowRight, RotateCw } from "lucide-vue-next";
 import { useTopbarNavigation } from "./composables/useTopbarNavigation.js";
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "./topbarButton.js";
 
 const { t } = useI18n();
 const { canGoBack, back, forward, reloading, hardReload } = useTopbarNavigation();
 
-const BUTTON =
-    "shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted";
 </script>
 
 <template>
-    <div class="flex items-center gap-0.5">
+    <div class="flex items-center gap-1.5">
         <button
             type="button"
-            :class="BUTTON"
+            :class="TOPBAR_BUTTON"
             :disabled="!canGoBack"
             :title="t('suite.nav.go_back')"
             :aria-label="t('suite.nav.go_back')"
             v-on:click="back"
         >
-            <ArrowLeft class="w-5 h-5" :stroke-width="2" />
+            <ArrowLeft :class="TOPBAR_ICON" :stroke-width="2" />
         </button>
 
         <!-- Never disabled: nothing in the platform says whether a forward
@@ -39,23 +38,23 @@ const BUTTON =
              costume of knowledge. It is occasionally a no-op instead. -->
         <button
             type="button"
-            :class="BUTTON"
+            :class="TOPBAR_BUTTON"
             :title="t('suite.nav.go_forward')"
             :aria-label="t('suite.nav.go_forward')"
             v-on:click="forward"
         >
-            <ArrowRight class="w-5 h-5" :stroke-width="2" />
+            <ArrowRight :class="TOPBAR_ICON" :stroke-width="2" />
         </button>
 
         <button
             type="button"
-            :class="BUTTON"
+            :class="TOPBAR_BUTTON"
             :disabled="reloading"
             :title="t('suite.nav.hard_reload')"
             :aria-label="t('suite.nav.hard_reload')"
             v-on:click="hardReload"
         >
-            <RotateCw class="w-5 h-5" :class="{ 'animate-spin': reloading }" :stroke-width="2" />
+            <RotateCw :class="[TOPBAR_ICON, { 'animate-spin': reloading }]" :stroke-width="2" />
         </button>
     </div>
 </template>

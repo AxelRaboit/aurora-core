@@ -146,7 +146,7 @@ describe("the GED folder panel", () => {
         await folderLinks(wrapper)[2].trigger("click");
 
         expect(folderLinks(wrapper)[2].attributes("class")).toContain(
-            "bg-surface-2 text-primary font-medium",
+            "sidemenu-row-active bg-accent/10 text-accent font-medium",
         );
     });
 
@@ -159,7 +159,7 @@ describe("the GED folder panel", () => {
         // `hover:bg-surface-2/60` is on every idle row, so the whole active
         // trio is what to look for, not the background alone.
         expect(folderLinks(wrapper)[0].attributes("class")).not.toContain(
-            "bg-surface-2 text-primary font-medium",
+            "sidemenu-row-active bg-accent/10 text-accent font-medium",
         );
     });
 

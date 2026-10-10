@@ -76,7 +76,7 @@ final class NoteSpacesController extends AbstractController
         $user = $this->getUser();
 
         // Their own always exists, even before their first note.
-        $this->spaceAccess->personalSpace($user);
+        $this->spaceAccess->personalSpaceIfOpen($user);
         $spaces = $this->repository->findReadableFor($user);
         $roles = $this->spaceAccess->rolesFor($user, $spaces);
 

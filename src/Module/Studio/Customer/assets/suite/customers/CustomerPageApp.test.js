@@ -21,7 +21,18 @@ vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
 
 const { default: CustomerPageApp } = await import("./CustomerPageApp.vue");
 
-const i18n = createTestI18n();
+const i18n = createTestI18n({
+    suite: {
+        studio: {
+            customers: {
+                facts: {
+                    detail_count: "{detail} : {count}",
+                    no_contact: "Aucun contact renseigné",
+                },
+            },
+        },
+    },
+});
 
 const CUSTOMER = {
     id: 12,
@@ -134,6 +145,50 @@ describe("CustomerPageApp", () => {
         ).toBe(true);
         expect(wrapper.find('[data-related="deliverables"]').exists()).toBe(
             false,
+        );
+    });
+
+    /** The strip under the title: what surrounds them, before the detail. */
+    it("sums up what surrounds the customer under the title", async () => {
+        const wrapper = mountPage({
+            contractsPath: "/suite/studio/contracts?customer=12",
+        });
+        await flushPromises();
+
+        expect(wrapper.find("[data-customer-heading]").text()).toContain("AT");
+        const contracts = wrapper.find('[data-customer-fact="contracts"]');
+        expect(contracts.attributes("href")).toBe(
+            "/suite/studio/contracts?customer=12",
+        );
+        expect(contracts.text()).toContain("1");
+        expect(contracts.text()).toContain("Brouillon : 1");
+        // No cell for a list the reader cannot open, as there is no list.
+        expect(
+            wrapper.find('[data-customer-fact="deliverables"]').exists(),
+        ).toBe(false);
+        // Nobody named and no email yet: the contact cell says so.
+        expect(wrapper.find('[data-customer-fact="contact"]').text()).toContain(
+            "Aucun contact renseigné",
+        );
+    });
+
+    it("draws the sheet as three titled cards", async () => {
+        const wrapper = mountPage();
+        await flushPromises();
+
+        expect(
+            wrapper
+                .findAll("[data-customer-section]")
+                .map((section) => section.attributes("data-customer-section")),
+        ).toStrictEqual(["identity", "people", "links"]);
+    });
+
+    it("shows a contract's status in the colours of the contracts list", async () => {
+        const wrapper = mountPage();
+        await flushPromises();
+
+        expect(wrapper.find('[data-related="contracts"]').text()).toContain(
+            "Brouillon",
         );
     });
 });

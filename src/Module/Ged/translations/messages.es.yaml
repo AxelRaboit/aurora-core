@@ -142,6 +142,7 @@ suite:
             status: Estado
             category: Categoría
             file: Archivo
+            details_title: Información
             size: Tamaño
             add: 'Añadir un documento'
             create: 'Nuevo documento'

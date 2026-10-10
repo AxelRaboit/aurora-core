@@ -660,7 +660,8 @@ Volontairement omis (utilitaires de niche ou plombérie interne) :
 - `@shared/utils/data/` - `deepMerge` : fusion profonde d'objets.
 - `@shared/utils/seo/` - `jsonLd` : construction du JSON-LD des pages publiques.
 - `@shared/utils/tree/` - `folderTree` : helper module Media spécifique.
-- `@shared/utils/enums/imageLoadStatus.js`, `statusStyles.js` : enums/maps internes consommés par un seul composant Aurora.
+- `@shared/utils/enums/imageLoadStatus.js` : enum interne consommé par un seul composant Aurora.
+- `@shared/utils/format/statusStyles.js` : les couleurs des statuts (publications, demandes d'accès, contrats). `POST_STATUS_COLORS` est la seule source des badges de statut d'une publication (liste, éditeur, révisions), et `POST_STATUS_CHART_SLOTS` leur pendant dans la palette des graphiques.
 - `@shared/utils/validation/passwordRules.js`, `validation.js` (`EMAIL_REGEX`) : utilisés par `AppPasswordStrength`, rarement directement.
 
 Pour découvrir ce qui existe à un instant T :

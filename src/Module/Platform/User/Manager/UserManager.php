@@ -277,12 +277,6 @@ class UserManager implements UserManagerInterface
         $this->entityManager->flush();
     }
 
-    public function updateSidemenuShowDescriptions(User $user, bool $show): void
-    {
-        $user->setSidemenuShowDescriptions($show);
-        $this->entityManager->flush();
-    }
-
     /**
      * @param list<string>          $hiddenNavSections
      * @param list<string>          $hiddenNavItems

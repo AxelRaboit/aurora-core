@@ -5,8 +5,8 @@
    silently. It is the theme's injection point, the colour is only one part of
    it. #}
 <style>{{ themeStyles.primaryColorCss()|raw }}</style>
-{# The theme's font. Nothing is emitted as long as it stays on Poppins, which is
-   already the default of `theme.css`. #}
+{# The theme's font. Nothing is emitted as long as it stays on the default
+   (Sora), which `theme.css` already sets. #}
 {% set fontCss = themeStyles.fontFamilyCss() %}
 {% if fontCss %}
     <style>{{ fontCss|raw }}</style>

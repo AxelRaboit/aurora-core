@@ -47,7 +47,7 @@ final readonly class NavItemResolver
             }
         }
 
-        return [
+        $resolved = [
             'key' => $item->stableKey(),
             'route' => $item->activeRoutePrefix ?? $item->route,
             'path' => $this->urlGenerator->generate($item->route, $item->routeParameters),
@@ -63,6 +63,14 @@ final readonly class NavItemResolver
             'matchPath' => [] !== $item->routeParameters,
             'children' => $children,
         ];
+
+        // Only when the module gave one: an entry without `count` is one with
+        // nothing to count, which the menu tells apart from zero.
+        if (null !== $item->count) {
+            $resolved['count'] = $item->count;
+        }
+
+        return $resolved;
     }
 
     /**

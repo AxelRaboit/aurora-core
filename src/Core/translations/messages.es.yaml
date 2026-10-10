@@ -292,6 +292,7 @@ suite:
         media: Medios
         media_description: 'Biblioteca centralizada de imágenes, vídeos y archivos reutilizables.'
         profile: 'Mi perfil'
+        profile_description: "Su foto, su nombre, su contraseña y sus preferencias."
         settings: Ajustes
         settings_description: 'Ajustes globales de la aplicación y preferencias por defecto.'
         themes: Temas
@@ -303,15 +304,14 @@ suite:
         resize_hint: 'Arrastre para redimensionar, doble clic para restablecer'
         filter_nav: 'Filtrar el menú…'
         breadcrumb: 'Ruta de navegación'
-        show_descriptions: 'Mostrar las descripciones'
         collapse_all: Plegar todo
         expand_all: Desplegar todo
         filter_nav_empty: 'Ningún elemento encontrado'
+        filter_clear: "Borrar el filtro"
+        filter_all_modules: "Buscar en todos los módulos"
+        filter_shortcut: "Pulse / para filtrar el menú"
+        module_path_label: "Dónde está en el menú"
         view_site: 'Ver el sitio'
-        counts:
-            terms: '{0}Ningún término|{1}Un término|]1,Inf[%count% términos'
-            fields: '{0}Ningún campo|{1}Un campo|]1,Inf[%count% campos'
-            posts: '{0}Ninguna publicación|{1}Una publicación|]1,Inf[%count% publicaciones'
         back_to_modules: 'Todos los módulos'
         back_to_module: 'Volver a {module}'
         logout: 'Cerrar sesión'

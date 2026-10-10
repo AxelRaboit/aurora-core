@@ -793,9 +793,17 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 />
             </div>
 
-            <!-- The door to the note space: notes are written in the Notes
-                 module. -->
-            <SpaceNoteSpaceView v-else-if="view === 'notes'" :state="spaceNotes" />
+            <!-- The client space's notes, written here in the notes
+                 editor (10/10/2026). The whole remaining height once the
+                 editor is drawn, like the conversation, so a long note
+                 scrolls inside its card rather than the page. -->
+            <div
+                v-else-if="view === 'notes'"
+                :data-fills-viewport="spaceNotes.app ? '' : null"
+                class="flex min-h-[28rem] flex-1 flex-col"
+            >
+                <SpaceNoteSpaceView :state="spaceNotes" />
+            </div>
 
             <SpaceCalendarView
                 v-else

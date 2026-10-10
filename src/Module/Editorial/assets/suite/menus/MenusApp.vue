@@ -1,5 +1,6 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
@@ -86,7 +87,19 @@ function isUnresolved(item) {
 
     <div v-else class="aurora-stack">
         <!-- No picker column: the side menu lists the menus, one entry per
-             record and one address each. -->
+             record and one address each. The screen is the open menu: its
+             name is the page's title, its location under it, and its edit
+             beside it (visual redesign of the suite, 10/10/2026). -->
+        <AppPageHeading :title="selected?.name ?? t('suite.nav.menus')" :subtitle="selected?.description ?? t('suite.nav.menus_description')">
+            <span v-if="selected" class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-muted">{{ selected.location }}</span>
+            <template v-if="selected && can('editorial.menus.edit')" #actions>
+                <AppButton variant="ghost" size="md" v-on:click="openEdit">
+                    <Pencil class="h-4 w-4" :stroke-width="2" />
+                    {{ t("shared.common.edit") }}
+                </AppButton>
+            </template>
+        </AppPageHeading>
+
         <!-- The screen's how-to guide, next to what it explains;
      collapsed or expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.menus.guide.title')" storage-key="menus">
@@ -95,25 +108,6 @@ function isUnresolved(item) {
             </ol>
         </AppGuide>
         <section v-if="selected" class="space-y-4">
-            <div class="aurora-card p-3 sm:p-5 space-y-3">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <h2 class="text-lg font-semibold text-primary truncate">{{ selected.name }}</h2>
-                        <p class="text-xs text-muted font-mono mt-0.5">{{ selected.location }}</p>
-                        <p v-if="selected.description" class="text-sm text-secondary mt-2">{{ selected.description }}</p>
-                    </div>
-                    <AppIconButton
-                        v-if="can('editorial.menus.edit')"
-                        color="accent"
-                        :title="t('shared.common.edit')"
-                        class="shrink-0"
-                        v-on:click="openEdit"
-                    >
-                        <Pencil class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                </div>
-            </div>
-
             <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("suite.menus.items") }}</h3>

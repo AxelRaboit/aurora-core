@@ -13,7 +13,7 @@ body {
 /**
  * The height of the bar stuck at the top of an admin page.
  *
- * `page_header.html.twig` stacks a title bar (`h-12`) and a breadcrumb
+ * `page_header.html.twig` stacks a title bar (`h-15`) and a breadcrumb
  * (`h-8`), and sticks to the top from `lg`. Anything that sticks inside the
  * content afterwards must start below it: `sticky top-4` put a documentation
  * page's table of contents sixteen pixels from the top, that is under the
@@ -28,6 +28,13 @@ body {
  * to the breadcrumb, 2rem set underneath. What sticks inside the content uses
  * it as an offset, and a full-screen height as a subtraction - both want the
  * same thing: what the page loses at the top.
+ *
+ * Since the breadcrumb moved into the content (10/10/2026) only the title
+ * strip sticks on a large screen, 3.75rem since its controls became framed
+ * squares (5.75rem with the breadcrumb under it); the breadcrumb still takes its 2rem
+ * at the top, it just scrolls away. The value stays the page's loss, which is
+ * what a full-screen height must subtract; an offset read from it lands two
+ * rems lower than strictly needed, which leaves air rather than hiding a line.
  */
 :root {
     --aurora-topbar: 5.5rem;
@@ -35,7 +42,7 @@ body {
 
 @media (min-width: 1024px) {
     :root {
-        --aurora-topbar: 5rem;
+        --aurora-topbar: 5.75rem;
     }
 }
 

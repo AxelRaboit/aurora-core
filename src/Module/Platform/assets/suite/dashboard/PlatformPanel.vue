@@ -11,6 +11,7 @@ import { useI18n } from "vue-i18n";
 import { Users } from "lucide-vue-next";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
+import AppSectionCard from "@/shared/components/display/AppSectionCard.vue";
 import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
 
 const props = defineProps({
@@ -60,10 +61,8 @@ const byRole = computed(() =>
             />
         </div>
 
-        <div v-if="hasAnyShare(byRole)" class="aurora-card p-3 sm:p-5 space-y-4">
-            <h3 class="text-sm font-semibold text-primary">{{ t("suite.stats.platform.by_role") }}</h3>
-
+        <AppSectionCard v-if="hasAnyShare(byRole)" :title="t('suite.stats.platform.by_role')">
             <AppShareBar :segments="byRole" />
-        </div>
+        </AppSectionCard>
     </div>
 </template>

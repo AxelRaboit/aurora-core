@@ -101,7 +101,7 @@ final class MarkdownNotesImagesController extends AbstractController
         // readers see it: you must be able to write in that space. With no
         // space given, it is your personal space.
         $raw = $request->request->get('spaceId') ?? $request->query->get('spaceId');
-        $space = is_numeric($raw) ? $this->spaceAccess->writableSpace($user, (int) $raw) : $this->spaceAccess->personalSpace($user);
+        $space = is_numeric($raw) ? $this->spaceAccess->writableSpace($user, (int) $raw) : $this->spaceAccess->writableDefaultSpace($user);
         if (!$space instanceof NoteSpaceInterface) {
             return $this->jsonNotFound();
         }
@@ -145,7 +145,7 @@ final class MarkdownNotesImagesController extends AbstractController
         // The spaces you can read, your own first - the list puts it at the
         // top: an image's address only carries its name, and an image of a
         // shared space has the same address for all its readers.
-        $this->spaceAccess->personalSpace($user);
+        $this->spaceAccess->personalSpaceIfOpen($user);
         foreach ($this->spaceRepository->findReadableFor($user) as $bucket) {
             $key = $this->imageService->keyOrNull($filename, $bucket);
 

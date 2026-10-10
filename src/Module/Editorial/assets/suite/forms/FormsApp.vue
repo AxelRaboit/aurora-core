@@ -164,7 +164,7 @@ const pageActions = computed(() =>
 
 <template>
     <div ref="container" class="aurora-stack">
-        <AppListToolbar>
+        <AppListToolbar :title="t('suite.nav.forms')" :subtitle="t('suite.nav.forms_description')">
             <AppSearchInput v-model="search" :placeholder="t('suite.forms.list.search_placeholder')" />
             <template #inline>
                 <AppSelect
@@ -201,7 +201,7 @@ const pageActions = computed(() =>
         <AppNoData v-else-if="!filteredItems.length" :icon="ClipboardList" :message="t('suite.forms.list.no_match')" />
 
         <div v-else-if="!isNarrow" class="aurora-card overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="aurora-table w-full text-sm">
                 <thead>
                     <tr class="border-b border-line text-xs uppercase tracking-wide text-muted">
                         <th class="px-4 py-2 text-left font-medium">{{ t("suite.forms.list.title_column") }}</th>

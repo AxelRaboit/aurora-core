@@ -18,10 +18,14 @@ defineProps({
 
 <template>
     <!-- The layout only changes when there is a button to place, so the eleven
-         controls already using this label render exactly as before. -->
+         controls already using this label render exactly as before.
+
+         Written as a sentence, not in capitals (visual redesign of the suite,
+         10/10/2026): a label is read, field after field, and small capitals
+         read as a row of section headings - they are kept for those. -->
     <label
         v-if="label"
-        class="text-xs text-secondary uppercase tracking-wide"
+        class="text-[0.8125rem] font-medium text-primary"
         :class="help ? 'flex items-center gap-1.5' : 'block'"
     >
         <span>{{ label }}<span v-if="required" class="text-red-500 ml-0.5">*</span></span>

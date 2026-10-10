@@ -205,7 +205,7 @@ const placeholder = computed(() => {
     >
         <!-- The house tab group, not two improvised buttons. -->
         <div
-            class="inline-flex rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="inline-flex aurora-segmented"
             role="radiogroup"
             :aria-label="t('notes.markdown.add.kind')"
         >

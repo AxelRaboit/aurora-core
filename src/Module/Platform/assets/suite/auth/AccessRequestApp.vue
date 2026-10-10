@@ -69,7 +69,7 @@ function handleSubmit(event) {
             />
 
             <div>
-                <label for="access-message" class="block text-sm font-medium text-secondary mb-1 uppercase">{{ t('suite.auth.access_request.message') }}</label>
+                <label for="access-message" class="mb-1 block text-[0.8125rem] font-medium text-primary">{{ t('suite.auth.access_request.message') }}</label>
                 <textarea
                     id="access-message"
                     v-model="message"

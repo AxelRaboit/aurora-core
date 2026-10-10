@@ -810,8 +810,9 @@ suite:
             col_siret: SIRET
             col_contact: Contacto
             group_identity: "Identidad legal"
-            group_representative: 'Representante legal'
-            group_contact: Contacto
+            group_identity_hint: "Se recoge en el preámbulo de los contratos."
+            group_people: "Representante y contacto"
+            group_people_hint: "El enlace de firma se envía al correo contractual."
             legal_name: 'Razón social'
             legal_name_placeholder: "Atelier Dupont"
             legal_form: 'Forma jurídica'
@@ -865,6 +866,13 @@ suite:
                 step_2: 'Es el único lugar donde se modifica. La pestaña Información de cada uno de sus espacios la muestra tal cual, y es lo que el cliente lee allí.'
                 step_3: 'A la derecha, lo que lo rodea: sus espacios, sus contratos y los entregables de Studio escritos para él, a un clic.'
                 step_4: 'Un cliente potencial se convierte en cliente desde el botón «…»: se pide entonces su email contractual.'
+            facts:
+                contracts: "Contratos"
+                spaces: "Espacios"
+                deliverables: "Entregables"
+                contact: "Contacto"
+                no_contact: "Sin contacto indicado"
+                detail_count: "{detail}: {count}"
             group_related: 'En torno a este cliente'
             related:
                 contracts: 'Contratos de este cliente'
@@ -873,6 +881,7 @@ suite:
                 other_spaces: 'Otros espacios de este cliente'
                 empty: 'Todavía no hay contratos, entregables ni espacios para este cliente.'
                 empty_other: 'Todavía no hay contratos, entregables ni otros espacios para este cliente.'
+                all: Todos
                 draft_contract: Borrador
                 all_spaces: 'Todos sus espacios'
                 all_contracts: 'Todos sus contratos'
@@ -1249,12 +1258,10 @@ suite:
             guide:
                 title: 'Cómo funcionan las notas'
                 step_1: 'Las notas quedan entre ustedes: el cliente nunca las ve.'
-                step_2: "Viven en el módulo Notas, en el espacio de notas de este cliente, abierto al equipo del espacio: el referente lo gestiona, los miembros escriben en él."
-                step_3: 'Una nota se abre en el editor de notas, con sus carpetas, sus enlaces entre notas, su historial y su búsqueda.'
-                step_4: "Una nota solo para usted se toma en su espacio de notas personal."
-            add: 'Nueva nota'
-            untitled: 'Nota sin título'
-            open_in_notes: 'Abrir en Notas'
+                step_2: "Viven aquí, en el espacio de notas de este cliente, abierto al equipo del espacio: el referente lo gestiona, los miembros escriben en él. No aparecen en el módulo Notas."
+                step_3: "El editor es el de las notas: carpetas, enlaces entre notas, historial, búsqueda y comentarios, sin salir del espacio de cliente."
+                step_4: "Una nota solo para usted se toma en su espacio de notas personal, en el módulo Notas."
+            start: "Escribir la primera nota"
             empty: 'No hay notas en este espacio'
             empty_hint: "Lo que el equipo debe saber sobre este cliente y que ningún contenido recoge. El cliente no ve las notas."
             closed: 'Estas notas no le están abiertas'

@@ -1,47 +1,100 @@
 suite:
     settings:
+        pending: "{count} cambio sin guardar | {count} cambios sin guardar"
+        sections:
+            identity:
+                title: "Identidad del sitio"
+                lead: "Lo que se muestra en el sitio público, firma los correos y presenta el flujo RSS."
+            addresses:
+                title: "Direcciones"
+                lead: "La dirección pública construye los enlaces de los correos y del mapa del sitio; el correo de administración recibe los mensajes de la administración."
+            languages:
+                title: "Idiomas"
+                lead: "El idioma que el sitio sirve por defecto, y si sirve uno solo."
+            dates:
+                title: "Fechas y horas"
+                lead: "La zona horaria en la que el sitio muestra las horas, y cómo se escribe una fecha."
+            listing:
+                title: "Páginas y listas"
+                lead: "Cuántas publicaciones por página, y qué muestra la dirección raíz del sitio."
+            comments:
+                title: "Comentarios"
+                lead: "Si los lectores pueden comentar, y si sus mensajes pasan antes por moderación."
+            retention:
+                title: "Conservación"
+                lead: "Cuántas versiones, días en la papelera y respuestas de formulario guarda el sitio."
+            maintenance:
+                title: "Mantenimiento"
+                lead: "Cerrar el sitio público durante una intervención, sin cerrar la administración."
+            suite_access:
+                title: "Acceso a la administración"
+                lead: "Quién puede crear una cuenta o pedir acceso a la suite."
+            site_access:
+                title: "Cuentas del sitio público"
+                lead: "Si los visitantes pueden iniciar sesión o registrarse en el sitio."
+            seo_defaults:
+                title: "Títulos y descripciones"
+                lead: "Lo que muestran los buscadores cuando una página no dice nada de sí misma."
+            seo_sharing:
+                title: "Compartir"
+                lead: "La imagen y la cuenta usadas cuando una página se comparte en las redes."
+            email_language:
+                title: "Idioma"
+                lead: "El idioma de los correos que envía la aplicación."
+            email_colours:
+                title: "Colores"
+                lead: "Los colores de los correos, los del tema del sitio por defecto."
+            provider_identity:
+                title: "Su identidad"
+                lead: "El bloque del prestador, copiado en cada contrato cuando se sella."
+            provider_bank:
+                title: "Datos bancarios"
+                lead: "Impresos en los contratos, para el pago."
+            contract_follow_up:
+                title: "Seguimiento de contratos"
+                lead: "Cuánto tiempo se guardan los contratos, y los recordatorios de un contrato sin respuesta."
         studio_guide:
             title: 'Su identidad en los contratos'
             step_1: 'Estos campos rellenan el bloque de identidad del prestador de cada contrato en el momento de sellarlo, y los ya sellados conservan sus valores.'
             step_2: 'Un contrato cuya plantilla usa un campo vacío no puede sellarse hasta que lo rellene aquí.'
             step_3: 'La duración de conservación nunca baja de cinco años, aunque escriba menos.'
             step_4: 'Los recordatorios, desactivados por defecto, envían un nuevo enlace de firma tras el plazo elegido, hasta el número máximo, y 0 en cualquiera de los dos campos los detiene.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         media_guide:
             title: 'Los límites de los archivos'
             step_1: 'El tamaño máximo vale para todo archivo subido, mediateca y espacios de cliente por igual, y los invitados de un espacio siguen limitados además a 25 MB.'
             step_2: 'El servidor puede rechazar antes: hay que subir sus propios límites de envío para que un valor mayor sirva.'
             step_3: 'Las versiones conservadas cuentan el archivo actual; más allá, las más antiguas se eliminan con su archivo, y 0 las conserva todas.'
             step_4: 'Ocultar el crédito de las fotos pide una confirmación, porque las condiciones de la API de Pexels piden mostrarlo.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         email_guide:
             title: 'El idioma y los colores de los correos'
             step_1: 'Este ajuste fija el idioma de los correos que la aplicación envía sin conocer el del destinatario, como los mensajes dirigidos a la administración.'
             step_2: '«Seguir el idioma por defecto» usa el idioma elegido en la pestaña Localización.'
             step_3: 'Un correo relacionado con un contrato sale en el idioma del contrato, y el aviso de un nuevo comentario en el idioma de la cuenta del autor del artículo.'
             step_4: "Por defecto, el acento de los correos (botón, enlaces, distintivo del logo) sigue el color principal del tema; desactive «Seguir el color del tema» para elegir otro. El fondo, los títulos y el texto se ajustan al lado, y «Color original» devuelve el de partida."
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         system_guide:
             title: 'Quién puede entrar, y cuándo'
             step_1: 'El modo mantenimiento cierra el sitio público a todos sus visitantes, mientras que la suite y su página de inicio de sesión siguen abiertos.'
             step_2: 'Los registros de administración abren un formulario de creación de cuenta para la suite, que conviene cerrar una vez creada la primera cuenta.'
             step_3: 'Las solicitudes de acceso permiten a alguien pedir una cuenta, que usted aprueba después desde el espacio de desarrollo.'
             step_4: 'Desactivar el inicio de sesión del frontend quita del sitio público el inicio de sesión, el registro y la página de cuenta, y deja sin efecto los registros del frontend.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         seo_guide:
             title: 'Lo que ven los buscadores y las redes'
             step_1: 'La plantilla de título coloca el título de la página y el nombre del sitio donde los marca el campo, y una página sin título muestra solo el nombre.'
             step_2: 'La descripción por defecto sirve a las páginas que no tienen la suya; vacía, se usa la descripción de la pestaña General.'
             step_3: 'La imagen para compartir ilustra los enlaces compartidos en las redes cuando la página no tiene una; sin ella, el logotipo ocupa su lugar.'
             step_4: 'La cuenta de X indicada aquí aparece en las vistas previas de los enlaces compartidos en esa red.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         branding_guide:
             title: 'El logotipo y el icono del sitio'
-            step_1: 'El logotipo aparece en el menú lateral de la suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra.'
+            step_1: 'El logotipo aparece en el menú lateral de la suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra. Un segundo logotipo, opcional, ocupa su lugar cuando la suite está en modo oscuro.'
             step_2: 'Sin favicon elegido, la pestaña del navegador muestra la inicial del nombre del sitio sobre el color principal del tema.'
             step_3: 'Una imagen tomada de la mediateca debe tener el estado «Publicado» para mostrarse a los visitantes.'
             step_4: 'En el teléfono, el nombre del sitio junto al logotipo de la barra superior puede ocultarse para dejar solo el logotipo.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         localization_guide:
             title: 'Idiomas, hora y fechas del sitio'
             step_1: 'El idioma por defecto sirve de respaldo al sitio público, y a los correos cuando la pestaña Emails sigue ese idioma.'
@@ -49,14 +102,14 @@ suite:
             step_3: 'Desactivarlo más tarde devuelve su lugar a los contenidos escritos en los demás idiomas, que siguen en la base.'
             step_4: 'El idioma de la suite no se ajusta aquí: cada uno lo elige en su perfil.'
             step_5: 'La zona horaria da la hora del sitio: las 9:00 en una publicación programada son las 9:00 aquí, y los emails y los PDF se fechan a esa hora, en el estilo de fechas elegido.'
-            step_6: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_6: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         reading_guide:
             title: 'Lo que leen los visitantes'
             step_1: 'La página de inicio se elige buscando una página o escribiendo su número; sin elección, el inicio lista los últimos artículos.'
             step_2: 'Solo se puede comentar si los comentarios están activados aquí y en la publicación; con la moderación, cada uno espera su validación.'
             step_3: 'El plazo de purga vale para las papeleras de los artículos, las notas y la mediateca, y 0 lo conserva todo hasta que las vacíe.'
             step_4: 'Las respuestas a los formularios, dirección IP incluida, se borran tras su plazo de conservación, y 0 las conserva sin límite.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         administration_guide:
             title: 'El espacio de desarrollo'
             step_1: 'Este espacio está reservado al rol de desarrollador, y cada entrada del menú lateral abre una de sus pestañas.'
@@ -70,21 +123,21 @@ suite:
             step_2: 'Una imagen más grande que el tamaño máximo se reduce en su navegador y luego se envía en formato WebP.'
             step_3: 'La calidad, de 0 a 100, solo afecta a las imágenes reducidas; 85 es un buen equilibrio entre peso y nitidez.'
             step_4: 'Las imágenes que ya están en las notas no cambian, y los GIF animados pasan sin retoque.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         sequences_guide:
             title: 'Cómo se numeran las referencias'
             step_1: 'Cada prefijo numera un tipo de registro, como los documentos, las publicaciones o los contratos.'
             step_2: 'Una referencia se escribe prefijo, guion y número, y algunas series, como los contratos, vuelven a empezar en 1 cada año.'
             step_3: 'Un prefijo tiene de 1 a 10 letras o cifras, sin espacios ni guiones, y pasa a mayúsculas al guardarse.'
             step_4: 'Cambiar un prefijo no afecta a las referencias ya asignadas: solo las siguientes lo usan.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         general_guide:
             title: 'Los ajustes básicos del sitio'
             step_1: 'El nombre del sitio aparece en el sitio público y firma los correos que envía la aplicación.'
             step_2: 'La descripción del sitio presenta el flujo RSS, y sirve a los buscadores cuando ni la página ni la pestaña SEO dan una.'
             step_3: 'La dirección pública, sin barra final, construye los enlaces de los correos y del mapa del sitio; vacía, la aplicación la deduce del servidor.'
             step_4: 'El correo del administrador recibe los mensajes destinados a la administración; vacío, toma el relevo la dirección declarada al instalar el servidor.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         integration:
             status_active: 'Activa'
             status_off: 'Desactivada'
@@ -430,6 +483,9 @@ suite:
         logo_media_id:
             label: 'Logotipo del sitio'
             description: 'ID del medio utilizado como logotipo'
+        logo_dark_media_id:
+            label: Logotipo en modo oscuro
+            description: "Opcional. Sustituye el logotipo del sitio cuando la suite está en modo oscuro: menú lateral, barra superior y páginas de inicio de sesión. Útil para un logotipo sin fondo dibujado en un color oscuro, que desaparecería sobre fondo oscuro. Vacío, el logotipo del sitio sirve en ambos modos."
         favicon_media_id:
             label: Favicon
             description: 'ID del medio utilizado como favicon'
@@ -580,13 +636,13 @@ suite:
         todo:
             title: "Pendiente"
             nothing: "Nada le espera por ahora."
-            countersign: "{count} contrato por contrafirmar | {count} contratos por contrafirmar"
-            missed: "{count} publicación perdida | {count} publicaciones perdidas"
-            late_review: "{count} revisión atrasada | {count} revisiones atrasadas"
-            changes_requested: "{count} contenido por revisar | {count} contenidos por revisar"
-            comments_pending: "{count} comentario pendiente | {count} comentarios pendientes"
-            posts_pending_review: "{count} publicación por revisar | {count} publicaciones por revisar"
-            reminders_overdue: "{count} recordatorio atrasado | {count} recordatorios atrasados"
+            countersign: "contrato por contrafirmar | contratos por contrafirmar"
+            missed: "publicación perdida | publicaciones perdidas"
+            late_review: "revisión atrasada | revisiones atrasadas"
+            changes_requested: "contenido por revisar | contenidos por revisar"
+            comments_pending: "comentario pendiente | comentarios pendientes"
+            posts_pending_review: "publicación por revisar | publicaciones por revisar"
+            reminders_overdue: "recordatorio atrasado | recordatorios atrasados"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

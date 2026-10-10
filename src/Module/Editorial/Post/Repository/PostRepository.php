@@ -461,14 +461,20 @@ class PostRepository extends ResolveTargetEntityRepository
      *
      * @return array<string, int> status value → count, trashed posts excluded
      */
-    public function countByStatus(): array
+    public function countByStatus(?int $authorId = null): array
     {
-        $rows = $this->createQueryBuilder('p')
+        $queryBuilder = $this->createQueryBuilder('p')
             ->select('p.status AS status', 'COUNT(p.id) AS total')
             ->where('p.deletedAt IS NULL')
-            ->groupBy('p.status')
-            ->getQuery()
-            ->getArrayResult();
+            ->groupBy('p.status');
+
+        // The posts list counts with its own scope: a contributor reads the
+        // statuses of what they wrote, as the rows below them.
+        if (null !== $authorId) {
+            $queryBuilder->andWhere('p.author = :authorId')->setParameter('authorId', $authorId);
+        }
+
+        $rows = $queryBuilder->getQuery()->getArrayResult();
 
         $counts = [];
         foreach ($rows as $row) {
@@ -656,13 +662,41 @@ class PostRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
-    public function countTrashed(): int
+    /**
+     * The publications the list shows, out of the trash.
+     *
+     * The side menu's figure for « Publications »: scoped to an author exactly
+     * like the list (`PostAccessService::scopedAuthorId()`), so a contributor
+     * counts their own and nobody else's.
+     */
+    public function countNotTrashed(?int $authorId = null): int
     {
-        return (int) $this->createQueryBuilder('p')
+        $queryBuilder = $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
-            ->where('p.deletedAt IS NOT NULL')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->where('p.deletedAt IS NULL');
+
+        if (null !== $authorId) {
+            $queryBuilder->andWhere('p.author = :authorId')->setParameter('authorId', $authorId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * Publications in the trash, all of them or one author's - the scope the
+     * trash screen applies (`PostAccessService::scopedAuthorId()`).
+     */
+    public function countTrashed(?int $authorId = null): int
+    {
+        $queryBuilder = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.deletedAt IS NOT NULL');
+
+        if (null !== $authorId) {
+            $queryBuilder->andWhere('p.author = :authorId')->setParameter('authorId', $authorId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**

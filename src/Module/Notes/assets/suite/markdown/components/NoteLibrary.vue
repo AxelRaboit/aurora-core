@@ -46,7 +46,6 @@ import {
     Plus,
     Rows3,
     Table2,
-    Search,
     Tag,
     Lock,
     Users,
@@ -59,8 +58,6 @@ import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
-import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
-import { foldSearch as foldAccents } from "../composables/noteSearchHighlight.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -195,58 +192,6 @@ onUnmounted(() => window.removeEventListener("popstate", onPopState));
 // is the one the server had rendered.
 watch(currentFolderId, (id) => emit("folder-changed", id), { immediate: true });
 
-const query = ref("");
-
-/**
- * The search folds into a magnifier, as in Craft.
- *
- * An empty field taking up a third of the bar costs that space to everything
- * else, and nobody searches all the time. The icon opens it, the slash key
- * too, Escape closes it - but only if it is empty: an active and invisible
- * filter would make one wonder why the list is short.
- */
-const {
-    open: searchOpen,
-    box: searchBox,
-    reveal: openSearch,
-    fold: foldSearch,
-} = useFoldable();
-
-function closeSearch() {
-    // As long as there is something in the field, it stays open: an active
-    // and invisible filter would make one wonder why the list is short.
-    if ("" !== query.value.trim()) return;
-
-    foldSearch();
-}
-
-/**
- * The search filters what is in view, not the whole notebook.
- *
- * Searching the whole notebook is the job of the menu panel, which has the
- * field for it and brings back results from the whole tree. Here we filter
- * the open folder, which is what one expects from a file explorer. A line
- * under the list hands what was typed over to the notebook's search.
- * Accents and case do not count, as everywhere else.
- */
-function matches(label) {
-    const needle = foldAccents(query.value.trim());
-
-    return "" === needle || foldAccents(label).includes(needle);
-}
-
-const shownFolders = computed(() =>
-    visibleFolders.value.filter((folder) => matches(folder.name)),
-);
-
-const shownNotes = computed(() =>
-    visibleNotes.value.filter((note) => matches(note.title)),
-);
-
-const nothingShown = computed(
-    () => 0 === shownFolders.value.length && 0 === shownNotes.value.length,
-);
-
 /**
  * What is drawn at once, and what waits.
  *
@@ -254,30 +199,30 @@ const nothingShown = computed(
  * encrypted columns cannot be sorted in SQL - but drawing a thousand cards
  * at once freezes the screen for nothing: nobody ever reads a thousand. The
  * rest comes on demand, and the counter starts over as soon as one changes
- * folder or types something else.
+ * folder or filter.
  */
 const PAGE = 60;
 const shown = ref(PAGE);
 
-watch([currentFolderId, query, sort, direction, flat, activeTag, visibility], () => {
+watch([currentFolderId, sort, direction, flat, activeTag, visibility], () => {
     shown.value = PAGE;
 });
 
-const pagedFolders = computed(() => shownFolders.value.slice(0, shown.value));
+const pagedFolders = computed(() => visibleFolders.value.slice(0, shown.value));
 
 const pagedNotes = computed(() =>
-    shownNotes.value.slice(0, Math.max(0, shown.value - pagedFolders.value.length)),
+    visibleNotes.value.slice(0, Math.max(0, shown.value - pagedFolders.value.length)),
 );
 
 const hasMore = computed(
-    () => shownFolders.value.length + shownNotes.value.length > shown.value,
+    () => visibleFolders.value.length + visibleNotes.value.length > shown.value,
 );
 
 /**
  * The last notes touched, at the top of the notebook.
  *
  * Craft opens on them, and it is the question asked nine times out of ten
- * on arrival: "where was I". Only at the root, and only without a search: in
+ * on arrival: "where was I". Only at the root, and only without a filter: in
  * a folder, what one is looking for is the folder's content.
  */
 const recent = computed(() => {
@@ -287,8 +232,7 @@ const recent = computed(() => {
         // A filter applies to the whole screen: the recent row still showed
         // what the filter had just excluded, which makes one doubt the
         // filter rather than the row.
-        "all" !== visibility.value ||
-        "" !== query.value.trim()
+        "all" !== visibility.value
     ) {
         return [];
     }
@@ -1020,14 +964,6 @@ function onKeydown(event) {
 
         return;
 
-    // The slash opens the search: the convention is GitHub's and Craft's,
-    // and it saves aiming at the magnifier.
-    case "/":
-        event.preventDefault();
-        void openSearch();
-
-        return;
-
     case "n":
         event.preventDefault();
         emit("create-note", currentFolderId.value);
@@ -1044,7 +980,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 // What was targeted can disappear: changing folder, filtering, sorting.
-watch([currentFolderId, query, sort, direction, flat, activeTag, visibility], () => {
+watch([currentFolderId, sort, direction, flat, activeTag, visibility], () => {
     focused.value = -1;
 });
 
@@ -1066,7 +1002,7 @@ watch([currentFolderId, query, sort, direction, flat, activeTag, visibility], ()
 const manualOrder = computed(() => "manual" === sort.value && !flat.value);
 
 async function nudge(kind, item, delta) {
-    const list = "folder" === kind ? [...shownFolders.value] : [...shownNotes.value];
+    const list = "folder" === kind ? [...visibleFolders.value] : [...visibleNotes.value];
     const from = list.findIndex((one) => Number(one.id) === Number(item.id));
     const to = from + delta;
 
@@ -1447,8 +1383,10 @@ defineExpose({
 
                     <!-- Every task of every note (09/10/2026). -->
                     <!-- The notebook's search (10/10/2026): everything notes
-                         hold, with passages; the magnifier of the bar below
-                         only narrows the folder on screen. -->
+                         hold, with passages. The only one: a second magnifier
+                         below, narrowing the folder on screen by title, read
+                         as a duplicate of this one and was removed the same
+                         day. -->
                     <AppButton
                         v-if="searchEnabled"
                         data-library-search-all
@@ -1511,10 +1449,7 @@ defineExpose({
                  about the place one is in, not about the way of reading it.
                  A single bar mixed them, and eight controls packed together
                  read like a wall. -->
-            <!-- All the way to the right, in a single group: the magnifier
-                 alone on the left left a gap of half the bar for a thirty
-                 pixel button. Opened, the search takes its place in the group
-                 and pushes the rest, instead of crossing the screen. -->
+            <!-- All the way to the right, in a single group. -->
             <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
                 <!-- The how-to, behind an icon of the bar (09/10/2026): as a
                      folded line under the header it stayed stuck at the top
@@ -1527,28 +1462,6 @@ defineExpose({
                 >
                     <BookOpen class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton
-                    v-if="!searchOpen"
-                    :title="t('notes.markdown.library.search_placeholder')"
-                    :aria-label="t('notes.markdown.library.search_placeholder')"
-                    v-on:click="openSearch()"
-                >
-                    <Search class="h-4 w-4" :stroke-width="2" />
-                </AppIconButton>
-
-                <div
-                    v-else
-                    ref="searchBox"
-                    class="w-full sm:w-64"
-                    v-on:keyup.esc="closeSearch"
-                    v-on:focusout="closeSearch"
-                >
-                    <AppSearchInput
-                        v-model="query"
-                        :placeholder="t('notes.markdown.library.search_placeholder')"
-                    />
-                </div>
-
                 <div class="flex items-center gap-3">
                     <!-- Filed or completely flat. Two readings of the same
                          notebook: what the place holds, or all the notes from
@@ -1707,13 +1620,6 @@ defineExpose({
                 :message="null === currentFolderId ? t('notes.markdown.library.empty_root.title') : t('notes.markdown.library.empty.title')"
                 :hint="null === currentFolderId ? t('notes.markdown.library.empty_root.description') : t('notes.markdown.library.empty.description')"
                 :icon="Folder"
-            />
-
-            <AppNoData
-                v-else-if="nothingShown"
-                :message="t('notes.markdown.search_no_results')"
-                :hint="t('notes.markdown.search_no_results_description', { query })"
-                :icon="FileText"
             />
 
             <!-- Everything else fits in a single branch: a `v-else` must
@@ -1938,7 +1844,7 @@ defineExpose({
                  The table scrolls in its own container so that the page
                  never goes sideways. -->
                 <div v-else class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="aurora-table w-full text-sm">
                         <thead class="text-left text-xs uppercase tracking-wide text-muted">
                             <tr>
                                 <th scope="col" class="px-2 py-2 font-medium">{{ t('notes.markdown.library.columns.name') }}</th>
@@ -2047,18 +1953,6 @@ defineExpose({
                     />
                 </div>
             </template>
-
-            <div v-if="searchEnabled && '' !== query.trim()" class="mt-4 flex justify-center">
-                <AppButton
-                    data-library-search-notebook
-                    variant="ghost"
-                    size="sm"
-                    :label="t('notes.markdown.search.in_notebook', { query: query.trim() })"
-                    v-on:click="emit('open-search', query.trim())"
-                >
-                    <TextSearch class="h-4 w-4" :stroke-width="2" />
-                </AppButton>
-            </div>
         </div>
 
         <AppModal

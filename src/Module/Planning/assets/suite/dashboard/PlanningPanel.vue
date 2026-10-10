@@ -15,6 +15,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { AlarmClock, CalendarDays } from "lucide-vue-next";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppSectionCard from "@/shared/components/display/AppSectionCard.vue";
+import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -42,75 +44,51 @@ const upcoming = computed(() =>
 
 <template>
     <div class="aurora-stack">
+        <!-- The house tile, two of them across the full width: the figures
+             read like every other panel's, and the list below keeps the room. -->
         <div class="grid grid-cols-2 gap-3">
-            <div class="aurora-card p-4 flex items-center gap-3">
-                <CalendarDays class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
-                <div class="min-w-0">
-                    <p class="text-lg font-semibold text-primary tabular-nums leading-none">
-                        {{ stats.calendars ?? 0 }}
-                    </p>
-                    <p class="mt-1 text-2xs uppercase tracking-wider text-muted">
-                        {{ t("suite.plannings.calendars") }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Tinted only when there is something late. A panel that is red at
+            <AppStatTile
+                :icon="CalendarDays"
+                :label="t('suite.plannings.calendars')"
+                :value="stats.calendars ?? 0"
+            />
+            <!-- Red only when there is something late. A panel that is red at
                  rest teaches the reader to ignore red. -->
-            <div
-                class="border rounded-xl p-4 flex items-center gap-3"
-                :class="overdue > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-surface border-line'"
-            >
-                <AlarmClock
-                    class="w-4 h-4 shrink-0"
-                    :class="overdue > 0 ? 'text-red-500' : 'text-muted'"
-                    :stroke-width="2"
-                />
-                <div class="min-w-0">
-                    <p
-                        class="text-lg font-semibold tabular-nums leading-none"
-                        :class="overdue > 0 ? 'text-red-500' : 'text-primary'"
-                    >
-                        {{ overdue }}
-                    </p>
-                    <p class="mt-1 text-2xs uppercase tracking-wider text-muted">
-                        {{ t("suite.plannings.reminders.overdue") }}
-                    </p>
-                </div>
-            </div>
+            <AppStatTile
+                :icon="AlarmClock"
+                :label="t('suite.plannings.reminders.overdue')"
+                :value="overdue"
+                :tone="overdue > 0 ? 'danger' : 'default'"
+            />
         </div>
 
-        <div class="aurora-card p-4 space-y-3">
-            <div class="flex items-center gap-2">
-                <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
-                    {{ t("suite.plannings.upcoming") }}
-                </p>
+        <AppSectionCard :title="t('suite.plannings.upcoming')">
+            <template v-if="stats.path" #meta>
                 <a
-                    v-if="stats.path"
                     :href="stats.path"
-                    class="-my-1 ml-auto inline-flex min-h-7 items-center rounded px-1 py-1 text-xs text-accent-600 hover:underline"
+                    class="-my-1 inline-flex min-h-7 items-center rounded px-1 py-1 text-xs font-medium text-accent hover:underline"
                 >{{ t("suite.plannings.open_calendar") }}</a>
-            </div>
+            </template>
 
             <AppNoData v-if="!upcoming.length" :message="t('suite.plannings.nothing_upcoming')" />
 
-            <div v-else class="flex flex-col gap-2">
+            <div v-else class="flex flex-col gap-1">
                 <!-- Each row opens its day in the calendar. The date in the
                      key: two occurrences of a series have the same id. -->
                 <a
                     v-for="row in upcoming"
                     :key="`${row.kind}-${row.id}-${row.at}`"
                     :href="row.path"
-                    class="-mx-1.5 flex min-w-0 items-baseline gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-surface-2"
+                    class="-mx-2 flex min-w-0 items-baseline gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2"
                 >
                     <span
-                        class="w-1.5 h-1.5 rounded-full shrink-0"
+                        class="h-2 w-2 shrink-0 self-center rounded-full"
                         :style="{ backgroundColor: `var(--chart-cat-${row.colourSlot})` }"
                     />
                     <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ row.title }}</span>
-                    <span class="shrink-0 text-2xs text-muted tabular-nums">{{ row.when }}</span>
+                    <span class="shrink-0 text-xs text-secondary tabular-nums">{{ row.when }}</span>
                 </a>
             </div>
-        </div>
+        </AppSectionCard>
     </div>
 </template>

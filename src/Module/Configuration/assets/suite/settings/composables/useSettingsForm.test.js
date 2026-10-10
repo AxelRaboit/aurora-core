@@ -95,3 +95,72 @@ describe("useSettingsForm - ordinary settings", () => {
         expect(fieldValues.comments_enabled).toBe("0");
     });
 });
+
+/**
+ * The tab's foot says how many changes wait, and "Cancel" puts the tab back
+ * to what is saved - images included, whose preview lives beside the value.
+ */
+describe("useSettingsForm - changes waiting to be saved", () => {
+    const name = {
+        key: "site_name",
+        type: "string",
+        value: "Aurora",
+        label: "Nom",
+    };
+    const logo = {
+        key: "site_logo",
+        type: "media",
+        value: "12",
+        mediaUrl: "/logo.png",
+        label: "Logo",
+    };
+
+    it("counts nothing on a tab nobody touched", () => {
+        const { pendingCount } = form([name, ordinary]);
+
+        expect(pendingCount("media")).toBe(0);
+    });
+
+    it("counts each field that differs from what is saved", () => {
+        const { fieldValues, onBoolChange, pendingCount } = form([
+            name,
+            ordinary,
+        ]);
+
+        fieldValues.site_name = "Aurora test";
+        onBoolChange(ordinary, false);
+
+        expect(pendingCount("media")).toBe(2);
+    });
+
+    it("stops counting a field typed back to its saved value", () => {
+        const { fieldValues, pendingCount } = form([name]);
+
+        fieldValues.site_name = "Aurora test";
+        fieldValues.site_name = "Aurora";
+
+        expect(pendingCount("media")).toBe(0);
+    });
+
+    it("puts every field back, image preview included", () => {
+        const {
+            fieldValues,
+            mediaState,
+            onMediaChange,
+            resetGroup,
+            pendingCount,
+        } = form([name, logo]);
+
+        fieldValues.site_name = "Aurora test";
+        onMediaChange(logo, { id: 40, url: "/other.png" });
+        resetGroup("media");
+
+        expect(fieldValues.site_name).toBe("Aurora");
+        expect(fieldValues.site_logo).toBe("12");
+        expect(mediaState.site_logo).toStrictEqual({
+            id: 12,
+            url: "/logo.png",
+        });
+        expect(pendingCount("media")).toBe(0);
+    });
+});

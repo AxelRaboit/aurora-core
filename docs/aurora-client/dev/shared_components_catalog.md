@@ -19,7 +19,7 @@
 - [Feedback](#feedback) - `AppBadge`, `AppMessage`, `AppNoData`, `AppProgressBar`, `AppSelectionCheck`
 - [Overlay](#overlay) - `AppModal`, `AppModalFooter`, `AppTooltip`
 - [Nav](#nav) - `AppLink`, `AppNavLink`, `AppNavButton`, `AppPagination`, `AppLoadMore`, `AppTab`, `AppStagePicker`
-- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppBetaBadge`, `AppLogo`, `AppChart`
+- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppBetaBadge`, `AppLogo`, `AppStatTile`, `AppSectionCard`, `AppPageHeading`, `AppChart`
 
 ---
 
@@ -455,7 +455,7 @@ Pill coloré statut. `<span>` ou `<a>` si `href`.
 | `spinning` | `Boolean` | `false` (icône qui tourne, ex « En cours ») |
 
 Couleurs supportées : `accent`, `rose`, `sky`, `amber`, `emerald`, `violet`,
-`slate`, `gray`. **Pas de hex personnalisé** - c'est un set fermé.
+`slate`, `gray`, `ink` (la couleur du texte sur sa teinte : un état réglé, une publication publiée). **Pas de hex personnalisé** - c'est un set fermé.
 
 ```vue
 <AppBadge color="emerald">{{ $t('status.active') }}</AppBadge>
@@ -782,6 +782,72 @@ Logo Aurora SVG.
 |---|---|---|
 | `size` | `Number` | `40` |
 
+### `AppStatTile`
+
+Un chiffre de tableau de bord : une icône, ce qu'il compte, le chiffre en grand,
+et en option une ligne qui en dit la part utile. **La même tuile pour tous les
+panneaux** : un panneau ne redessine pas la sienne.
+
+| Prop | Type | Défaut |
+|---|---|---|
+| `label` | `String` | **requis** |
+| `value` | `Number \| String` | `0` |
+| `icon` | composant | `null` |
+| `tone` | `String` | `default` - `attention` (accent) ou `danger` (rouge, seulement quand le chiffre l'appelle) |
+| `caption` | `String` | `""` - une ligne sous le chiffre, ex. « 13 en ligne » |
+| `href` | `String` | `""` - la tuile entière devient le lien |
+
+La tuile occupe trois rangées de la grille parente en sous-grille (libellé,
+chiffre, légende) : poser les tuiles **directement** dans une grille
+(`grid grid-cols-2 lg:grid-cols-4 gap-3`), sans enveloppe, pour que les chiffres
+d'une même rangée restent sur la même ligne quand un libellé passe à la ligne ou
+qu'une seule tuile a une légende.
+
+```vue
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <AppStatTile :icon="FileText" :label="t('…posts')" :value="17" :caption="t('…posts_live', { count: 13 })" />
+    <AppStatTile :icon="AlarmClock" :label="t('…overdue')" :value="overdue" :tone="overdue > 0 ? 'danger' : 'default'" />
+</div>
+```
+
+### `AppSectionCard`
+
+Une carte titrée, le bloc dont un panneau de tableau de bord est fait. Le titre
+à gauche, et dans le slot `meta`, à droite, ce qui qualifie toute la carte : un
+total, une période, un lien vers l'écran complet.
+
+| Prop | Type | Défaut |
+|---|---|---|
+| `title` | `String` | `""` |
+| `headingTag` | `String` | `h3` |
+
+```vue
+<AppSectionCard :title="t('…by_status')">
+    <template #meta>{{ t('…posts_total', { count }, count) }}</template>
+    <AppShareBar :segments="byStatus" />
+</AppSectionCard>
+```
+
+### `AppPageHeading`
+
+Le haut d'un écran : son nom en grand (26 px), une ligne dessous (ce qu'il
+contient, ses chiffres), et dans le slot `actions`, à droite, les commandes de
+tout l'écran. Sur téléphone, les commandes passent sous le titre, pleine
+largeur. Une liste le reçoit par `AppListToolbar` (`title`, `subtitle`).
+Le slot par défaut, sous la ligne, porte ce qui qualifie l'élément ouvert
+(slug, pastilles) : un écran qui montre un enregistrement le prend pour titre.
+
+| Prop | Type | Défaut |
+|---|---|---|
+| `title` | `String` | requis |
+| `subtitle` | `String` | `""` |
+
+```vue
+<AppPageHeading :title="t('…tabs.general')" :subtitle="t('…tabs.general_description')">
+    <template #actions><AppButton variant="primary">…</AppButton></template>
+</AppPageHeading>
+```
+
 ### `AppShareBar` (`@shared/components/chart/`)
 
 Comment un total se répartit, en **une** barre horizontale empilée. La forme
@@ -800,6 +866,17 @@ créneau, replier la queue dans « autre » plutôt que d'obtenir une couleur
 indistinguable sous déficience de vision des couleurs. Les créneaux sont
 attribués **avant** de retirer les valeurs nulles, pour qu'une catégorie garde sa
 couleur quand une voisine se vide.
+
+Un segment peut nommer son `slot` quand la couleur appartient à la chose plutôt
+qu'à son rang (un rôle, un statut de publication : `POST_STATUS_CHART_SLOTS`
+dans `statusStyles.js`, aligné sur les badges de la liste). `slot: "neutral"` et
+`slot: "muted"` donnent les deux gris de l'interface, pour un état qui n'est pas
+une catégorie (une publication archivée), et `slot: "ink"` la couleur du texte,
+pour l'état réglé d'une série (une publication publiée) : la palette n'a pas de
+gris, exprès. La légende est une grille de deux colonnes (une sur téléphone),
+une ligne filetée par entrée : le nom à gauche, le nombre et sa part à droite. Des créneaux nommés ne sont plus voisins dans l'ordre validé :
+mesurer leurs jointures sous protanopie, deutéranopie et tritanopie avant de
+les poser.
 
 La légende n'est pas décorative : trois teintes du mode clair passent sous 3:1
 contre une surface blanche, ce qui n'est autorisé que si la valeur est aussi
@@ -860,6 +937,20 @@ d'`AppNavLink` (qui est sidemenu desktop).
 
 Toolbar standard au-dessus d'une liste admin : slot pour `AppSearchInput`,
 filtres, bouton "Nouveau", bulk actions. Réutilisé par `useListPage`.
+
+Avec `title` (et `subtitle`), la liste s'ouvre sur `AppPageHeading`, les
+`actions` à droite du titre ; ce qui se pose entre le titre et la recherche
+(onglets de section, encart « Comment ça marche ») va dans le slot `above`.
+
+```vue
+<AppListToolbar :title="t('…title')" :subtitle="t('…count', { count }, count)">
+    <template #above><AppGuide …/></template>
+    <template #search><AppSearchInput v-model="search" v-on:search="onSearch" /></template>
+    <template #actions><AppButton v-on:click="openCreate">{{ $t('common.new') }}</AppButton></template>
+</AppListToolbar>
+```
+
+Sans titre :
 
 ```vue
 <AppListToolbar>

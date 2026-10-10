@@ -9,8 +9,10 @@
  * Self-hosted and not Google Fonts: the CSP sets `font-src 'self' data:`, a
  * tag pointing to fonts.gstatic.com would be refused and the page would come
  * out in the system font. Adding a family to the enum therefore means adding
- * its @fontsource package and its six weights here.
+ * its @fontsource package and its six weights here, or the single file of a
+ * variable family (`ThemeFontEnum::isVariable()`).
  */
+@import "@fontsource-variable/sora/wght.css";
 @import "@fontsource/poppins/400.css";
 @import "@fontsource/poppins/400-italic.css";
 @import "@fontsource/poppins/500.css";
@@ -115,16 +117,15 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 /*
- * Hover only where something hovers. Declared as a plain `:hover` since the
- * first commit, it fired on touch screens too and stayed after a tap: the
- * back link's rounded box stuck to the edge of the screen, and every hover
- * colour lingered on whatever was last touched. This is Tailwind's own
- * default, restored.
+ * `hover:` is left to Tailwind: its own variant already applies only where
+ * something hovers (`@media (hover: hover)`), so a tap on a touch screen
+ * leaves no colour behind. Never redeclare it: the short form with a nested
+ * block (`(@media (hover: hover) { &:hover })`) compiles to nothing, and
+ * from 07/10 to 10/10/2026 not one hover style reached the build.
  *
  * `touch:` is its counterpart, for what a mouse reveals on hover and a
  * finger must find without it: row actions, drag handles, delete crosses.
  */
-@custom-variant hover (@media (hover: hover) { &:hover });
 @custom-variant touch (@media (hover: none));
 
 /*

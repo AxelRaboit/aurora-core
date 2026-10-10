@@ -11,6 +11,7 @@ use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMemberInterface;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Doctrine\Common\Collections\Order;
@@ -25,7 +26,13 @@ use function str_contains;
  */
 class NoteSpaceRepository extends ResolveTargetEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    /**
+     * @param ?NoteSpaceScope $scope the request's scope, null for every space -
+     *                               optional so that a project's own repository
+     *                               calling `parent::__construct($registry)` keeps
+     *                               booting
+     */
+    public function __construct(ManagerRegistry $registry, protected readonly ?NoteSpaceScope $scope = null)
     {
         parent::__construct($registry, NoteSpace::class, NoteSpaceInterface::class);
     }
@@ -39,20 +46,25 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
      * whole back office. Every list that rewrote its own rule would have
      * ended up forgetting a branch, and that is how a note opens by mistake.
      *
-     * The `:spaceViewer` parameter and the three access parameters are set
-     * by {@see self::bindViewer()}.
+     * **Narrowed by the request's scope** ({@see NoteSpaceScope}): the Notes
+     * module leaves out the spaces another module hosts, a hosted screen
+     * sees its own space and nothing else.
+     *
+     * The `:spaceViewer` parameter, the three access parameters and the two
+     * scope parameters are set by {@see self::bindViewer()}.
      */
     public static function readableSubquery(string $prefix = 'rs'): string
     {
         return sprintf(
             'SELECT %1$s.id FROM %2$s %1$s LEFT JOIN %1$s.members %1$sm WITH %1$sm.user = :spaceViewer '
-            .'WHERE %1$s.deletedAt IS NULL AND ('
+            .'WHERE %1$s.deletedAt IS NULL AND %3$s AND ('
             .'%1$s.personalUser = :spaceViewer OR %1$s.owner = :spaceViewer '
             .'OR (%1$s.owner IS NULL AND %1$s.personalUser IS NULL AND :spaceViewerAdopts = TRUE) '
             .'OR %1$s.access = :spaceAccessBackoffice '
             .'OR (%1$s.access = :spaceAccessMembers AND %1$sm.id IS NOT NULL))',
             $prefix,
             NoteSpace::class,
+            NoteSpaceScope::clause($prefix),
         );
     }
 
@@ -66,13 +78,14 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     {
         return sprintf(
             'SELECT %1$s.id FROM %2$s %1$s LEFT JOIN %1$s.members %1$sm WITH %1$sm.user = :spaceViewer '
-            .'WHERE %1$s.deletedAt IS NULL AND ('
+            .'WHERE %1$s.deletedAt IS NULL AND %3$s AND ('
             .'%1$s.personalUser = :spaceViewer OR %1$s.owner = :spaceViewer '
             .'OR (%1$s.owner IS NULL AND %1$s.personalUser IS NULL AND :spaceViewerAdopts = TRUE) '
             .'OR (%1$s.access = :spaceAccessBackoffice AND (%1$s.defaultRole IN (:spaceWriterRoles) OR %1$sm.role IN (:spaceWriterRoles))) '
             .'OR (%1$s.access = :spaceAccessMembers AND %1$sm.role IN (:spaceWriterRoles)))',
             $prefix,
             NoteSpace::class,
+            NoteSpaceScope::clause($prefix),
         );
     }
 
@@ -80,10 +93,13 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
      * Sets the parameters of the two subqueries on a query.
      *
      * Only the ones the query mentions: Doctrine refuses an extra parameter,
-     * and a read query does not mention the write roles.
+     * and a read query does not mention the write roles. A null scope is
+     * every space ({@see NoteSpaceScope}'s default).
      */
-    public static function bindViewer(QueryBuilder $queryBuilder, CoreUserInterface $user): QueryBuilder
+    public static function bindViewer(QueryBuilder $queryBuilder, CoreUserInterface $user, ?NoteSpaceScope $scope = null): QueryBuilder
     {
+        ($scope ?? new NoteSpaceScope())->bind($queryBuilder);
+
         $queryBuilder
             ->setParameter('spaceViewer', $user)
             ->setParameter('spaceViewerAdopts', self::isAdmin($user))
@@ -128,7 +144,7 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
             ->addOrderBy('s.position', Order::Ascending->value)
             ->addOrderBy('s.id', Order::Ascending->value);
 
-        return self::bindViewer($queryBuilder, $user)->getQuery()->getResult();
+        return self::bindViewer($queryBuilder, $user, $this->scope)->getQuery()->getResult();
     }
 
     public function findPublishedBySlug(string $slug): ?NoteSpaceInterface

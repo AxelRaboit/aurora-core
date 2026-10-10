@@ -115,13 +115,14 @@ describe("switching between the two menu views", () => {
 });
 
 describe("the site's logo", () => {
-    function renderWithLogo(siteLogoUrl) {
+    function renderWithLogo(siteLogoUrl, siteLogoDarkUrl = "") {
         return mount(AppSidemenu, {
             props: {
                 navSections: NAV_SECTIONS,
                 activeRoute: "suite_ged_documents",
                 moduleNavView: GED_VIEW,
                 siteLogoUrl,
+                siteLogoDarkUrl,
             },
             global: { plugins: [i18n] },
         });
@@ -146,5 +147,177 @@ describe("the site's logo", () => {
 
         expect(wrapper.findAll("img[alt='Logo']")).toHaveLength(0);
         expect(wrapper.findAll("svg[viewBox='0 0 64 64']")).toHaveLength(3);
+    });
+
+    /** The dark-mode version reaches the same three places as the logo. */
+    it("carries the dark-mode version wherever the logo shows", () => {
+        const wrapper = renderWithLogo(
+            "/uploads/ged/logo.png",
+            "/uploads/ged/logo-dark.png",
+        );
+
+        expect(
+            wrapper.findAll('img[src="/uploads/ged/logo-dark.png"]'),
+        ).toHaveLength(3);
+    });
+});
+
+describe("the figure beside an entry", () => {
+    function renderWith(item) {
+        return mount(AppSidemenu, {
+            props: {
+                navSections: [
+                    {
+                        id: "ged",
+                        items: [{ ...NAV_SECTIONS[0].items[0], ...item }],
+                    },
+                ],
+                activeRoute: "suite_ged_documents",
+            },
+            global: { plugins: [i18n] },
+        });
+    }
+
+    it("prints the count the server wrote, zero included", () => {
+        const figures = renderWith({ count: 0 }).findAll("[data-nav-count]");
+
+        expect(figures.length).toBeGreaterThan(0);
+        expect(figures[0].text()).toBe("0");
+    });
+
+    it("prints a large count in the reader's language", () => {
+        const figure = renderWith({ count: 1204 }).find("[data-nav-count]");
+
+        // French groups thousands with a narrow no-break space.
+        expect(figure.text().replace(/\s/gu, " ")).toBe("1 204");
+    });
+
+    it("prints nothing for an entry nobody counts", () => {
+        expect(renderWith({}).find("[data-nav-count]").exists()).toBe(false);
+    });
+
+    it("draws no icon on a row", () => {
+        // `.si`: the menu's rows. The logo links to the same first page and
+        // keeps its mark.
+        const rows = renderWith({ count: 3 }).findAll(
+            "a.si[href='/suite/ged/documents']",
+        );
+
+        expect(rows.length).toBeGreaterThan(0);
+        rows.forEach((row) => expect(row.find("svg").exists()).toBe(false));
+    });
+});
+
+/**
+ * The sidemenu audit of 10/10/2026: one head for the column and the phone
+ * drawer, a filter that offers the other modules, and the attributes a
+ * keyboard or a screen reader needs.
+ */
+describe("the column's head, the drawer's too", () => {
+    it("tells the drawer which module it shows, and how to leave it", () => {
+        const wrapper = render();
+        const drawer = wrapper.find(".sidemenu-drawer");
+
+        expect(drawer.find("[data-sidemenu-module-path]").exists()).toBe(true);
+        expect(drawer.find("[data-sidemenu-back-to-modules]").exists()).toBe(
+            true,
+        );
+        expect(drawer.find("[data-sidemenu-filter]").exists()).toBe(true);
+    });
+
+    it("offers every module when the filter finds nothing in this one", async () => {
+        const wrapper = render();
+
+        await wrapper
+            .find("#sidemenu [data-sidemenu-filter]")
+            .setValue("nothing-like-this");
+        const searchAll = wrapper.find("#sidemenu [data-sidemenu-search-all]");
+        expect(searchAll.exists()).toBe(true);
+
+        await searchAll.trigger("click");
+        expect(buttonSaying(wrapper, "Revenir à GED")).toBeTruthy();
+        expect(
+            wrapper.find("#sidemenu [data-sidemenu-filter]").element.value,
+        ).toBe("nothing-like-this");
+    });
+
+    it("clears the filter on Escape before anything else", async () => {
+        const wrapper = render();
+        const filter = wrapper.find("#sidemenu [data-sidemenu-filter]");
+
+        await filter.setValue("doc");
+        await filter.trigger("keydown", { key: "Escape" });
+
+        expect(filter.element.value).toBe("");
+        // Still in the module: clearing a search does not leave it.
+        expect(buttonSaying(wrapper, "Tous les modules")).toBeTruthy();
+    });
+
+    it("signs the foot with the version", () => {
+        const wrapper = mount(AppSidemenu, {
+            props: {
+                navSections: NAV_SECTIONS,
+                activeRoute: "suite_ged_documents",
+                appVersion: "4.9.0",
+            },
+            global: { plugins: [i18n] },
+        });
+
+        expect(wrapper.find("[data-sidemenu-foot]").text()).toContain("4.9.0");
+    });
+});
+
+describe("what a screen reader is told", () => {
+    it("marks the open page as the current one", () => {
+        const current = render(null).findAll(
+            "#sidemenu a[aria-current='page']",
+        );
+
+        expect(current.length).toBe(1);
+        expect(current[0].attributes("href")).toBe("/suite/ged/documents");
+    });
+});
+
+describe("a section with a single entry", () => {
+    /**
+     * It keeps its header: alone, the entry read as the last row of the
+     * section above it (10/10/2026).
+     */
+    it("keeps its header above the entry", () => {
+        const wrapper = render(null);
+
+        expect(wrapper.find("#sidemenu .si-section-header").exists()).toBe(
+            true,
+        );
+        expect(
+            wrapper
+                .findAll("#sidemenu nav a")
+                .filter(
+                    (link) =>
+                        "/suite/ged/documents" === link.attributes("href"),
+                ),
+        ).toHaveLength(1);
+    });
+
+    it("folds with the rest", async () => {
+        const wrapper = render(null);
+
+        await wrapper
+            .find("#sidemenu [data-sidemenu-fold-all]")
+            .trigger("click");
+
+        expect(
+            wrapper
+                .find("#sidemenu .si-section-header")
+                .attributes("aria-expanded"),
+        ).toBe("false");
+        expect(
+            wrapper
+                .findAll("#sidemenu nav a")
+                .filter(
+                    (link) =>
+                        "/suite/ged/documents" === link.attributes("href"),
+                ),
+        ).toHaveLength(0);
     });
 });

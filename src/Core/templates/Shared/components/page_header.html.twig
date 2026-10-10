@@ -12,6 +12,15 @@
    forty, and the breadcrumb goes small since it is secondary navigation.
    Eighty pixels in total against a hundred and four.
 
+   **Only the title strip is a bar** (visual redesign of the suite,
+   10/10/2026), and it is sixty pixels tall: its controls became framed
+   thirty-six-pixel squares, which need the air around them. The breadcrumb left the sticky header for the top of the
+   content: plain text on the page's background, no surface and no border,
+   and it scrolls away with the page. Drawn as a second bar, it made the
+   frame two bands thick on every screen and read as a toolbar with nothing
+   to click; above the content, it reads as what it is, the path to the
+   page. The sticky header is now the sixty pixels of the title.
+
    **The name is taken from the breadcrumb's last level, not passed
    separately.** Each page's name is already the last item of its path; asking
    the nineteen templates to repeat it in a `title` would be the same string
@@ -26,13 +35,15 @@
    became a single word - the section's name, which the side menu already
    shows. A breadcrumb with a single item is not a breadcrumb, it is a label.
 
-   The last level is marked as current but stays discreet: emphasis is the
-   job of the strip above.
+   The last level is marked as current and written in the body colour, the
+   levels above it in grey: the path reads as "where I come from, where I am"
+   without leaning on the strip above. Weight stays at medium - emphasis is
+   still the title's job.
 
-   The edges of both strips read `--aurora-page-margin`, like `<main>`. On a
-   phone, where only the breadcrumb is left, it therefore lines up exactly
-   with the first card - this is the offset the two files each kept on their
-   own side, sixteen pixels here against eight below.
+   The edges of the strip and of the breadcrumb read `--aurora-page-margin`,
+   like `<main>`. On a phone, where only the breadcrumb is left, it therefore
+   lines up exactly with the first card - this is the offset the two files
+   each kept on their own side, sixteen pixels here against eight below.
 
    `backLink`: the page draws its own way back (AppPageBar). Below `lg`, the
    parent level then reads as plain text rather than a second link to the
@@ -49,7 +60,7 @@
        that carries its own bar with the logo, the search and the bell, and
        this strip would only hold a title between two hidden groups there -
        forty-eight pixels of border. #}
-    <div class="aurora-page-x hidden h-12 items-center gap-3 border-b border-line bg-surface lg:flex">
+    <div class="aurora-page-x hidden h-15 items-center gap-3 border-b border-line bg-surface lg:flex">
         {# The only control that collapses the menu, at the top left of the
            page - not in the menu it hides. A button that lives in what it hides
            needs a second copy elsewhere to bring it back, which Aurora had.
@@ -57,11 +68,11 @@
            the suite runs as an installed application, which has no toolbar of
            its own. In a browser tab they doubled the ones right above them
            (UI audit of 07/10/2026). #}
-        <div class="flex shrink-0 items-center gap-1">
+        <div class="flex shrink-0 items-center gap-2">
             <div {{ vue_component('core/suite/sidemenu/AppSidemenuToggle', {
                 collapsedPath: path('suite_general_profile_sidemenu_collapsed'),
             }) }}></div>
-            <div class="hidden border-l border-line pl-1 [@media(display-mode:standalone)]:block">
+            <div class="hidden border-l border-line pl-2 [@media(display-mode:standalone)]:block">
                 <div {{ vue_component('core/suite/sidemenu/AppTopbarNav') }}></div>
             </div>
         </div>
@@ -70,7 +81,7 @@
            about - a document's title, a section heading next to its Nouveau
            button - and a second `h1` here would leave the document outline
            with two tops. #}
-        <h2 class="min-w-0 flex-1 truncate text-base font-semibold leading-tight text-primary">{{ pageTitle }}</h2>
+        <h2 class="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold leading-tight text-primary">{{ pageTitle }}</h2>
 
         {# Search, notifications and account, far right. They used to live in
            the navigation menu, above the filter, which put controls unrelated
@@ -94,36 +105,42 @@
         </div>
     </div>
 
-    {# The breadcrumb, at every size. On a phone it is the whole header, and the
-       levels above the last two fade out: there is no second strip to fall
-       back to, and a deep path would push the page it names off the screen. #}
-    {% if trail %}
-        <nav class="aurora-page-x flex h-8 items-center gap-1.5 border-b border-line bg-surface text-xs" aria-label="{{ 'suite.nav.breadcrumb'|trans }}">
-            {% for crumb in trail %}
-                {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
-                {# A separator goes with the level before it: on a phone, where
-                   that level is hidden, a visible one opened the path with a
-                   stray « / Clients ». #}
-                {% set isSeparatorNarrowVisible = (loop.index - 1) >= (trail|length - 1) %}
-                {% if not loop.first %}
-                    <span class="select-none shrink-0 text-muted {% if not isSeparatorNarrowVisible %}hidden sm:inline{% endif %}">/</span>
-                {% endif %}
-                <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
-                    {% if backLink|default(false) and loop.index == trail|length - 1 and crumb.href is defined and crumb.href %}
-                        {# The page has its own way back to this level, a few
-                           pixels below: on a phone and a tablet the two were
-                           the same link twice. The name stays, as context. #}
-                        <a href="{{ crumb.href }}" class="hidden truncate text-secondary transition-colors hover:text-primary lg:block">{{ crumb.label }}</a>
-                        <span class="block truncate text-secondary lg:hidden">{{ crumb.label }}</span>
-                    {% elseif crumb.href is defined and crumb.href %}
-                        <a href="{{ crumb.href }}" class="block truncate text-secondary transition-colors hover:text-primary">{{ crumb.label }}</a>
-                    {% elseif loop.last %}
-                        <span class="block truncate font-medium text-secondary" aria-current="page">{{ crumb.label }}</span>
-                    {% else %}
-                        <span class="block truncate text-secondary">{{ crumb.label }}</span>
-                    {% endif %}
-                </span>
-            {% endfor %}
-        </nav>
-    {% endif %}
 </header>
+
+{# The breadcrumb, at every size, at the top of the content rather than in the
+   sticky header. On a phone it is all that is left of the header, and the
+   levels above the last two fade out: there is no title strip to fall back
+   to, and a deep path would push the page it names off the screen.
+
+   `h-8 items-end`: thirty-two pixels, the height it had as a strip, so the
+   page loses at the top what it lost before (`--aurora-topbar`), and the
+   text sits on the content's margin rather than floating in the middle. #}
+{% if trail %}
+    <nav data-breadcrumb class="aurora-page-x flex h-8 shrink-0 items-end gap-1.5 text-[0.8125rem]" aria-label="{{ 'suite.nav.breadcrumb'|trans }}">
+        {% for crumb in trail %}
+            {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
+            {# A separator goes with the level before it: on a phone, where
+               that level is hidden, a visible one opened the path with a
+               stray « / Clients ». #}
+            {% set isSeparatorNarrowVisible = (loop.index - 1) >= (trail|length - 1) %}
+            {% if not loop.first %}
+                <span class="select-none shrink-0 text-muted {% if not isSeparatorNarrowVisible %}hidden sm:inline{% endif %}">/</span>
+            {% endif %}
+            <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
+                {% if backLink|default(false) and loop.index == trail|length - 1 and crumb.href is defined and crumb.href %}
+                    {# The page has its own way back to this level, a few
+                       pixels below: on a phone and a tablet the two were
+                       the same link twice. The name stays, as context. #}
+                    <a href="{{ crumb.href }}" class="hidden truncate text-secondary transition-colors hover:text-primary lg:block">{{ crumb.label }}</a>
+                    <span class="block truncate text-secondary lg:hidden">{{ crumb.label }}</span>
+                {% elseif crumb.href is defined and crumb.href %}
+                    <a href="{{ crumb.href }}" class="block truncate text-secondary transition-colors hover:text-primary">{{ crumb.label }}</a>
+                {% elseif loop.last %}
+                    <span class="block truncate font-medium text-primary" aria-current="page">{{ crumb.label }}</span>
+                {% else %}
+                    <span class="block truncate text-secondary">{{ crumb.label }}</span>
+                {% endif %}
+            </span>
+        {% endfor %}
+    </nav>
+{% endif %}

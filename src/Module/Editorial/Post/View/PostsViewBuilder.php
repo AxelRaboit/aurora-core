@@ -61,6 +61,7 @@ final readonly class PostsViewBuilder
         array $termIds = [],
         array $statuses = [],
         array $visibilities = [],
+        bool $withStatusCounts = false,
     ): array {
         $result = $this->postRepository->findPaginated(
             page: $pagination->page,
@@ -84,6 +85,11 @@ final readonly class PostsViewBuilder
             'total' => $result['total'],
             'page' => $result['page'],
             'totalPages' => $result['totalPages'],
+            // The status switch above the list: one figure per status, over
+            // everything the reader may see - not narrowed by the search or the
+            // other filters, so a tab never reads zero because of a word typed
+            // elsewhere. Only the posts list asks for it.
+            ...($withStatusCounts ? ['statusCounts' => $this->postRepository->countByStatus($authorId)] : []),
         ];
     }
 

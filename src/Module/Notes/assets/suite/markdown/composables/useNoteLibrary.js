@@ -1,3 +1,7 @@
+import {
+    ID_PLACEHOLDER,
+    idFromAddress,
+} from "@notes/suite/markdown/composables/noteAddress.js";
 import { computed, ref } from "vue";
 
 const VIEW_KEY = "aurora.notes.library.view";
@@ -305,10 +309,12 @@ export function useNoteLibrary({
                 : normaliseId(fromState);
     }
 
+    /**
+     * Read against the folder address the page writes, so a hosted screen -
+     * whose folder is a query parameter of the host's page - reads it back.
+     */
     function readFolderFromLocation() {
-        const match = /\/folder\/(\d+)/.exec(window.location.pathname);
-
-        return match ? Number(match[1]) : null;
+        return idFromAddress(urlFor(ID_PLACEHOLDER));
     }
 
     function setView(value) {

@@ -30,6 +30,12 @@ const props = defineProps({
     type: { type: String, required: true, validator: (type) => ["doughnut", "bar", "line"].includes(type) },
     data: { type: Object, required: true },
     options: { type: Object, default: () => ({}) },
+    /**
+     * Chart.js inline plugins for this one chart - a value written on the
+     * canvas, a marker. Registered per chart rather than globally, so one
+     * panel's drawing never shows up on another's.
+     */
+    plugins: { type: Array, default: () => [] },
 });
 
 const component = computed(() => ({ doughnut: Doughnut, bar: Bar, line: Line })[props.type]);
@@ -106,5 +112,5 @@ const mergedOptions = computed(() => ({ ...baseOptions.value, ...props.options }
 </script>
 
 <template>
-    <component :is="component" :data="data" :options="mergedOptions" />
+    <component :is="component" :data="data" :options="mergedOptions" :plugins="plugins" />
 </template>

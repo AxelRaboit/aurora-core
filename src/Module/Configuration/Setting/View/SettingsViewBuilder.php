@@ -89,6 +89,13 @@ final readonly class SettingsViewBuilder
                     'offWarning' => null === $field->offWarningKey
                         ? null
                         : $this->translator->trans($field->offWarningKey),
+                    'section' => null === $field->sectionKey
+                        ? null
+                        : [
+                            'key' => $field->sectionKey,
+                            'title' => $this->translator->trans(sprintf('suite.settings.sections.%s.title', $field->sectionKey)),
+                            'lead' => $this->translator->trans(sprintf('suite.settings.sections.%s.lead', $field->sectionKey)),
+                        ],
                 ];
             }
 

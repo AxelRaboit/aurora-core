@@ -187,7 +187,7 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
              avoiding. -->
         <div v-if="favouriteFolders.length" class="mb-1">
             <h3
-                class="flex items-center gap-1.5 px-3 pb-0.5 text-xs font-semibold uppercase tracking-wide text-muted"
+                class="flex items-center gap-1.5 px-3 pb-0.5 text-xs font-semibold uppercase tracking-wider text-secondary"
             >
                 <Star
                     class="h-3 w-3 text-amber-400"

@@ -13,11 +13,14 @@
  * palette - `SEARCH_OPEN_EVENT`, the same mechanism the fold control uses,
  * because these are two Vue apps that cannot see each other's refs.
  */
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Search } from "lucide-vue-next";
+import { Moon, Search, Sun } from "lucide-vue-next";
+import { useTheme } from "@/shared/composables/useTheme.js";
 import AppNotificationsBell from "@core/suite/notifications/AppNotificationsBell.vue";
 import AppTopbarAccount from "./AppTopbarAccount.vue";
 import { SEARCH_OPEN_EVENT } from "./composables/useSuiteSearch.js";
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "./topbarButton.js";
 
 defineProps({
     notificationsListPath: { type: String, default: "" },
@@ -44,21 +47,44 @@ defineProps({
 
 const { t } = useI18n();
 
+/**
+ * Light and dark, one click away instead of two.
+ *
+ * The switch also lives in the account menu, where it is one entry among
+ * five; here it sits with the other controls of the frame, as a bare icon
+ * like its neighbours. The icon shows the mode the click leads to, the label
+ * says it in words - the same pair the account menu uses.
+ */
+const { theme, toggle: toggleTheme } = useTheme();
+const themeLabel = computed(() => (theme.value === "dark" ? t("suite.nav.light_mode") : t("suite.nav.dark_mode")));
+
 function openSearch() {
     window.dispatchEvent(new CustomEvent(SEARCH_OPEN_EVENT));
 }
 </script>
 
 <template>
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-2">
         <button
             type="button"
-            class="shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            :class="TOPBAR_BUTTON"
             :title="t('suite.search.button')"
             :aria-label="t('suite.search.button')"
             v-on:click="openSearch"
         >
-            <Search class="w-5 h-5" :stroke-width="2" />
+            <Search :class="TOPBAR_ICON" :stroke-width="2" />
+        </button>
+
+        <button
+            type="button"
+            data-topbar-theme
+            :class="TOPBAR_BUTTON"
+            :title="themeLabel"
+            :aria-label="themeLabel"
+            v-on:click="toggleTheme"
+        >
+            <Moon v-if="theme !== 'dark'" :class="TOPBAR_ICON" :stroke-width="2" />
+            <Sun v-else :class="TOPBAR_ICON" :stroke-width="2" />
         </button>
 
         <AppNotificationsBell

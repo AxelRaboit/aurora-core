@@ -17,6 +17,8 @@ use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Hosting\HostedNoteSpace;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Serializer\NoteSpaceSerializerInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -39,6 +41,7 @@ final readonly class MarkdownNotesViewBuilder
         private MarkdownNoteMemberRepository $memberRepository,
         private CraftClient $craftClient,
         private MarkdownNoteDisplay $display,
+        private NoteSpaceScope $scope,
     ) {}
 
     /**
@@ -63,9 +66,10 @@ final readonly class MarkdownNotesViewBuilder
 
         return [
             'activeId' => $activeId,
-            'personalSpaceId' => $this->spaceAccess->personalSpace($user)->getId(),
+            'personalSpaceId' => $this->spaceAccess->personalSpaceIfOpen($user)?->getId(),
             'spaces' => $this->spacesFor($user),
-            'canCreateSpace' => $this->spaceAccess->canCreateShared(),
+            // A hosted screen shows its one space: no other to create there.
+            'canCreateSpace' => !$this->scope->isHosted() && $this->spaceAccess->canCreateShared(),
             'folderId' => $folder?->getId(),
             'notes' => $this->withExcerpts($this->noteRepository->findFlatListForUser($user), $user),
             'folders' => $folders,
@@ -89,10 +93,13 @@ final readonly class MarkdownNotesViewBuilder
             // an explanation is an action that disappoints every time.
             'craftEnabled' => $this->craftClient->isConfigured(),
             'craftPaths' => [
-                'documents' => $this->urlGenerator->generate('suite_notes_craft_documents'),
-                'import' => $this->urlGenerator->generate('suite_notes_craft_import'),
-                'refresh' => $this->urlGenerator->generate('suite_notes_craft_refresh', ['id' => '__id__']),
+                'documents' => $this->route('suite_notes_craft_documents'),
+                'import' => $this->route('suite_notes_craft_import'),
+                'refresh' => $this->route('suite_notes_craft_refresh', ['id' => '__id__']),
             ],
+            // Where the address bar goes when a note or a folder opens: the
+            // host's page in a hosted space, the module's otherwise (null).
+            'pagePaths' => $this->hostPagePaths(),
             'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
             'imageQuality' => $this->imageQualityRatio(),
         ];
@@ -233,7 +240,7 @@ final readonly class MarkdownNotesViewBuilder
      */
     public function spacesFor(CoreUserInterface $user): array
     {
-        $this->spaceAccess->personalSpace($user);
+        $this->spaceAccess->personalSpaceIfOpen($user);
         $spaces = $this->spaceRepository->findReadableFor($user);
         $roles = $this->spaceAccess->rolesFor($user, $spaces);
 
@@ -468,59 +475,83 @@ final readonly class MarkdownNotesViewBuilder
         );
     }
 
+    /**
+     * An engine route, carrying the host parameter in a hosted space, so the
+     * requests the page makes stay in the space its host opened
+     * ({@see NoteSpaceScope::routeParameters()}).
+     *
+     * @param array<string, int|string> $parameters
+     */
+    private function route(string $name, array $parameters = []): string
+    {
+        return $this->urlGenerator->generate($name, $parameters + $this->scope->routeParameters());
+    }
+
+    /** @return ?array{library: string, note: string, folder: string} */
+    private function hostPagePaths(): ?array
+    {
+        $hosted = $this->scope->hosted();
+
+        return $hosted instanceof HostedNoteSpace ? $hosted->host->pagePaths($hosted->space)?->toArray() : null;
+    }
+
     /** @return array<string, string> */
     private function notePaths(): array
     {
         return [
-            'listPath' => $this->urlGenerator->generate('suite_notes_markdown_list'),
-            'libraryPath' => $this->urlGenerator->generate('suite_notes_markdown'),
-            'showPath' => $this->urlGenerator->generate('suite_notes_markdown_show', ['id' => '__id__']),
-            'createPath' => $this->urlGenerator->generate('suite_notes_markdown_create'),
-            'updatePath' => $this->urlGenerator->generate('suite_notes_markdown_update', ['id' => '__id__']),
-            'deletePath' => $this->urlGenerator->generate('suite_notes_markdown_delete', ['id' => '__id__']),
-            'movePath' => $this->urlGenerator->generate('suite_notes_markdown_move', ['id' => '__id__']),
-            'favoritePath' => $this->urlGenerator->generate('suite_notes_markdown_favorite', ['id' => '__id__']),
-            'reorderPath' => $this->urlGenerator->generate('suite_notes_markdown_reorder'),
-            'duplicatePath' => $this->urlGenerator->generate('suite_notes_markdown_duplicate', ['id' => '__id__']),
-            'templatePath' => $this->urlGenerator->generate('suite_notes_markdown_template', ['id' => '__id__']),
-            'fromTemplatePath' => $this->urlGenerator->generate('suite_notes_markdown_from_template', ['id' => '__id__']),
-            'dailyPath' => $this->urlGenerator->generate('suite_notes_markdown_daily'),
-            'dailyDaysPath' => $this->urlGenerator->generate('suite_notes_markdown_daily_days'),
-            'tasksPath' => $this->urlGenerator->generate('suite_notes_markdown_tasks'),
-            'taskPath' => $this->urlGenerator->generate('suite_notes_markdown_task', ['id' => '__id__']),
-            'reminderPath' => $this->urlGenerator->generate('suite_notes_markdown_reminder', ['id' => '__id__']),
-            'commentsPath' => $this->urlGenerator->generate('suite_notes_markdown_comments', ['id' => '__id__']),
-            'commentResolvePath' => $this->urlGenerator->generate('suite_notes_markdown_comments_resolve', ['commentId' => '__comment__']),
-            'commentDeletePath' => $this->urlGenerator->generate('suite_notes_markdown_comments_delete', ['commentId' => '__comment__']),
-            'revisionsPath' => $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => '__id__']),
-            'revisionPath' => $this->urlGenerator->generate('suite_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
-            'revisionRestorePath' => $this->urlGenerator->generate('suite_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),
-            'backlinksPath' => $this->urlGenerator->generate('suite_notes_markdown_backlinks', ['id' => '__id__']),
-            'unlinkedMentionsPath' => $this->urlGenerator->generate('suite_notes_markdown_unlinked_mentions', ['id' => '__id__']),
-            'graphPath' => $this->urlGenerator->generate('suite_notes_markdown_graph'),
-            'linkTitlePath' => $this->urlGenerator->generate('suite_notes_markdown_link_title'),
-            'exportPath' => $this->urlGenerator->generate('suite_notes_markdown_export'),
-            'exportOnePath' => $this->urlGenerator->generate('suite_notes_markdown_export_one', ['id' => '__id__']),
-            'importPath' => $this->urlGenerator->generate('suite_notes_markdown_import'),
-            'searchPath' => $this->urlGenerator->generate('suite_notes_markdown_search'),
-            'searchFullPath' => $this->urlGenerator->generate('suite_notes_markdown_search_full'),
-            'searchReplacePath' => $this->urlGenerator->generate('suite_notes_markdown_search_replace'),
-            'tagsListPath' => $this->urlGenerator->generate('suite_notes_markdown_tags_list'),
-            'tagsRenamePath' => $this->urlGenerator->generate('suite_notes_markdown_tags_rename'),
-            'tagsMergePath' => $this->urlGenerator->generate('suite_notes_markdown_tags_merge'),
-            'tagsDeletePath' => $this->urlGenerator->generate('suite_notes_markdown_tags_delete'),
-            'sharesListPath' => $this->urlGenerator->generate('suite_notes_markdown_shares_list', ['noteId' => '__id__']),
-            'sharesPreviewPath' => $this->urlGenerator->generate('suite_notes_markdown_shares_preview', ['noteId' => '__id__']),
-            'sharesCreatePath' => $this->urlGenerator->generate('suite_notes_markdown_shares_create'),
-            'sharesRevokePath' => $this->urlGenerator->generate('suite_notes_markdown_shares_revoke', ['id' => '__id__']),
-            'liveBeatPath' => $this->urlGenerator->generate('suite_notes_markdown_live_beat', ['id' => '__id__']),
-            'peopleListPath' => $this->urlGenerator->generate('suite_notes_markdown_people_list', ['noteId' => '__id__']),
-            'peopleEveryonePath' => $this->urlGenerator->generate('suite_notes_markdown_people_everyone'),
-            'peopleSetPath' => $this->urlGenerator->generate('suite_notes_markdown_people_set', ['noteId' => '__id__']),
-            'peopleRemovePath' => $this->urlGenerator->generate('suite_notes_markdown_people_remove', ['noteId' => '__id__', 'userId' => '__user__']),
-            'imageUploadPath' => $this->urlGenerator->generate('suite_notes_markdown_images_upload'),
-            'readPath' => $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => '__id__']),
-            'coversSearchPath' => $this->urlGenerator->generate('suite_notes_markdown_covers_search'),
+            'listPath' => $this->route('suite_notes_markdown_list'),
+            'libraryPath' => $this->route('suite_notes_markdown'),
+            'showPath' => $this->route('suite_notes_markdown_show', ['id' => '__id__']),
+            'createPath' => $this->route('suite_notes_markdown_create'),
+            'updatePath' => $this->route('suite_notes_markdown_update', ['id' => '__id__']),
+            'deletePath' => $this->route('suite_notes_markdown_delete', ['id' => '__id__']),
+            'movePath' => $this->route('suite_notes_markdown_move', ['id' => '__id__']),
+            'favoritePath' => $this->route('suite_notes_markdown_favorite', ['id' => '__id__']),
+            'reorderPath' => $this->route('suite_notes_markdown_reorder'),
+            'duplicatePath' => $this->route('suite_notes_markdown_duplicate', ['id' => '__id__']),
+            'templatePath' => $this->route('suite_notes_markdown_template', ['id' => '__id__']),
+            'fromTemplatePath' => $this->route('suite_notes_markdown_from_template', ['id' => '__id__']),
+            'dailyPath' => $this->route('suite_notes_markdown_daily'),
+            'dailyDaysPath' => $this->route('suite_notes_markdown_daily_days'),
+            'tasksPath' => $this->route('suite_notes_markdown_tasks'),
+            'taskPath' => $this->route('suite_notes_markdown_task', ['id' => '__id__']),
+            'reminderPath' => $this->route('suite_notes_markdown_reminder', ['id' => '__id__']),
+            'commentsPath' => $this->route('suite_notes_markdown_comments', ['id' => '__id__']),
+            'commentResolvePath' => $this->route('suite_notes_markdown_comments_resolve', ['commentId' => '__comment__']),
+            'commentDeletePath' => $this->route('suite_notes_markdown_comments_delete', ['commentId' => '__comment__']),
+            'revisionsPath' => $this->route('suite_notes_markdown_revisions', ['id' => '__id__']),
+            'revisionPath' => $this->route('suite_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
+            'revisionRestorePath' => $this->route('suite_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),
+            'backlinksPath' => $this->route('suite_notes_markdown_backlinks', ['id' => '__id__']),
+            'unlinkedMentionsPath' => $this->route('suite_notes_markdown_unlinked_mentions', ['id' => '__id__']),
+            'graphPath' => $this->route('suite_notes_markdown_graph'),
+            'linkTitlePath' => $this->route('suite_notes_markdown_link_title'),
+            'exportPath' => $this->route('suite_notes_markdown_export'),
+            'exportOnePath' => $this->route('suite_notes_markdown_export_one', ['id' => '__id__']),
+            'importPath' => $this->route('suite_notes_markdown_import'),
+            'searchPath' => $this->route('suite_notes_markdown_search'),
+            'searchFullPath' => $this->route('suite_notes_markdown_search_full'),
+            'searchReplacePath' => $this->route('suite_notes_markdown_search_replace'),
+            'tagsListPath' => $this->route('suite_notes_markdown_tags_list'),
+            'tagsRenamePath' => $this->route('suite_notes_markdown_tags_rename'),
+            'tagsMergePath' => $this->route('suite_notes_markdown_tags_merge'),
+            'tagsDeletePath' => $this->route('suite_notes_markdown_tags_delete'),
+            'sharesListPath' => $this->route('suite_notes_markdown_shares_list', ['noteId' => '__id__']),
+            'sharesPreviewPath' => $this->route('suite_notes_markdown_shares_preview', ['noteId' => '__id__']),
+            'sharesCreatePath' => $this->route('suite_notes_markdown_shares_create'),
+            'sharesRevokePath' => $this->route('suite_notes_markdown_shares_revoke', ['id' => '__id__']),
+            'liveBeatPath' => $this->route('suite_notes_markdown_live_beat', ['id' => '__id__']),
+            'peopleListPath' => $this->route('suite_notes_markdown_people_list', ['noteId' => '__id__']),
+            'peopleEveryonePath' => $this->route('suite_notes_markdown_people_everyone'),
+            'peopleSetPath' => $this->route('suite_notes_markdown_people_set', ['noteId' => '__id__']),
+            'peopleRemovePath' => $this->route('suite_notes_markdown_people_remove', ['noteId' => '__id__', 'userId' => '__user__']),
+            'imageUploadPath' => $this->route('suite_notes_markdown_images_upload'),
+            'readPath' => $this->route('suite_notes_markdown_read', ['id' => '__id__']),
+            'coversSearchPath' => $this->route('suite_notes_markdown_covers_search'),
+            // A hosted screen has no journal - it lives in the personal
+            // space - and no reading page of the module to send a note to:
+            // empty paths are how the page leaves those buttons out.
+            ...($this->scope->isHosted() ? ['dailyPath' => '', 'dailyDaysPath' => '', 'readPath' => ''] : []),
         ];
     }
 
@@ -533,15 +564,15 @@ final readonly class MarkdownNotesViewBuilder
     {
         return [
             'spacePaths' => [
-                'list' => $this->urlGenerator->generate('suite_notes_spaces_list'),
-                'create' => $this->urlGenerator->generate('suite_notes_spaces_create'),
-                'show' => $this->urlGenerator->generate('suite_notes_spaces_show', ['id' => '__id__']),
-                'update' => $this->urlGenerator->generate('suite_notes_spaces_update', ['id' => '__id__']),
-                'delete' => $this->urlGenerator->generate('suite_notes_spaces_delete', ['id' => '__id__']),
-                'membersSet' => $this->urlGenerator->generate('suite_notes_spaces_members_set', ['id' => '__id__']),
-                'membersRemove' => $this->urlGenerator->generate('suite_notes_spaces_members_remove', ['id' => '__id__', 'userId' => '__user__']),
-                'people' => $this->urlGenerator->generate('suite_notes_spaces_people'),
-                'publish' => $this->urlGenerator->generate('suite_notes_spaces_publish', ['id' => '__id__']),
+                'list' => $this->route('suite_notes_spaces_list'),
+                'create' => $this->route('suite_notes_spaces_create'),
+                'show' => $this->route('suite_notes_spaces_show', ['id' => '__id__']),
+                'update' => $this->route('suite_notes_spaces_update', ['id' => '__id__']),
+                'delete' => $this->route('suite_notes_spaces_delete', ['id' => '__id__']),
+                'membersSet' => $this->route('suite_notes_spaces_members_set', ['id' => '__id__']),
+                'membersRemove' => $this->route('suite_notes_spaces_members_remove', ['id' => '__id__', 'userId' => '__user__']),
+                'people' => $this->route('suite_notes_spaces_people'),
+                'publish' => $this->route('suite_notes_spaces_publish', ['id' => '__id__']),
             ],
         ];
     }
@@ -559,14 +590,14 @@ final readonly class MarkdownNotesViewBuilder
     {
         return [
             'folderPaths' => [
-                'list' => $this->urlGenerator->generate('suite_notes_markdown_folders_list'),
-                'create' => $this->urlGenerator->generate('suite_notes_markdown_folders_create'),
-                'update' => $this->urlGenerator->generate('suite_notes_markdown_folders_update', ['id' => '__id__']),
-                'move' => $this->urlGenerator->generate('suite_notes_markdown_folders_move', ['id' => '__id__']),
-                'delete' => $this->urlGenerator->generate('suite_notes_markdown_folders_delete', ['id' => '__id__']),
-                'reorder' => $this->urlGenerator->generate('suite_notes_markdown_folders_reorder'),
-                'favorite' => $this->urlGenerator->generate('suite_notes_markdown_folders_favorite', ['id' => '__id__']),
-                'show' => $this->urlGenerator->generate('suite_notes_markdown_folder', ['id' => '__id__']),
+                'list' => $this->route('suite_notes_markdown_folders_list'),
+                'create' => $this->route('suite_notes_markdown_folders_create'),
+                'update' => $this->route('suite_notes_markdown_folders_update', ['id' => '__id__']),
+                'move' => $this->route('suite_notes_markdown_folders_move', ['id' => '__id__']),
+                'delete' => $this->route('suite_notes_markdown_folders_delete', ['id' => '__id__']),
+                'reorder' => $this->route('suite_notes_markdown_folders_reorder'),
+                'favorite' => $this->route('suite_notes_markdown_folders_favorite', ['id' => '__id__']),
+                'show' => $this->route('suite_notes_markdown_folder', ['id' => '__id__']),
             ],
         ];
     }

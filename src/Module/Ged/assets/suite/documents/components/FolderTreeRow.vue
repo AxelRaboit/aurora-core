@@ -96,9 +96,11 @@ const folderIconClasses = computed(() =>
 
         <!-- Says the row can be dragged, which nothing else does: a row that is
              also a link reads as clickable, not as movable. -->
+        <!-- Shown on hover only: nine grips down the column, all the time,
+             were a pattern of dots before they were a promise. -->
         <GripVertical
             v-if="canManage"
-            class="h-3 w-3 shrink-0 text-muted/40 transition-colors group-hover:text-muted"
+            class="h-3 w-3 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100 touch:opacity-100"
             :stroke-width="2"
         />
 
@@ -138,15 +140,17 @@ const folderIconClasses = computed(() =>
                 <span class="min-w-0 flex-1 truncate">{{ folder.name }}</span>
                 <span
                     v-if="folder.documentCount > 0"
-                    class="font-mono text-xs text-muted"
+                    class="shrink-0 text-xs font-medium tabular-nums text-secondary sm:group-hover:hidden"
                 >
                     {{ folder.documentCount }}
                 </span>
             </AppNavLink>
         </div>
 
+        <!-- Gone, not transparent, until hover: an invisible block kept its
+             width and left the count in the middle of the row. -->
         <div
-            class="flex gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 touch:opacity-100"
+            class="flex gap-0.5 sm:hidden sm:group-hover:flex touch:flex"
         >
             <AppIconButton
                 :class="

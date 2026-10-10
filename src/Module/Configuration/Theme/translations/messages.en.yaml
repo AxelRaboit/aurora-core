@@ -103,7 +103,8 @@ suite:
         font_family: Font
         font_preview: The quick brown fox jumps over the lazy dog.
         fonts:
-            poppins: Geometric, evenly drawn. The default setting.
+            sora: Geometric, open and a little wide. The default setting.
+            poppins: Geometric, evenly drawn. The former default setting.
             inter: Neutral, drawn for screens. Stays out of the way.
             work-sans: Grotesque, a little wider and warmer than Inter.
             nunito: Rounded. The least institutional tone of the list.

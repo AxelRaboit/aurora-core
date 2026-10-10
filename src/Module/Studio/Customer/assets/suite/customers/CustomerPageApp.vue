@@ -10,6 +10,12 @@
  * On the right, their spaces, contracts and Studio deliverables, as links,
  * depending on what the reader has the right to open. The layout is the one
  * of detail screens: the bar (back, "…", Enregistrer), the title below.
+ *
+ * **Read before the detail** (visual redesign of the suite, 10/10/2026): a
+ * monogram and the name, the status and what the company is on one line,
+ * then a strip of what surrounds them - contracts, spaces, deliverables, who
+ * to talk to. The sheet is three titled cards; the right column stays in
+ * view while the sheet scrolls.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -45,6 +51,8 @@ const props = defineProps({
 const { t } = useI18n();
 const { can } = usePrivileges();
 
+const FACT_KEYS = "suite.studio.customers.facts";
+
 const canEdit = computed(() => can("studio.customers.edit"));
 
 const {
@@ -65,6 +73,60 @@ const {
 const { pending: converting, email: convertEmail, error: convertError, loading: convertLoading } = conversion;
 
 const isProspect = computed(() => "prospect" === customer.value.status);
+
+/** Two letters for the monogram: the first of the first two words. */
+const monogram = computed(() =>
+    (customer.value.legalName ?? "")
+        .split(/[\s'’-]+/)
+        .filter((word) => /\p{L}|\p{N}/u.test(word))
+        .slice(0, 2)
+        .map((word) => word.match(/\p{L}|\p{N}/u)[0].toLocaleUpperCase())
+        .join(""),
+);
+
+/** What the company is, after its status: form and sector, when known. */
+const metaParts = computed(() => [customer.value.legalForm, customer.value.activitySector].filter(Boolean));
+
+/** How many rows of each detail a list holds: "Scellé : 2 · Brouillon : 1". */
+function countByDetail(rows) {
+    const counts = new Map();
+    for (const row of rows) {
+        if (row.detail) counts.set(row.detail, (counts.get(row.detail) ?? 0) + 1);
+    }
+
+    return [...counts].map(([detail, count]) => t(`${FACT_KEYS}.detail_count`, { detail, count })).join(" · ");
+}
+
+/**
+ * The strip under the title. A list the reader cannot open (`null`) has no
+ * cell, as it has no list on the right; the contact is always there, since
+ * it is the sheet's own.
+ */
+const facts = computed(() => {
+    const cells = [];
+    const { contracts, spaces, deliverables } = props.related ?? {};
+
+    if (Array.isArray(contracts)) {
+        cells.push({ key: "contracts", value: contracts.length, caption: countByDetail(contracts), href: props.contractsPath });
+    }
+    if (Array.isArray(spaces)) {
+        cells.push({ key: "spaces", value: spaces.length, caption: spaces.map((space) => space.label).join(", "), href: props.spacesPath });
+    }
+    if (Array.isArray(deliverables)) {
+        cells.push({ key: "deliverables", value: deliverables.length, caption: countByDetail(deliverables), href: null });
+    }
+
+    const person = customer.value.representativeFullName;
+    cells.push({
+        key: "contact",
+        value: person || customer.value.contractualEmail || t(`${FACT_KEYS}.no_contact`),
+        caption: person ? [customer.value.representativeRole, customer.value.contractualEmail].filter(Boolean).join(" · ") : "",
+        href: null,
+        text: true,
+    });
+
+    return cells;
+});
 
 /**
  * The form's `inert` attribute, or nothing: Vue writes `inert="false"` for a
@@ -126,15 +188,47 @@ const pageActions = computed(() => {
             </AppButton>
         </AppPageBar>
 
-        <div class="min-w-0">
-            <h1 class="m-0 break-words text-xl font-semibold tracking-tight text-primary sm:text-2xl">{{ customer.legalName }}</h1>
-            <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
-                <AppBadge :color="isProspect ? 'amber' : 'emerald'">{{ t(customer.statusLabel) }}</AppBadge>
-                <span v-if="customer.legalForm">{{ customer.legalForm }}</span>
-                <!-- Said in words beside the title, as on a deliverable: the
-                     greyed Enregistrer alone did not say why it woke up. -->
-                <AppBadge v-if="dirty" color="amber">{{ t("shared.common.autosave.pending") }}</AppBadge>
+        <div class="flex min-w-0 items-center gap-4" data-customer-heading>
+            <span
+                v-if="monogram"
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-base font-semibold text-accent-500"
+                aria-hidden="true"
+            >{{ monogram }}</span>
+            <div class="min-w-0">
+                <h1 class="m-0 break-words text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">{{ customer.legalName }}</h1>
+                <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] text-secondary">
+                    <AppBadge :color="isProspect ? 'amber' : 'emerald'">{{ t(customer.statusLabel) }}</AppBadge>
+                    <template v-for="(part, index) in metaParts" :key="index">
+                        <span v-if="index" aria-hidden="true">·</span>
+                        <span>{{ part }}</span>
+                    </template>
+                    <!-- Said in words beside the title, as on a deliverable: the
+                         greyed Enregistrer alone did not say why it woke up. -->
+                    <AppBadge v-if="dirty" color="amber">{{ t("shared.common.autosave.pending") }}</AppBadge>
+                </div>
             </div>
+        </div>
+
+        <!-- What surrounds them, before the detail. -->
+        <div class="aurora-card grid grid-cols-2 sm:auto-cols-fr sm:grid-flow-col" data-customer-facts>
+            <component
+                :is="fact.href ? 'a' : 'div'"
+                v-for="fact in facts"
+                :key="fact.key"
+                :href="fact.href || undefined"
+                class="min-w-0 border-line p-4 no-underline odd:border-r sm:border-r sm:p-5 sm:last:border-r-0 max-sm:[&:nth-child(n+3)]:border-t"
+                :class="fact.href ? 'transition-colors hover:bg-surface-2/40' : ''"
+                :data-customer-fact="fact.key"
+            >
+                <p class="m-0 text-xs font-semibold uppercase tracking-wider text-secondary">{{ t(`${FACT_KEYS}.${fact.key}`) }}</p>
+                <p
+                    class="m-0 truncate font-semibold text-primary"
+                    :class="fact.text ? 'mt-3 text-[0.9375rem]' : 'mt-2 text-[1.625rem] leading-tight tracking-tight tabular-nums'"
+                >
+                    {{ fact.value }}
+                </p>
+                <p v-if="fact.caption" class="m-0 mt-1 line-clamp-2 text-xs text-secondary" :title="fact.caption">{{ fact.caption }}</p>
+            </component>
         </div>
 
         <!-- The screen's how-to, next to what it explains; collapsed or
@@ -148,30 +242,19 @@ const pageActions = computed(() => {
         <AppMessage v-if="!canEdit" variant="neutral">{{ t("suite.studio.customers.read_only") }}</AppMessage>
 
         <!-- The sheet on the left, what surrounds it on the right on a large
-             screen; one under the other elsewhere. -->
+             screen, in view while the sheet scrolls; one under the other
+             elsewhere. -->
         <div class="grid grid-cols-1 items-start aurora-gap lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-            <section class="aurora-card min-w-0 p-3 sm:p-4">
-                <form :inert="inertWhenReadOnly" v-on:submit.prevent="save">
-                    <CustomerFormFields v-model="form" :errors="errors" :currencies="currencies" />
-                </form>
-            </section>
+            <form class="min-w-0" :inert="inertWhenReadOnly" v-on:submit.prevent="save">
+                <CustomerFormFields v-model="form" :errors="errors" :currencies="currencies" framed />
+            </form>
 
-            <section class="flex min-w-0 flex-col gap-3">
-                <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-muted">
+            <section class="flex min-w-0 flex-col gap-3 lg:sticky lg:top-[calc(var(--aurora-topbar)+1rem)]">
+                <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-secondary">
                     {{ t("suite.studio.customers.group_related") }}
                 </h2>
-                <article class="aurora-card p-3 sm:p-4">
-                    <CustomerRelatedLists :related="related">
-                        <!-- Their complete lists, beyond what the page summarizes. -->
-                        <div v-if="spacesPath || contractsPath" class="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                            <a v-if="spacesPath" :href="spacesPath" class="text-accent-500 hover:underline">
-                                {{ t("suite.studio.customers.related.all_spaces") }}
-                            </a>
-                            <a v-if="contractsPath" :href="contractsPath" class="text-accent-500 hover:underline">
-                                {{ t("suite.studio.customers.related.all_contracts") }}
-                            </a>
-                        </div>
-                    </CustomerRelatedLists>
+                <article class="aurora-card p-4 sm:p-5">
+                    <CustomerRelatedLists :related="related" :all-paths="{ contracts: contractsPath, spaces: spacesPath }" />
                 </article>
             </section>
         </div>

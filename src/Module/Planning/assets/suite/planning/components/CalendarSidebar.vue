@@ -59,42 +59,37 @@ const zoneOptions = computed(() =>
 </script>
 
 <template>
-    <div class="space-y-4">
-        <AppButton
-            v-if="canCreateEvents"
-            variant="primary"
-            size="md"
-            class="w-full"
-            v-on:click="emit('create-event')"
-        >
-            <CalendarPlus class="w-4 h-4" :stroke-width="2" /> {{ t("suite.plannings.events.new") }}
-        </AppButton>
-
+    <!-- Laid out like the other panels of the menu (sidemenu audit of
+         10/10/2026): flat blocks under the same small headings as the menu's
+         sections, rows with the menu's padding and figures, and the two
+         create buttons in the menu's small size. It
+         drew two framed cards inside the column, the only boxes of the
+         menu, with their own smaller headings. -->
+    <div class="flex flex-col gap-3">
         <!-- Two buttons rather than one with a menu. There are exactly two
              kinds and both are used constantly, so hiding either behind a
              chevron costs a click every time to save a line of height once. -->
-        <AppButton
-            v-if="canCreateEvents"
-            variant="secondary"
-            size="md"
-            class="w-full"
-            v-on:click="emit('create-reminder')"
-        >
-            <BellPlus class="w-4 h-4" :stroke-width="2" /> {{ t("suite.plannings.reminders.new") }}
-        </AppButton>
+        <div v-if="canCreateEvents" class="flex flex-col gap-1.5 px-1">
+            <AppButton variant="primary" size="sm" class="w-full" v-on:click="emit('create-event')">
+                <CalendarPlus class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("suite.plannings.events.new") }}
+            </AppButton>
+            <AppButton variant="secondary" size="sm" class="w-full" v-on:click="emit('create-reminder')">
+                <BellPlus class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("suite.plannings.reminders.new") }}
+            </AppButton>
+        </div>
 
-        <div class="aurora-card p-2 space-y-2.5 sm:p-4">
-            <div class="flex items-center gap-2">
-                <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
+        <section class="flex flex-col gap-0.5" data-calendar-list>
+            <div class="flex items-center gap-2 px-3 py-1">
+                <h3 class="m-0 text-xs font-semibold uppercase tracking-wider text-secondary">
                     {{ t("suite.plannings.calendars") }}
-                </p>
+                </h3>
                 <AppIconButton
                     v-if="canManageCalendars"
                     class="ml-auto -my-1"
                     :title="t('suite.plannings.new_calendar')"
                     v-on:click="emit('create-calendar')"
                 >
-                    <Plus class="w-4 h-4" :stroke-width="2" />
+                    <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                 </AppIconButton>
             </div>
 
@@ -130,20 +125,20 @@ const zoneOptions = computed(() =>
                 v-on:edit="emit('edit-calendar', $event)"
                 v-on:share="emit('share-calendar', $event)"
             />
-        </div>
+        </section>
 
         <!-- One zone for the screen, not one per calendar: a grid shows several at
              once and a "Tuesday" column cannot be Tuesday in two zones. Kept here
              rather than in the toolbar because it is set once and then forgotten. -->
-        <div class="aurora-card p-2 space-y-2 sm:p-4">
-            <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
+        <section class="flex flex-col gap-1.5 px-1">
+            <h3 class="m-0 px-2 text-xs font-semibold uppercase tracking-wider text-secondary">
                 {{ t("suite.plannings.display_zone") }}
-            </p>
+            </h3>
             <AppSelect
                 :model-value="zone"
                 :options="zoneOptions"
                 v-on:update:model-value="emit('set-zone', $event)"
             />
-        </div>
+        </section>
     </div>
 </template>

@@ -209,7 +209,7 @@ async function importToLibrary(file) {
                      switch that changes nothing reads as broken. -->
                 <div
                     v-if="!isNarrow"
-                    class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+                    class="flex items-center gap-0.5 aurora-segmented"
                     role="group"
                     :aria-label="t('suite.studio.drive.space.view_label')"
                 >

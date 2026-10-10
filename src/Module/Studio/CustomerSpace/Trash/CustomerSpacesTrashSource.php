@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
@@ -30,7 +30,7 @@ use function count;
  * deleting it: giving a space back to its customer weighs as much as taking
  * it away.
  */
-final readonly class CustomerSpacesTrashSource implements TrashSourceInterface
+final readonly class CustomerSpacesTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(
         private CustomerSpaceRepository $spaceRepository,
@@ -48,11 +48,14 @@ final readonly class CustomerSpacesTrashSource implements TrashSourceInterface
         return 'studio.spaces.view';
     }
 
+    public function countTrashed(): int
+    {
+        return count($this->visibleRows());
+    }
+
     public function getSummary(int $limit): TrashSummary
     {
-        $rows = $this->studioContext->areSpacesEnabled()
-            ? array_values(array_filter($this->spaceRepository->findAllTrashed(), $this->visibility->reaches(...)))
-            : [];
+        $rows = $this->visibleRows();
 
         $oldest = null;
         foreach ($rows as $row) {
@@ -86,5 +89,18 @@ final readonly class CustomerSpacesTrashSource implements TrashSourceInterface
             deletedAt: $space->getDeletedAt(),
             context: $space->getCustomer()->getLegalName(),
         );
+    }
+
+    /**
+     * The trashed spaces the reader reaches, read once for the summary and for
+     * the count alike.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    private function visibleRows(): array
+    {
+        return $this->studioContext->areSpacesEnabled()
+            ? array_values(array_filter($this->spaceRepository->findAllTrashed(), $this->visibility->reaches(...)))
+            : [];
     }
 }

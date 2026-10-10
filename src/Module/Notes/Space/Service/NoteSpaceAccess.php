@@ -16,6 +16,7 @@ use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMemberInterface;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
@@ -62,6 +63,7 @@ final readonly class NoteSpaceAccess
         private NoteFolderRepository $folderRepository,
         private MarkdownNoteMemberRepository $memberRepository,
         private EntityManagerInterface $entityManager,
+        private NoteSpaceScope $scope,
     ) {}
 
     public function roleIn(CoreUserInterface $user, NoteSpaceInterface $space): ?NoteSpaceRoleEnum
@@ -99,10 +101,16 @@ final readonly class NoteSpaceAccess
         return $roles;
     }
 
-    /** The rule, once the membership is known. */
+    /**
+     * The rule, once the membership is known.
+     *
+     * A space outside the request's scope does not exist for it
+     * ({@see NoteSpaceScope::admits()}): a request a host opened for its
+     * space reaches nothing else, whatever else the person may read.
+     */
     private function roleWith(CoreUserInterface $user, NoteSpaceInterface $space, ?NoteSpaceMemberInterface $membership): ?NoteSpaceRoleEnum
     {
-        if ($space->getDeletedAt() instanceof DateTimeImmutable) {
+        if ($space->getDeletedAt() instanceof DateTimeImmutable || !$this->scope->admits($space)) {
             return null;
         }
 
@@ -207,9 +215,16 @@ final readonly class NoteSpaceAccess
         return $this->canWrite($user, $note->getSpace());
     }
 
-    /** A person's role on a note handed to them on its own, or null. */
+    /**
+     * A person's role on a note handed to them on its own, or null - null as
+     * well outside the request's scope, like the note's space.
+     */
     public function noteRoleIn(CoreUserInterface $user, MarkdownNoteInterface $note): ?NoteMemberRoleEnum
     {
+        if (!$this->scope->admits($note->getSpace())) {
+            return null;
+        }
+
         return $this->memberRepository->roleFor($note, $user);
     }
 
@@ -281,6 +296,35 @@ final readonly class NoteSpaceAccess
         $space = $this->spaceRepository->find($id);
 
         return $space instanceof NoteSpaceInterface && $this->canManage($user, $space) ? $space : null;
+    }
+
+    /**
+     * Where a note, a folder or an image goes when the request names no
+     * space: the space a host opened for the request, otherwise the person's
+     * own. No rights checked - see {@see self::writableDefaultSpace()}.
+     */
+    public function defaultSpace(CoreUserInterface $user): NoteSpaceInterface
+    {
+        return $this->scope->hosted()->space ?? $this->personalSpace($user);
+    }
+
+    /** The default space, when the person may write in it: a hosted space's reader may not. */
+    public function writableDefaultSpace(CoreUserInterface $user): ?NoteSpaceInterface
+    {
+        $space = $this->defaultSpace($user);
+
+        return $this->canWrite($user, $space) ? $space : null;
+    }
+
+    /**
+     * The person's personal space, created if needed - except in a request a
+     * host opened: a client space's team member who does not have the Notes
+     * module has no reason to be handed an empty notebook on the way, and the
+     * request could not reach it anyway.
+     */
+    public function personalSpaceIfOpen(CoreUserInterface $user): ?NoteSpaceInterface
+    {
+        return $this->scope->isHosted() ? null : $this->personalSpace($user);
     }
 
     /**

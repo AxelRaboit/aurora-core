@@ -22,16 +22,28 @@ describe("AppLogo", () => {
         expect(svg.attributes("height")).toBe("64");
     });
 
-    it("contains the letter A as the logo mark", () => {
+    /**
+     * The "Horizon" mark: drawn, not typed - a letter set in a font depends on
+     * the font being there - and named for whoever cannot see it.
+     */
+    it("draws the Horizon mark rather than a typed letter", () => {
         const wrapper = mount(AppLogo);
-        expect(wrapper.find("text").text()).toBe("A");
+
+        expect(wrapper.find("text").exists()).toBe(false);
+        expect(wrapper.find("[data-logo-letter]").exists()).toBe(true);
+        expect(wrapper.attributes("aria-label")).toBe("Aurora");
     });
 
-    it("renders a linearGradient with a unique id", () => {
+    /** Only the sun takes the theme's accent; the letter keeps the brand's ivory. */
+    it("lets the sun alone follow the accent", () => {
         const wrapper = mount(AppLogo);
-        const gradient = wrapper.find("linearGradient");
-        expect(gradient.exists()).toBe(true);
-        expect(gradient.attributes("id")).toMatch(/^aurora-bg-\d+$/);
+
+        expect(wrapper.find("[data-logo-sun]").attributes("fill")).toBe(
+            "currentColor",
+        );
+        expect(wrapper.find("[data-logo-letter]").attributes("fill")).toBe(
+            "#ece2d0",
+        );
     });
 
     /**

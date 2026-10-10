@@ -53,5 +53,13 @@ class SettingFieldDescriptor
          * dismiss, and that is how the ones that matter stop being read.
          */
         public readonly ?string $offWarningKey = null,
+        /**
+         * The section the field belongs to inside its tab, or null. Sections
+         * are drawn as titled blocks, the field cards beside their title
+         * and the sentence that says what they are for; a tab whose fields
+         * have none draws one card, as before. Its title and lead are
+         * `suite.settings.sections.<key>.title|lead`.
+         */
+        public readonly ?string $sectionKey = null,
     ) {}
 }

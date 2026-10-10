@@ -11,11 +11,14 @@ use Aurora\Module\Notes\Comment\Repository\NoteCommentRepository;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Markdown\Service\NoteAddresses;
 use Aurora\Module\Notes\NotesContext;
 use Aurora\Module\Notes\Search\NoteSearch;
 use Aurora\Module\Notes\Search\NotesSuiteSearchProvider;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -26,7 +29,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_column;
@@ -162,14 +164,19 @@ final class NotesSearchTest extends IntegrationTestCase
         self::assertSame([], $this->provider->search($this->needle)['notes']);
     }
 
-    public function testAnAccountWithoutThePrivilegeFindsNothing(): void
+    /**
+     * Without the module, the search reads the hosted spaces only (a client
+     * space's notes, for its team): a note of the person's own notebook is
+     * not found.
+     */
+    public function testAnAccountWithoutThePrivilegeFindsNoNoteOfTheModule(): void
     {
         $owner = $this->accountWith(['general.search.view']);
         $this->note($owner, 'Projet '.$this->needle, '');
 
         $this->client->loginUser($owner, 'admin');
 
-        self::assertSame([], $this->provider->search($this->needle));
+        self::assertSame([], $this->provider->search($this->needle)['notes'] ?? []);
     }
 
     public function testTheModuleSwitchedOffAnswersNothing(): void
@@ -209,7 +216,9 @@ final class NotesSearchTest extends IntegrationTestCase
             new NoteSearch($notes, $container->get(NoteCommentRepository::class), $container->get(UserRepository::class)),
             $container->get(NotesContext::class),
             $container->get(Security::class),
-            $container->get(UrlGeneratorInterface::class),
+            $container->get(NoteAddresses::class),
+            $container->get(NoteSpaceRepository::class),
+            $container->get(NoteSpaceScope::class),
             $container->get(TranslatorInterface::class),
         );
 

@@ -18,6 +18,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { AlarmClock, CalendarClock, CalendarX, FileSignature,
          PenLine, MessageSquareWarning, NotebookText, UserRoundCheck } from "lucide-vue-next";
+import AppSectionCard from "@/shared/components/display/AppSectionCard.vue";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import SpaceWorkloadBadges from "../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
@@ -71,7 +72,7 @@ function scopeHref(scope) {
              calendar. -->
         <div
             v-if="stats.hasScopeChoice"
-            class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="flex w-fit items-center gap-0.5 aurora-segmented"
             role="group"
             :aria-label="t('suite.stats.studio.scope_label')"
         >
@@ -80,7 +81,7 @@ function scopeHref(scope) {
                 :key="scope"
                 :href="scopeHref(scope)"
                 class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
-                :class="scope === stats.scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                :class="scope === stats.scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-secondary hover:text-primary'"
                 :aria-current="scope === stats.scope ? 'true' : undefined"
             >
                 {{ t(`suite.stats.studio.scopes.${scope}`) }}
@@ -88,28 +89,19 @@ function scopeHref(scope) {
         </div>
 
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <component
-                :is="tile.href ? 'a' : 'div'"
+            <AppStatTile
                 v-for="tile in tiles"
                 :key="tile.key"
-                :href="tile.href ?? undefined"
-                class="block rounded-xl"
-                :class="tile.href ? 'transition-shadow hover:ring-1 hover:ring-accent/40' : ''"
-            >
-                <AppStatTile
-                    class="h-full"
-                    :icon="tile.icon"
-                    :label="t(`suite.stats.studio.${tile.key}`)"
-                    :value="tile.value"
-                    :tone="tile.tone"
-                />
-            </component>
+                :href="tile.href ?? ''"
+                :icon="tile.icon"
+                :label="t(`suite.stats.studio.${tile.key}`)"
+                :value="tile.value"
+                :tone="tile.tone"
+            />
         </div>
 
-        <div class="aurora-card p-3 sm:p-5">
-            <h3 class="mb-3 text-sm font-medium text-primary">{{ t("suite.stats.studio.attention_title") }}</h3>
-
-            <p v-if="!(stats.attention ?? []).length" class="text-sm text-muted">
+        <AppSectionCard :title="t('suite.stats.studio.attention_title')">
+            <p v-if="!(stats.attention ?? []).length" class="text-sm text-secondary">
                 {{ t("suite.stats.studio.attention_empty") }}
             </p>
 
@@ -132,6 +124,6 @@ function scopeHref(scope) {
                     </a>
                 </li>
             </ul>
-        </div>
+        </AppSectionCard>
     </div>
 </template>

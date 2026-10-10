@@ -74,7 +74,7 @@ function removeStop(at) {
     <div class="flex flex-col gap-2">
         <span v-if="label" class="text-xs font-medium uppercase tracking-wide text-secondary">{{ label }}</span>
 
-        <div class="inline-flex w-fit rounded-lg border border-line bg-surface-2/40 p-0.5">
+        <div class="inline-flex w-fit aurora-segmented">
             <button
                 v-for="option in KINDS"
                 :key="option"

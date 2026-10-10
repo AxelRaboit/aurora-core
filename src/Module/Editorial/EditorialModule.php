@@ -14,7 +14,6 @@ use Aurora\Core\Module\Nav\NavPermission;
 use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
-use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
@@ -193,6 +192,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     key: sprintf('editorial.taxonomy.%d', $taxonomy->getId()),
                     label: $this->taxonomyLabel($taxonomy),
                     description: $this->taxonomyDescription($taxonomy),
+                    count: $taxonomy->getTerms()->count(),
                 );
             }
 
@@ -240,7 +240,8 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     // the active row would be all of them at once.
                     key: sprintf('editorial.post_type.%d', $postType->getId()),
                     label: $postType->getLabel(),
-                    description: $this->postTypeDescription($postType, $postCounts),
+                    description: $postType->getDescription(),
+                    count: $postCounts[(int) $postType->getId()] ?? 0,
                 );
             }
 
@@ -283,32 +284,20 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
     }
 
     /**
-     * What each entry says under its name.
+     * What a taxonomy's entry says under its name: its own description, in
+     * the reader's language when there is one, or nothing.
      *
-     * The record's own description, when it has one - the same sentence the
-     * page shows. It was the slug at first, which reads as a technical token
-     * beside "Modérer les commentaires des lecteurs" on the row above: a second
-     * line has to be worth the space it takes.
-     *
-     * The count is the fallback, not the rule: every one of the four has a
-     * description field now, and a record whose author left it blank says what
-     * it holds instead. A fact is not a sentence, but it beats a blank line
-     * under a name.
+     * The count used to stand in when the description was blank ("6 termes").
+     * It now sits on the right of the name like every other figure of the
+     * menu (`NavItem::$count`), and a blank description leaves the entry on
+     * one line (visual redesign of the suite, 10/10/2026).
      */
-    private function taxonomyDescription(TaxonomyInterface $taxonomy): string
+    private function taxonomyDescription(TaxonomyInterface $taxonomy): ?string
     {
         $translation = $taxonomy->getTranslation($this->translator->getLocale())
             ?? ($taxonomy->getTranslations()->first() ?: null);
 
-        return $translation?->getDescription()
-            ?? $this->translator->trans('suite.nav.counts.terms', ['%count%' => $taxonomy->getTerms()->count()]);
-    }
-
-    /** @param array<int, int> $postCounts type id → posts, from countPostsByType() */
-    private function postTypeDescription(PostTypeInterface $postType, array $postCounts): string
-    {
-        return $postType->getDescription()
-            ?? $this->translator->trans('suite.nav.counts.posts', ['%count%' => $postCounts[(int) $postType->getId()] ?? 0]);
+        return $translation?->getDescription();
     }
 
     /**

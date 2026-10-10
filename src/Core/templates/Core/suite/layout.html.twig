@@ -44,7 +44,7 @@
        Twig hash literal is a syntax error, not a comment - Twig reads the brace
        as part of the expression. Annotate the keys from out here. #}
     <div {{ vue_component('core/suite/sidemenu/AppSidemenu', {
-        navSections: sidemenu_nav_sections(),
+        navSections: sidemenu_nav_sections(true),
         navSectionAliases: nav_section_aliases(),
         navItemAliases: nav_item_aliases(),
         navSectionColors: app.user.navSectionColors|default({}),
@@ -59,13 +59,12 @@
         profilePath: path('suite_general_profile'),
         sidemenuPreferencesPath: path('suite_general_profile_sidemenu'),
         sidemenuCollapsedPath: path('suite_general_profile_sidemenu_collapsed'),
-        sidemenuDescriptionsPath: path('suite_general_profile_sidemenu_descriptions'),
-        sidemenuShowDescriptions: app.user.sidemenuShowDescriptions,
         logoutPath: path('suite_platform_logout'),
         locale: app.request.locale,
         mailpitUrl: aurora_is_dev() ? 'http://127.0.0.1:8025' : '',
         siteName: siteName ?? '',
         siteLogoUrl: siteLogoUrl ?? '',
+        siteLogoDarkUrl: siteLogoDarkUrl ?? '',
         siteNameOnPhone: siteNameOnPhone ?? true,
         appVersion: appVersion is defined ? appVersion : '',
         searchPath: path('suite_general_search'),

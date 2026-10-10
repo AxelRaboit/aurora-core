@@ -7,7 +7,7 @@ import { computed } from "vue";
  * filtered list. The hover state is only added in linked mode.
  *
  * `color` accepts either a preset name (accent/rose/sky/amber/emerald/violet/
- * slate/gray) or a hex value (`#10B981`). When a hex is passed, the badge
+ * slate/gray/ink) or a hex value (`#10B981`). When a hex is passed, the badge
  * renders with solid background + white text via inline style.
  */
 const props = defineProps({
@@ -31,6 +31,10 @@ const colors = {
     violet: "bg-violet-500/15 text-violet-400",
     slate: "bg-slate-500/15 text-slate-400",
     gray: "bg-surface-2 text-secondary",
+    // The text colour itself, on a tint of it: "ardoise" in the light theme,
+    // a pale chalk in the dark one. For a state that is settled rather than
+    // signalled - a published post.
+    ink: "bg-primary/10 text-primary",
 };
 
 const isHex = computed(() => /^#[0-9a-fA-F]{6}$/.test(props.color));

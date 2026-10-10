@@ -7,6 +7,8 @@ namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -21,6 +23,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function array_column;
+use function array_map;
 use function bin2hex;
 use function html_entity_decode;
 use function json_decode;
@@ -68,9 +71,15 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         $this->newcomer = $this->user('arrivant');
         $this->outsider = $this->user('dehors');
 
+        $this->client->loginUser($this->admin(), 'admin');
+    }
+
+    private function admin(): User
+    {
         $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
-        $this->client->loginUser($admin, 'admin');
+
+        return $admin;
     }
 
     protected function tearDown(): void
@@ -175,16 +184,18 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
     }
 
     /**
-     * The tab opens the notes space on the first action, and then lists what
-     * the team wrote in it.
+     * The section opens the notes space on the first gesture, then draws the
+     * notes editor on it: its lists hold this space alone, and every route it
+     * calls carries the host parameter that lets the next request back in.
      */
-    public function testTheTabOpensTheNoteSpaceAndListsItsNotes(): void
+    public function testTheSectionOpensTheNoteSpaceAndDrawsTheEditorOnIt(): void
     {
         $space = $this->givenSpace('Boulangerie Martin');
 
         $before = $this->tabOf($space);
         self::assertTrue($before['enabled']);
         self::assertNull($before['noteSpace'], 'pas ouvert tant que personne ne l\'a demandé');
+        self::assertNull($before['app']);
 
         $opened = $this->post($this->url('workspace_space_notes_open', ['id' => $space->getId()]), []);
         self::assertResponseIsSuccessful();
@@ -192,21 +203,25 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         $this->noteSpaces[] = $noteSpaceId;
 
         $this->client->loginUser($this->reference($this->lead), 'admin');
-        $this->post($this->url('suite_notes_markdown_create'), ['title' => 'Brief téléphonique', 'spaceId' => $noteSpaceId]);
+        $this->post($this->url('suite_notes_markdown_create', $this->hostOf($space)), ['title' => 'Brief téléphonique']);
         self::assertResponseIsSuccessful();
 
-        $tab = $this->tabOf($space);
-        self::assertSame($noteSpaceId, $tab['noteSpace']['id']);
-        self::assertTrue($tab['noteSpace']['canWrite']);
-        self::assertSame(['Brief téléphonique'], array_column($tab['notes'], 'title'));
-        self::assertSame('referent', $tab['notes'][0]['authorName']);
+        $section = $this->tabOf($space);
+        self::assertSame($noteSpaceId, $section['noteSpace']['id']);
+        self::assertTrue($section['noteSpace']['canWrite']);
+        self::assertSame(['Brief téléphonique'], array_column($section['app']['notes'], 'title'));
+        self::assertSame([$noteSpaceId], array_map('intval', array_column($section['app']['spaces'], 'id')));
+        self::assertNull($section['app']['personalSpaceId']);
+        self::assertStringContainsString('notesHost=', $section['app']['showPath']);
+        self::assertSame(sprintf('/workspace/%d?view=notes&note=__id__', $space->getId()), $section['app']['pagePaths']['note']);
     }
 
     /**
-     * Without the right to use notes, the tab is not there, and its route
-     * does not open: the right is not gained by joining a team.
+     * The team writes the client's notes without the Notes module: the client
+     * space is their way in. The module itself stays closed to them, and so
+     * does any other space - the request a host opened reaches nothing else.
      */
-    public function testTheTabIsHiddenFromWhoCannotUseTheNotes(): void
+    public function testATeamMemberWithoutTheModuleWorksInTheSpaceNotesOnly(): void
     {
         $space = $this->givenSpace('Boulangerie Martin');
 
@@ -215,11 +230,87 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         $this->entityManager->flush();
         $this->client->loginUser($member, 'admin');
 
-        self::assertSame(['enabled' => false], $this->tabOf($space));
+        $opened = $this->post($this->url('workspace_space_notes_open', ['id' => $space->getId()]), []);
+        self::assertResponseIsSuccessful();
+        $this->noteSpaces[] = (int) $opened['noteSpace']['id'];
+        self::assertNotNull($this->tabOf($space)['app']);
 
-        $this->post($this->url('workspace_space_notes_open', ['id' => $space->getId()]), []);
+        $created = $this->post($this->url('suite_notes_markdown_create', $this->hostOf($space)), ['title' => 'Relance']);
+        self::assertResponseIsSuccessful();
+        $noteId = (int) $created['note']['id'];
+
+        $this->client->xmlHttpRequest('GET', $this->url('suite_notes_markdown_show', ['id' => $noteId] + $this->hostOf($space)));
+        self::assertResponseIsSuccessful();
+
+        // The module, without the host parameter: closed.
+        $this->client->xmlHttpRequest('GET', $this->url('suite_notes_markdown_list'));
         self::assertResponseStatusCodeSame(403);
-        self::assertNull($this->reloaded($space)->getNoteSpace());
+
+        // An image's address carries no host parameter: the route answers
+        // over the hosted spaces only, so an unknown file is a plain 404,
+        // not a refusal - and no personal notebook is opened on the way.
+        $this->client->request('GET', $this->url('suite_notes_markdown_images_serve', ['filename' => 'absente.webp']));
+        self::assertResponseStatusCodeSame(404);
+        self::assertNull(static::getContainer()->get(NoteSpaceRepository::class)->findPersonalFor($this->reference($this->member)));
+
+        // A client space they are not in: the host does not let them in.
+        $this->client->loginUser($this->admin(), 'admin');
+        $other = $this->givenSpace('Fromagerie Roux', [['userId' => $this->outsider->getId(), 'role' => 'lead']]);
+        $this->noteSpaces[] = (int) $this->provider()->resolve($this->reloaded($other))->getId();
+        $this->client->loginUser($this->reference($this->member), 'admin');
+        $this->client->xmlHttpRequest('GET', $this->url('suite_notes_markdown_list', $this->hostOf($other)));
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * Opened for one space, a request reaches no note of another, even one
+     * the person could read in the Notes module.
+     */
+    public function testAHostedRequestReachesNoOtherSpace(): void
+    {
+        $space = $this->givenSpace('Boulangerie Martin');
+        $this->noteSpaces[] = (int) $this->provider()->resolve($space)->getId();
+
+        $this->client->loginUser($this->reference($this->lead), 'admin');
+        $personal = $this->post($this->url('suite_notes_markdown_create'), ['title' => 'Mes idées']);
+        self::assertResponseIsSuccessful();
+
+        $this->client->xmlHttpRequest('GET', $this->url('suite_notes_markdown_show', ['id' => $personal['note']['id']] + $this->hostOf($space)));
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->xmlHttpRequest('GET', $this->url('suite_notes_markdown_list', $this->hostOf($space)));
+        self::assertResponseIsSuccessful();
+        $listed = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertNotContains('Mes idées', array_column($listed['notes'] ?? [], 'title'));
+    }
+
+    /**
+     * The Notes module does not list a client space's notes, and a note's old
+     * address in the module - a notification, a bookmark - leads to the
+     * client space.
+     */
+    public function testTheModuleLeavesHostedNotesToTheirSpace(): void
+    {
+        $space = $this->givenSpace('Boulangerie Martin');
+        $this->noteSpaces[] = (int) $this->provider()->resolve($space)->getId();
+
+        $this->client->loginUser($this->reference($this->lead), 'admin');
+        $created = $this->post($this->url('suite_notes_markdown_create', $this->hostOf($space)), ['title' => 'Brief du client']);
+        $noteId = (int) $created['note']['id'];
+
+        $this->client->xmlHttpRequest('GET', $this->url('suite_notes_markdown_list'));
+        self::assertResponseIsSuccessful();
+        $listed = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertNotContains('Brief du client', array_column($listed['notes'] ?? [], 'title'));
+
+        $this->client->request('GET', $this->url('suite_notes_markdown_show', ['id' => $noteId]));
+        self::assertResponseRedirects(sprintf('/workspace/%d?view=notes&note=%d', $space->getId(), $noteId));
+    }
+
+    /** @return array<string, string> */
+    private function hostOf(CustomerSpace $space): array
+    {
+        return [NoteSpaceScope::HOST_PARAMETER => SpaceNoteSpaceProvider::MANAGED_BY.':'.$space->getId()];
     }
 
     /**
@@ -243,19 +334,27 @@ final class SpaceNoteSpaceTest extends IntegrationTestCase
         return static::getContainer()->get(SpaceNoteSpaceProvider::class);
     }
 
-    /** A client space led by `lead`, with `member` on the team. */
-    private function givenSpace(string $name): CustomerSpace
+    /**
+     * A client space led by `lead`, with `member` on the team, unless a team
+     * is given.
+     *
+     * @param ?list<array{userId: ?int, role: string}> $team
+     */
+    private function givenSpace(string $name, ?array $team = null): CustomerSpace
     {
-        $customer = new Customer();
-        $customer
-            ->setLegalName('Client des notes')
-            ->setSiret('73282932000074')
-            ->setContractualEmail('notes@example.test');
-        $this->entityManager->persist($customer);
-        $this->entityManager->flush();
+        $customer = $this->entityManager->getRepository(Customer::class)->findOneBy(['legalName' => 'Client des notes']);
+        if (!$customer instanceof Customer) {
+            $customer = new Customer();
+            $customer
+                ->setLegalName('Client des notes')
+                ->setSiret('73282932000074')
+                ->setContractualEmail('notes@example.test');
+            $this->entityManager->persist($customer);
+            $this->entityManager->flush();
+        }
 
         $body = $this->post('/suite/studio/spaces/create', [
-            ...$this->spacePayload($name, [
+            ...$this->spacePayload($name, $team ?? [
                 ['userId' => $this->lead->getId(), 'role' => 'lead'],
                 ['userId' => $this->member->getId(), 'role' => 'member'],
             ]),

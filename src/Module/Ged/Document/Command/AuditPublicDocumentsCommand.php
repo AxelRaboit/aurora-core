@@ -60,9 +60,10 @@ use function str_ends_with;
 )]
 final class AuditPublicDocumentsCommand extends Command
 {
-    /** The settings that hold a document id. All three are resolved by id, none checks a status. */
+    /** The settings that hold a document id. All are resolved by id, none checks a status. */
     private const array BRANDING_PARAMETERS = [
         ApplicationParameterEnum::LogoMediaId,
+        ApplicationParameterEnum::LogoDarkMediaId,
         ApplicationParameterEnum::FaviconMediaId,
         ApplicationParameterEnum::SeoDefaultOgImage,
     ];

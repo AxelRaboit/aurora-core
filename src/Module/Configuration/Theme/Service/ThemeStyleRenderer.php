@@ -54,7 +54,7 @@ final readonly class ThemeStyleRenderer
      *
      * It redefines `--th-font-sans`, which `--font-sans` only points to:
      * `body` uses it directly and the `font-sans` utility copies its
-     * `var(...)`, so the whole page follows. A theme left on Poppins emits
+     * `var(...)`, so the whole page follows. A theme left on the default emits
      * nothing: the default already lives in `theme.css`, and a rule repeating
      * a default is a second copy to keep up to date.
      */

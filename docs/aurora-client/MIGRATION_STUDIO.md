@@ -169,7 +169,10 @@ notes.
   `NoteSpaceInterface` ou de `NoteSpaceManagerInterface` ajoute ces méthodes.
 - **Droits** : aucun n'est donné. Un membre d'équipe sans `notes.markdown.use`
   est inscrit à l'espace de notes mais ne voit pas l'onglet Notes ; le module
-  Notes éteint, l'onglet disparaît pour tout le monde.
+  Notes éteint, l'onglet disparaît pour tout le monde. **Remplacé le
+  10/10/2026** : les notes d'un espace client s'écrivent désormais dans
+  l'espace client, ouvertes à son équipe sans le droit Notes, et ne figurent
+  plus dans le module Notes (voir le CHANGELOG, « Notes hébergées »).
 - **Espace client à la corbeille** : son espace de notes l'y suit, toujours
   réglé par lui (l'écran des notes refuse de le restaurer seul, 409), et
   revient avec lui (section 10). **Espace client supprimé définitivement** :

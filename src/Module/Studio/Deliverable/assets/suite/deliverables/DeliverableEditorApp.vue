@@ -330,7 +330,7 @@ const headerActions = computed(() => {
         </AppPageBar>
 
         <div class="min-w-0">
-            <h1 class="m-0 truncate text-xl font-semibold tracking-tight text-primary sm:text-2xl">{{ form.title }}</h1>
+            <h1 class="m-0 truncate text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">{{ form.title }}</h1>
             <p v-if="space" class="m-0 mt-0.5 text-sm text-secondary">
                 {{ t("suite.studio.deliverables.for_customer", { name: space.customerName }) }}
             </p>

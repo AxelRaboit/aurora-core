@@ -79,15 +79,27 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         $this->createColorFamily($manager);
 
-        // Favicon + logo point at Aurora's own mark (the last media), not at
-        // one of the photographs: a logo is a mark, and the demo's photographs are
+        // Favicon and logos point at Aurora's own mark, not at one of the
+        // photographs: a logo is a mark, and the demo's photographs are
         // subjects - a flag in the corner of every screen of the manual reads
-        // as the product's identity, which it is not. After flush so IDs exist.
-        $mark = $media[array_key_last($media)] ?? null;
-        if (null !== $mark?->getId()) {
-            $faviconId = (string) $mark->getId();
-            $this->settingsService->set(ApplicationParameterEnum::FaviconMediaId->value, $faviconId);
-            $this->settingsService->set(ApplicationParameterEnum::LogoMediaId->value, $faviconId);
+        // as the product's identity, which it is not. The favicon keeps the
+        // mark on its tile; the suite shows it without, one version per mode.
+        // Found by title, not by position: three of them now close the list.
+        // After flush so IDs exist.
+        $byTitle = [];
+        foreach ($media as $document) {
+            $byTitle[$document->getTitle()] = $document;
+        }
+
+        foreach ([
+            ApplicationParameterEnum::FaviconMediaId->value => 'Marque Aurora',
+            ApplicationParameterEnum::LogoMediaId->value => 'Logo Aurora pour le mode clair',
+            ApplicationParameterEnum::LogoDarkMediaId->value => 'Logo Aurora pour le mode sombre',
+        ] as $setting => $title) {
+            $id = ($byTitle[$title] ?? null)?->getId();
+            if (null !== $id) {
+                $this->settingsService->set($setting, (string) $id);
+            }
         }
 
         $manager->flush();
@@ -133,10 +145,17 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['src' => 'images/pexels/pexels-37190347.jpg', 'name' => 'cote-rocheuse.jpg',      'original' => 'Une côte rocheuse',            'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1080, 'pexels' => [37190347, 'Hobi Photography'], 'alt' => 'Une côte rocheuse vue du ciel, les vagues qui se brisent'],
             ['src' => 'images/pexels/pexels-17191088.jpg', 'name' => 'plage.jpg',              'original' => 'Une plage',                    'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1080, 'pexels' => [17191088, 'Field Photography'], 'alt' => 'Une plage de sable doré vue du ciel'],
             ['src' => 'images/pexels/pexels-8725071.jpg',  'name' => 'gratte-ciel.jpg',        'original' => 'Des gratte-ciel',              'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1282, 'pexels' => [8725071, 'Josh Hild'], 'alt' => 'Des gratte-ciel au coucher du soleil'],
-            // The demo's favicon and logo: Aurora's mark ("Lever du jour",
-            // without background), not a photo. Since 04/10/2026; before that
-            // it was a drawn flat colour, an unrelated purple square.
+            // The demo's favicon and logo: Aurora's mark, not a photo. "Horizon"
+            // on its night tile since 10/10/2026 - the tile keeps it readable on
+            // the light back office as on the dark one; "Lever du jour" from
+            // 04/10/2026, and before that a drawn flat colour, an unrelated
+            // purple square.
             ['src' => 'images/aurora-mark.png', 'name' => 'aurora-mark.png', 'original' => 'Marque Aurora', 'mime' => 'image/png', 'w' => 512, 'h' => 512],
+            // The suite's logo, one per mode (10/10/2026): the mark without its
+            // tile, dark on the light menu and ivory on the dark one. After the
+            // mark, so no reference shifts.
+            ['src' => 'images/aurora-logo-light.png', 'name' => 'aurora-logo-light.png', 'original' => 'Logo Aurora pour le mode clair', 'mime' => 'image/png', 'w' => 490, 'h' => 512],
+            ['src' => 'images/aurora-logo-dark.png', 'name' => 'aurora-logo-dark.png', 'original' => 'Logo Aurora pour le mode sombre', 'mime' => 'image/png', 'w' => 490, 'h' => 512],
         ];
 
         $media = [];

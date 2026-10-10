@@ -442,7 +442,7 @@ function toggleStroke(on) {
                     />
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <div class="inline-flex rounded-lg border border-line bg-surface-2/40 p-0.5">
+                    <div class="inline-flex aurora-segmented">
                         <button
                             v-for="value in options.aligns ?? []"
                             :key="value"
@@ -454,7 +454,7 @@ function toggleStroke(on) {
                             {{ t(`suite.studio.deliverables.slides.free.aligns.${value}`) }}
                         </button>
                     </div>
-                    <div class="inline-flex rounded-lg border border-line bg-surface-2/40 p-0.5">
+                    <div class="inline-flex aurora-segmented">
                         <button
                             v-for="value in options.valigns ?? []"
                             :key="value"

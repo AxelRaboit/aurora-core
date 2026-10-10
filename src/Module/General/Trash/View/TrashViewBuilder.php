@@ -69,6 +69,18 @@ final readonly class TrashViewBuilder
      */
     public function trashes(): array
     {
+        return array_map($this->present(...), $this->trashOverviewService->getSummaries($this->enabledModules()));
+    }
+
+    /**
+     * The modules whose trash the screen shows: those switched on in the suite.
+     * Also read by the side menu's trash figure, so the figure counts exactly
+     * the trashes the screen lists.
+     *
+     * @return list<string>
+     */
+    public function enabledModules(): array
+    {
         $enabled = [];
         foreach (self::MODULE_TOGGLES as $moduleId => $toggle) {
             if ($this->moduleAccessChecker->isEnabled($toggle)) {
@@ -76,7 +88,7 @@ final readonly class TrashViewBuilder
             }
         }
 
-        return array_map($this->present(...), $this->trashOverviewService->getSummaries($enabled));
+        return $enabled;
     }
 
     /**

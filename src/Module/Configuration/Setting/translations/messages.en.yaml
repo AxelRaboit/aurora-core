@@ -1,47 +1,100 @@
 suite:
     settings:
+        pending: "{count} unsaved change | {count} unsaved changes"
+        sections:
+            identity:
+                title: "Site identity"
+                lead: "What shows on the public site, signs the emails and introduces the RSS feed."
+            addresses:
+                title: "Addresses"
+                lead: "The public address builds the links in emails and the sitemap; the admin email receives the administration's messages."
+            languages:
+                title: "Languages"
+                lead: "The language the site serves by default, and whether it serves only one."
+            dates:
+                title: "Dates and times"
+                lead: "The time zone the site shows hours in, and how a date is written."
+            listing:
+                title: "Pages and lists"
+                lead: "How many posts per page, and what the site's root address shows."
+            comments:
+                title: "Comments"
+                lead: "Whether readers can comment, and whether their messages go through moderation first."
+            retention:
+                title: "Retention"
+                lead: "How many versions, days in the trash and form answers the site keeps."
+            maintenance:
+                title: "Maintenance"
+                lead: "Close the public site for the time of an intervention, without closing the administration."
+            suite_access:
+                title: "Administration access"
+                lead: "Who can create an account or ask for access to the suite."
+            site_access:
+                title: "Public site accounts"
+                lead: "Whether visitors can sign in or register on the site."
+            seo_defaults:
+                title: "Titles and descriptions"
+                lead: "What search engines show when a page says nothing about itself."
+            seo_sharing:
+                title: "Sharing"
+                lead: "The image and the account used when a page is shared on social networks."
+            email_language:
+                title: "Language"
+                lead: "The language of the emails the application sends."
+            email_colours:
+                title: "Colours"
+                lead: "The colours of the emails, the site theme's by default."
+            provider_identity:
+                title: "Your identity"
+                lead: "The provider block, copied into each contract when it is sealed."
+            provider_bank:
+                title: "Bank details"
+                lead: "Printed in the contracts, for payment."
+            contract_follow_up:
+                title: "Contract follow-up"
+                lead: "How long contracts are kept, and the reminders for a contract left unanswered."
         studio_guide:
             title: "Your identity in contracts"
             step_1: "These fields fill in the provider identity block of each contract when it is sealed, and contracts already sealed keep their values."
             step_2: "A contract whose template uses a field left empty cannot be sealed until you fill it in here."
             step_3: "The retention period never goes below five years, even if you enter less."
             step_4: "Reminders, off by default, send a new signing link after the chosen delay, up to the maximum number, and 0 in either field stops them."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         media_guide:
             title: "File limits"
             step_1: "The maximum size applies to every uploaded file, media library and client spaces alike, and a space's guests are also capped at 25 MB."
             step_2: "The server may refuse sooner: its own upload limits must be raised for a higher value to take effect."
             step_3: "Kept versions include the current file; beyond that, the oldest are deleted with their file, and 0 keeps them all."
             step_4: "Hiding the photo credit asks for confirmation, because the Pexels API terms ask for it to be shown."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         email_guide:
             title: "The language and colors of emails"
             step_1: "This setting picks the language of the emails the application sends without knowing the recipient's own, such as messages to the administration."
             step_2: "“Follow default locale” uses the language chosen in the Localization tab."
             step_3: "An email about a contract goes out in the contract's language, and a new comment notice in the language of the article author's account."
             step_4: "By default the email accent (button, links, logo badge) follows the theme's main color; turn “Follow the theme color” off to pick another one. The background, headings and text are set alongside, and “Original color” brings back the starting one."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         system_guide:
             title: "Who can get in, and when"
             step_1: "Maintenance mode closes the public site to all its visitors, while the suite and its sign-in page stay open."
             step_2: "Admin sign-ups open an account creation form for the suite, to be closed again once the first account exists."
             step_3: "Access requests let someone ask for an account, which you then approve from the developer area."
             step_4: "Turning off front-end sign-in removes sign-in, sign-up and the account page from the public site, and makes front-end sign-ups ineffective."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         seo_guide:
             title: "What search engines and networks see"
             step_1: "The title pattern places the page title and the site name where the field marks them, and a page with no title shows the name alone."
             step_2: "The default description is used by pages that have none of their own; left empty, the General tab's description is used instead."
             step_3: "The sharing image illustrates links shared on social networks when the page has none; without it, the logo takes its place."
             step_4: "The X account entered here is named in the previews of links shared on that network."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         branding_guide:
             title: "The site's logo and icon"
-            step_1: "The logo appears in the suite side menu and on the sign-in pages, and is the sharing image when no other is set."
+            step_1: "The logo appears in the suite side menu and on the sign-in pages, and is the sharing image when no other is set. A second, optional logo takes its place when the suite is in dark mode."
             step_2: "With no favicon chosen, the browser tab shows the site name's initial on the theme's main colour."
             step_3: "An image taken from the media library must have the “Published” status to be shown to visitors."
             step_4: "On a phone, the site name next to the logo in the top bar can be hidden, keeping only the logo."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         localization_guide:
             title: "The site's languages, time and dates"
             step_1: "The default language is the public site's fallback, and the emails' one when the Emails tab follows it."
@@ -49,14 +102,14 @@ suite:
             step_3: "Turning it off later brings back the content typed in the other languages, which stays in the database."
             step_4: "The admin's language is not set here: each person chooses it in their profile."
             step_5: "The timezone gives the site's time: 09:00 on a scheduled post means 09:00 here, and emails and PDFs are dated at that time, in the chosen date style."
-            step_6: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_6: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         reading_guide:
             title: "What visitors read"
             step_1: "The home page is chosen by searching for a page or typing its number; with none chosen, the home page lists the latest articles."
             step_2: "A comment is only possible when comments are enabled here and on the publication; with moderation, each one waits for your approval."
             step_3: "The purge delay applies to the trashes of articles, notes and the media library, and 0 keeps everything until you empty them."
             step_4: "Form answers, IP address included, are erased after their retention delay, and 0 keeps them with no limit."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         administration_guide:
             title: "The developer area"
             step_1: "This area is reserved for the developer role, and each entry in the side menu opens one of its tabs."
@@ -70,21 +123,21 @@ suite:
             step_2: "An image larger than the maximum size is shrunk in your browser, then sent as WebP."
             step_3: "The quality, from 0 to 100, only affects shrunk images; 85 is a good balance between weight and sharpness."
             step_4: "Images already in notes do not change, and animated GIFs go through untouched."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         sequences_guide:
             title: "How references are numbered"
             step_1: "Each prefix numbers one kind of record, such as documents, publications or contracts."
             step_2: "A reference reads prefix, hyphen, then number, and some series, such as contracts, start again at 1 every year."
             step_3: "A prefix has 1 to 10 letters or digits, with no space or hyphen, and is turned to capitals when saved."
             step_4: "Changing a prefix leaves the references already given untouched: only the next ones use it."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         general_guide:
             title: "The site's basic settings"
             step_1: "The site name appears on the public site and signs the emails the application sends."
             step_2: "The site description introduces the RSS feed, and serves search engines when neither the page nor the SEO tab provides one."
             step_3: "The public address, without a trailing slash, builds the links in emails and in the sitemap; left empty, the application works it out from the server."
             step_4: "The administrator email receives the messages meant for the administration; left empty, the address declared when the server was installed takes over."
-            step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+            step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         integration:
             status_active: Active
             status_off: Off
@@ -430,6 +483,9 @@ suite:
         logo_media_id:
             label: Site logo
             description: ID of the media used as the logo
+        logo_dark_media_id:
+            label: Logo in dark mode
+            description: "Optional. Replaces the site's logo when the suite is in dark mode: side menu, top bar and sign-in pages. Useful for a logo without a background drawn in a dark colour, which would vanish on a dark ground. Empty, the site's logo serves in both modes."
         favicon_media_id:
             label: Favicon
             description: ID of the media used as the favicon
@@ -581,13 +637,13 @@ suite:
         todo:
             title: "To do"
             nothing: "Nothing is waiting for you right now."
-            countersign: "{count} contract to countersign | {count} contracts to countersign"
-            missed: "{count} missed publication | {count} missed publications"
-            late_review: "{count} late review | {count} late reviews"
-            changes_requested: "{count} content item to rework | {count} content items to rework"
-            comments_pending: "{count} pending comment | {count} pending comments"
-            posts_pending_review: "{count} post to review | {count} posts to review"
-            reminders_overdue: "{count} overdue reminder | {count} overdue reminders"
+            countersign: "contract to countersign | contracts to countersign"
+            missed: "missed publication | missed publications"
+            late_review: "late review | late reviews"
+            changes_requested: "content item to rework | content items to rework"
+            comments_pending: "pending comment | pending comments"
+            posts_pending_review: "post to review | posts to review"
+            reminders_overdue: "overdue reminder | overdue reminders"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'
