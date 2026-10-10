@@ -113,12 +113,14 @@ const bannerLayout = {
     logoMediaId: null,
     fadeOut: true,
     // The hub's gradient, copied as is: it is what makes the family
-    // recognisable when arriving on one page from the other.
+    // recognisable when arriving on one page from the other. Night violet
+    // since 10/10/2026, Aurora's colour; it was the green of the web
+    // development offer before.
     background: {
         type: "gradient",
         color: null,
-        gradientFrom: "#064e3b",
-        gradientTo: "#030712",
+        gradientFrom: "#2a2050",
+        gradientTo: "#130918",
         gradientAngle: 160,
         mediaId: null,
         overlay: 0,

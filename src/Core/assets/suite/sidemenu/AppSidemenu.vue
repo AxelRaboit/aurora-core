@@ -200,11 +200,15 @@ function onSlashKey(event) {
 onMounted(() => window.addEventListener("keydown", onSlashKey));
 onBeforeUnmount(() => window.removeEventListener("keydown", onSlashKey));
 
-/** The foot's one line: the copyright, then the version when there is one. */
-const footLine = computed(() => [
+/**
+ * The foot's one line: the copyright, then the version when there is one.
+ * The version keeps its own `data-app-version` element, the hook the tour's
+ * capture script hides it by (a local instance reads "dev"); merged into one
+ * string, it showed on every screenshot of the tour.
+ */
+const footCopyright = computed(() =>
     t("shared.common.built_with", { year: new Date().getFullYear(), siteName: props.siteName }),
-    props.appVersion,
-].filter(Boolean).join(" · "));
+);
 
 /**
  * A filter that finds nothing in the module still has an answer elsewhere:
@@ -291,7 +295,7 @@ function searchAllModules() {
              eye had to look for. -->
         <div class="flex shrink-0 border-t border-line px-4 py-3">
             <span class="select-none truncate text-xs text-secondary tabular-nums" data-sidemenu-foot>
-                {{ footLine }}
+                {{ footCopyright }}<span v-if="appVersion" data-app-version> · {{ appVersion }}</span>
             </span>
         </div>
 

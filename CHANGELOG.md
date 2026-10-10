@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.9.1] - 2026-10-10
+
+### Corrigé
+- **La version au pied du menu latéral** retrouve son propre élément (`data-app-version`) : depuis la 4.9.0 elle était fondue dans la ligne du copyright, et les captures du tour affichaient « © 2026 Aurora · dev ».
+
+### Modifié
+- **Outillage du tour** : `capture-tour.mjs` prend la suite en sombre même quand rien n'est retenu (elle s'ouvre en clair depuis la 4.9.0) et enregistre les réglages SEO qu'il remplit, pour ne pas photographier « 3 modifications en attente ». `set-tour-banner.mjs` pose le dégradé violet de nuit d'Aurora au lieu du vert.
+
+### Dans aurora-client
+Rien à faire.
+
 ## [4.9.0] - 2026-10-10
 
 ### Modifié

@@ -698,7 +698,17 @@ const SHOTS = [
             await fields.nth(1).fill("Le site de démonstration d'Aurora : publications, médiathèque, formulaires et espaces clients.");
             await fields.nth(2).fill("@aurora");
             await fields.nth(2).blur();
-            await page.waitForTimeout(800);
+            // Saved on the local demo: since 4.9.0 the settings screens count
+            // the changes waiting to be saved, and the shot read "3
+            // modifications en attente" next to an active Save button.
+            // Greyed out when the demo already holds these values (a second
+            // run): nothing to save then.
+            const save = page.locator("main").getByRole("button", { name: "Enregistrer", exact: true });
+            if (await save.isEnabled()) {
+                await save.click();
+                // Until the "Réglages sauvegardés" toast has gone.
+                await page.waitForTimeout(5_500);
+            }
         },
     },
     { name: "tour-galerie", path: "/suite", prepare: postTab(/Galerie/) },
@@ -3515,6 +3525,12 @@ const context = await browser.newContext({
 // collapses it again.
 await context.addInitScript(() => {
     window.localStorage.setItem("aurora.guides.open", "0");
+});
+// The tour is in dark mode, and since 4.9.0 (10/10/2026) the suite opens in
+// light mode unless dark is remembered: the first shot of a run came out
+// light. Set before every load; `tour-dashboard-clair` swaps it for its shot.
+await context.addInitScript(() => {
+    if (null === window.localStorage.getItem("aurora-theme")) window.localStorage.setItem("aurora-theme", "dark");
 });
 
 const page = await context.newPage();
