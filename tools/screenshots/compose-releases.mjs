@@ -118,20 +118,19 @@ const base = `
             linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
         background-size: 40px 40px;
     }
-    .logo { display: block; width: 92px; height: 92px; margin: -18px 0 -14px -8px; }
+    .logo { display: block; width: 60px; height: 63px; margin: 4px 0 6px; }
 `;
 
 /**
- * The Aurora logo, "Lever du jour" (chosen by Axel on 03/10/2026): two arcs
- * and a sun above the horizon, green, yellow, red from the outside towards the
- * centre. The striped logo is the one of Axel's site, not Aurora's.
+ * The Aurora logo, "Horizon" (chosen by Axel on 10/10/2026, after "Lever du
+ * jour"): an A whose hollow holds a rising sun, ivory and violet. Drawn tight
+ * to its box, so the card needs no negative margin to align it. The striped
+ * logo is the one of Axel's site, not Aurora's.
  */
-const LOGO = `<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(0 -7.5)">
-    <path d="M8.5,50 A23.5 23.5 0 0 1 55.5,50" fill="none" stroke="${GREEN}" stroke-width="7"/>
-    <path d="M17.5,50 A14.5 14.5 0 0 1 46.5,50" fill="none" stroke="${YELLOW}" stroke-width="7"/>
-    <path d="M23,50 A9 9 0 0 1 41,50 Z" fill="${RED}"/>
-    <rect x="4" y="53" width="56" height="3" rx="1.5" fill="#ece2d0" fill-opacity=".35"/>
-</g></svg>`;
+const LOGO = `<svg class="logo" viewBox="10 8 44 46" aria-hidden="true">
+    <path d="M32 8 L54 54 L44 54 L32 28.9 L20 54 L10 54 Z" fill="#ece2d0"/>
+    <path d="M24.5 54 A7.5 7.5 0 0 1 39.5 54 Z" fill="#8b6cff"/>
+</svg>`;
 
 /** The version leaves the core, passes its checks and reaches every site. */
 function pipeline(list) {

@@ -103,7 +103,8 @@ suite:
         font_family: Tipografía
         font_preview: 'El veloz murciélago hindú comía feliz cardillo y kiwi.'
         fonts:
-            poppins: 'Geométrica, de formas regulares. El ajuste por defecto.'
+            sora: 'Geométrica, abierta y algo ancha. El ajuste por defecto.'
+            poppins: 'Geométrica, de formas regulares. El antiguo ajuste por defecto.'
             inter: 'Neutra, diseñada para pantallas. Pasa desapercibida.'
             work-sans: 'Grotesca, algo más ancha y cálida que Inter.'
             nunito: 'Redondeada. El tono menos institucional de la lista.'

@@ -47,7 +47,18 @@ final class ThemeContextFontTest extends TestCase
         // The default already lives in theme.css: a rule repeating it would
         // be a second copy to keep up to date.
         self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->fontFamilyCss());
-        self::assertSame('', $this->stylesOf($this->contextWithConfig(['font_family' => 'poppins']))->fontFamilyCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig(['font_family' => 'sora']))->fontFamilyCss());
+    }
+
+    /**
+     * Poppins was the default until 10/10/2026. A site that wants to keep it
+     * picks it on the Themes screen, and that choice is then written down.
+     */
+    public function testTheFormerDefaultIsAChoiceLikeAnyOther(): void
+    {
+        $css = $this->stylesOf($this->contextWithConfig(['font_family' => 'poppins']))->fontFamilyCss();
+
+        self::assertStringContainsString(ThemeFontEnum::Poppins->stack(), $css);
     }
 
     public function testAChosenFontOverridesTheVariableTheWholePageReads(): void
