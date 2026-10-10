@@ -1,0 +1,114 @@
+suite:
+    health:
+        title: État du système
+        checked_at: 'Mesuré à {time}'
+        refresh: Mesurer à nouveau
+        loading: Mesure en cours…
+        load_failed: "La mesure n'a pas abouti. Réessayez."
+        summary:
+            ok: Tout tourne.
+            warning: Tout tourne, avec un point à regarder.
+            danger: Quelque chose ne tourne pas.
+            unknown: Pas encore assez de recul pour tout juger.
+        statuses:
+            ok: OK
+            warning: À regarder
+            danger: En panne
+            unknown: Pas encore vu
+            'off': Non configuré
+        sections:
+            background: Travail en arrière-plan
+            foundations: Ce sur quoi l'application repose
+            environment: Environnement
+        guide:
+            title: Comment ça marche
+            step_1: "Chaque ligne est mesurée à l'ouverture de la page, puis à la demande avec « Mesurer à nouveau »."
+            step_2: "Le worker écrit un battement toutes les 30 secondes : muet depuis plus de 2 minutes, il est signalé en panne."
+            step_3: "Chaque tâche planifiée est jugée sur son propre rythme : une tâche de chaque minute muette depuis 10 minutes est en retard, une tâche de chaque nuit ne l'est pas. Après un déploiement, une tâche est « pas encore vue » jusqu'à son prochain passage."
+            step_4: "Un message en échec se relance ou se supprime depuis la liste. Relancer le renvoie dans sa file."
+            step_5: "Les unités systemd du serveur se choisissent dans Réglages > Système. Sans systemd, la ligne n'apparaît pas."
+        tasks:
+            title: Tâches planifiées
+            name: Tâche
+            trigger: Rythme
+            last_run: Dernier passage
+            next_run: Prochain passage
+            never: Pas encore vue
+        failures:
+            title: Messages en échec
+            empty: Aucun message en échec.
+            from: 'depuis la file {transport}'
+            retry: Relancer
+            delete: Supprimer
+            retried: Message relancé.
+            deleted: Message supprimé.
+            confirm_delete: "Supprimer ce message ? Ce qu'il devait faire ne sera pas fait."
+        errors:
+            csrf: "La page a expiré. Rechargez-la."
+            failure_not_found: "Ce message n'est plus dans la file des échecs."
+        worker:
+            label: Worker
+            alive: 'Vu il y a {seconds} s'
+            silent: 'Muet depuis {seconds} s'
+            never_seen: "Jamais vu : le worker ne tourne pas, ou n'a pas encore été relancé depuis la mise à jour."
+        scheduler:
+            label: Tâches planifiées
+            on_time: '{count} tâches, aucune en retard'
+            late: '{late} en retard sur {count}'
+        queue_async:
+            label: File des travaux
+            waiting: '{count} en attente'
+            uncounted: "Cette file ne sait pas se compter."
+        queue_failed:
+            label: File des échecs
+            count: '{count} en échec'
+            uncounted: "Cette file ne sait pas se compter."
+        database:
+            label: Base de données
+            answers: 'Répond en {milliseconds} ms'
+            unreachable: 'Ne répond pas : {error}'
+        migrations:
+            label: Migrations
+            up_to_date: À jour
+            pending: '{count} en attente'
+            unknown: Impossible à compter
+        mercure:
+            label: Hub Mercure
+            answers: 'Répond en {milliseconds} ms'
+            error: 'Répond en erreur ({status})'
+            unreachable: Ne répond pas
+            not_configured: 'Non configuré : la messagerie des espaces fonctionne sans direct.'
+        unit:
+            label: 'Unité {unit}'
+            state: '{active} ({sub}), {restarts} redémarrage(s)'
+            not_found: Introuvable sur ce serveur
+        reboot:
+            label: Redémarrage du serveur
+            required: Un redémarrage est en attente.
+        updates:
+            label: Mises à jour du serveur
+            pending: '{count} en attente'
+        application:
+            label: Application
+            running: 'Version {version}, PHP {php}'
+        disk:
+            label: Espace disque
+            free: '{percent} % libre'
+            unknown: Impossible à mesurer
+        mail:
+            label: Envoi des emails
+            configured: 'Par {scheme}'
+            'null': "Transport « null » : aucun email ne part."
+            missing: Aucun transport configuré.
+        storage:
+            label: Stockage des fichiers
+            local: 'Disque {disk}'
+            remote_answers: 'Disque {disk}, répond en {milliseconds} ms'
+            not_ready: 'Disque {disk} non configuré'
+            unreachable: 'Disque {disk} injoignable'
+            unavailable: Aucun stockage disponible
+        certificate:
+            label: Certificat TLS
+            expires: 'Expire dans {days} jours ({host})'
+            unreadable: 'Illisible pour {host}'
+            not_applicable: "Sans objet : l'adresse du site n'est pas en HTTPS public."

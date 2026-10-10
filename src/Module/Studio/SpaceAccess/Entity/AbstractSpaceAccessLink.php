@@ -183,6 +183,19 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     protected bool $canSeeDrive = true;
 
     /**
+     * Whether this link shows the customer's contracts, and lets them sign.
+     *
+     * False by default, unlike the folder above, and for the rule every
+     * showable thing in a space follows: what reaches the client is chosen.
+     * A contract names an amount and binds a company; the colleague who
+     * reviews the posts is not necessarily the person who signs. Signing
+     * itself still asks for the code mailed to the contractual address, so
+     * the right shows the way, it does not stand in for the signer.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $canSeeContracts = false;
+
+    /**
      * The first open, kept apart from the last.
      *
      * Two columns because they answer different questions: the first says
@@ -388,6 +401,18 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function setCanChat(bool $canChat): static
     {
         $this->canChat = $canChat;
+
+        return $this;
+    }
+
+    public function canSeeContracts(): bool
+    {
+        return $this->canSeeContracts;
+    }
+
+    public function setCanSeeContracts(bool $canSeeContracts): static
+    {
+        $this->canSeeContracts = $canSeeContracts;
 
         return $this;
     }

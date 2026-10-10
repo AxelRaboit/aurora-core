@@ -7,6 +7,9 @@ namespace Aurora\Module\Studio\Contract\View;
 use Aurora\Core\Locale\Service\LocaleOptionsProviderInterface;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
+use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
@@ -21,10 +24,14 @@ use Aurora\Module\Studio\Contract\Service\ContractLinkLifetime;
 use Aurora\Module\Studio\Contract\Service\ContractVariableCatalogue;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
+use DateTimeImmutable;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class ContractsViewBuilder
 {
+    /** After how long without an answer a sent contract is pointed out. */
+    public const int WAIT_DAYS = 3;
+
     public function __construct(
         private ContractRepository $contractRepository,
         private ContractTemplateRepository $templateRepository,
@@ -36,6 +43,8 @@ final readonly class ContractsViewBuilder
         private ContractCustomFieldScanner $customFields,
         private ContractVariableCatalogue $variables,
         private ContractLinkLifetime $linkLifetime,
+        private ContractAccessLinkRepository $accessLinkRepository,
+        private SettingRepository $settingRepository,
     ) {}
 
     /**
@@ -140,6 +149,12 @@ final readonly class ContractsViewBuilder
             'templatesPath' => $this->urlGenerator->generate('suite_studio_contract_templates'),
             // Quoted by the guide; the setting decides it, not the wording.
             'linkDays' => $this->linkLifetime->days(),
+            // The sends nobody answered for a while, said above the list: the
+            // automatic reminder is off by default, and a wait that long is
+            // one somebody has to chase by hand.
+            'waitingLong' => count($this->accessLinkRepository->findWaitingSentBefore(new DateTimeImmutable(sprintf('-%d days', self::WAIT_DAYS)))),
+            'waitingDays' => self::WAIT_DAYS,
+            'remindersEnabled' => '1' === $this->settingRepository->getOrDefault(ApplicationParameterEnum::StudioContractReminderEnabled),
         ];
     }
 
@@ -255,13 +270,15 @@ final readonly class ContractsViewBuilder
         return ['success' => true, 'contracts' => $this->contracts()];
     }
 
-    /** @return list<array{value: string, label: string}> */
+    /** @return list<array{value: string, label: string, locale: string|null}> */
     private function customerOptions(): array
     {
         return array_map(
             static fn (CustomerInterface $customer): array => [
                 'value' => (string) $customer->getId(),
                 'label' => $customer->getLegalName(),
+                // The language a new contract for them starts in.
+                'locale' => $customer->getLocale(),
             ],
             $this->customerRepository->findAllOrdered(),
         );

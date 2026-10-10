@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\Manager;
 
+use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
@@ -18,6 +19,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function in_array;
 use function mb_strtolower;
 use function mb_trim;
 
@@ -32,6 +34,9 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly TranslatorInterface $translator,
         protected readonly PipelineManagerInterface $pipelineManager,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?LocaleContextInterface $localeContext = null,
     ) {}
 
     public function create(CustomerInputInterface $input): CustomerInterface
@@ -151,6 +156,18 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
+     * Only a language the site speaks: a mail cannot be written in one it
+     * has no words for, and the translator would quietly fall back to
+     * another.
+     */
+    protected function assertLocaleIsActive(?string $locale): void
+    {
+        if (null !== $locale && $this->localeContext instanceof LocaleContextInterface && !in_array($locale, $this->localeContext->getActiveLocales(), true)) {
+            throw new FieldException('locale', $this->translator->trans('suite.studio.customers.errors.locale_invalid'));
+        }
+    }
+
+    /**
      * Instantiates the concrete entity. Override in a subclass to return a
      * client-substituted class - `resolve_target_entities` only affects
      * Doctrine relation resolution, not direct `new` calls.
@@ -169,6 +186,7 @@ class CustomerManager implements CustomerManagerInterface
     {
         $this->assertSiretIsFree($input->getSiret(), $customer->getId());
         $this->assertClientHasAnAddress($input);
+        $this->assertLocaleIsActive($input->getLocale());
 
         // A prospect turned client from its sheet won the deal just as surely
         // as one converted from the list: same filing.
@@ -189,6 +207,7 @@ class CustomerManager implements CustomerManagerInterface
             ->setRepresentativeLastName($input->getRepresentativeLastName())
             ->setRepresentativeRole($input->getRepresentativeRole())
             ->setContractualEmail($input->getContractualEmail())
+            ->setLocale($input->getLocale())
             ->setPhone($input->getPhone())
             ->setSiren($input->getSiren())
             ->setLandline($input->getLandline())
@@ -256,6 +275,7 @@ class CustomerManager implements CustomerManagerInterface
             'legalName' => $customer->getLegalName(),
             'siret' => $customer->getSiret(),
             'contractualEmail' => $customer->getContractualEmail(),
+            'locale' => $customer->getLocale(),
         ];
     }
 }

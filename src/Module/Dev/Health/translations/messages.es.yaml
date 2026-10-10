@@ -1,0 +1,114 @@
+suite:
+    health:
+        title: Estado del sistema
+        checked_at: 'Medido a las {time}'
+        refresh: Volver a medir
+        loading: Midiendo…
+        load_failed: "La medición no se completó. Inténtelo de nuevo."
+        summary:
+            ok: Todo funciona.
+            warning: Todo funciona, con un punto que revisar.
+            danger: Algo no funciona.
+            unknown: Aún no hay perspectiva suficiente para juzgarlo todo.
+        statuses:
+            ok: OK
+            warning: Por revisar
+            danger: Caído
+            unknown: Aún no visto
+            'off': No configurado
+        sections:
+            background: Trabajo en segundo plano
+            foundations: Lo que sostiene la aplicación
+            environment: Entorno
+        guide:
+            title: Cómo funciona
+            step_1: "Cada línea se mide al abrir la página, y luego a petición con « Volver a medir »."
+            step_2: "El worker escribe un latido cada 30 segundos: en silencio más de 2 minutos, se señala como caído."
+            step_3: "Cada tarea programada se juzga según su propio ritmo: una tarea de cada minuto en silencio desde hace 10 minutos va con retraso, una tarea nocturna no. Tras un despliegue, una tarea está « aún no vista » hasta su próxima ejecución."
+            step_4: "Un mensaje fallido se relanza o se elimina desde la lista. Relanzarlo lo devuelve a su cola."
+            step_5: "Las unidades systemd del servidor se eligen en Ajustes > Sistema. Sin systemd, la línea no aparece."
+        tasks:
+            title: Tareas programadas
+            name: Tarea
+            trigger: Ritmo
+            last_run: Última ejecución
+            next_run: Próxima ejecución
+            never: Aún no vista
+        failures:
+            title: Mensajes fallidos
+            empty: Ningún mensaje fallido.
+            from: 'desde la cola {transport}'
+            retry: Relanzar
+            delete: Eliminar
+            retried: Mensaje relanzado.
+            deleted: Mensaje eliminado.
+            confirm_delete: "¿Eliminar este mensaje? Lo que debía hacer no se hará."
+        errors:
+            csrf: "La página ha caducado. Recárguela."
+            failure_not_found: "Este mensaje ya no está en la cola de fallos."
+        worker:
+            label: Worker
+            alive: 'Visto hace {seconds} s'
+            silent: 'En silencio desde hace {seconds} s'
+            never_seen: "Nunca visto: el worker no está en marcha, o no se ha reiniciado desde la actualización."
+        scheduler:
+            label: Tareas programadas
+            on_time: '{count} tareas, ninguna con retraso'
+            late: '{late} con retraso de {count}'
+        queue_async:
+            label: Cola de trabajos
+            waiting: '{count} en espera'
+            uncounted: "Esta cola no sabe contarse."
+        queue_failed:
+            label: Cola de fallos
+            count: '{count} fallidos'
+            uncounted: "Esta cola no sabe contarse."
+        database:
+            label: Base de datos
+            answers: 'Responde en {milliseconds} ms'
+            unreachable: 'No responde: {error}'
+        migrations:
+            label: Migraciones
+            up_to_date: Al día
+            pending: '{count} pendientes'
+            unknown: Imposible de contar
+        mercure:
+            label: Hub Mercure
+            answers: 'Responde en {milliseconds} ms'
+            error: 'Responde con un error ({status})'
+            unreachable: No responde
+            not_configured: 'No configurado: la mensajería de los espacios funciona sin directo.'
+        unit:
+            label: 'Unidad {unit}'
+            state: '{active} ({sub}), {restarts} reinicio(s)'
+            not_found: No encontrada en este servidor
+        reboot:
+            label: Reinicio del servidor
+            required: Hay un reinicio pendiente.
+        updates:
+            label: Actualizaciones del servidor
+            pending: '{count} pendientes'
+        application:
+            label: Aplicación
+            running: 'Versión {version}, PHP {php}'
+        disk:
+            label: Espacio en disco
+            free: '{percent} % libre'
+            unknown: Imposible de medir
+        mail:
+            label: Envío de correos
+            configured: 'Por {scheme}'
+            'null': "Transporte « null »: no sale ningún correo."
+            missing: Ningún transporte configurado.
+        storage:
+            label: Almacenamiento de archivos
+            local: 'Disco {disk}'
+            remote_answers: 'Disco {disk}, responde en {milliseconds} ms'
+            not_ready: 'Disco {disk} no configurado'
+            unreachable: 'Disco {disk} inaccesible'
+            unavailable: Ningún almacenamiento disponible
+        certificate:
+            label: Certificado TLS
+            expires: 'Caduca en {days} días ({host})'
+            unreadable: 'Ilegible para {host}'
+            not_applicable: "No aplica: la dirección del sitio no es HTTPS público."

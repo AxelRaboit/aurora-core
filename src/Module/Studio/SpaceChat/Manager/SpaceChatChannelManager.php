@@ -9,6 +9,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceTeamNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
@@ -47,6 +48,9 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         protected readonly SpaceChatChannelRepository $channelRepository,
         protected readonly AuditLogger $auditLogger,
         protected readonly TranslatorInterface $translator,
+        // Optional and last: a subclass written before it still constructs,
+        // and an invitation is then simply not announced.
+        protected readonly ?SpaceTeamNotifier $teamNotifier = null,
     ) {}
 
     public function ensureMain(CustomerSpaceInterface $space): SpaceChatChannelInterface
@@ -146,6 +150,7 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         $this->entityManager->flush();
 
         $this->auditInvited($channel, $member);
+        $this->teamNotifier?->invitedToChannel($channel, $user);
 
         return $member;
     }

@@ -28,6 +28,7 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\RawMessage;
 
 use function json_decode;
+use function preg_match;
 use function sprintf;
 
 /**
@@ -75,7 +76,14 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    public function testTheClientIsWrittenToWithAFreshAddress(): void
+    /**
+     * The client is written to with the address they already hold.
+     *
+     * Each invitation used to mint a new link and revoke the previous one,
+     * closing the address the client had bookmarked. The mail now carries an
+     * address the application rebuilds, which opens the same page.
+     */
+    public function testTheClientIsWrittenToWithoutLosingTheirAddress(): void
     {
         $space = $this->givenSpace();
         $this->givenScheduledItem($space, 'À relire');
@@ -95,16 +103,18 @@ final class SpaceReviewInviteTest extends IntegrationTestCase
         // it now or tonight.
         self::assertStringContainsString('1', $mails[0]->getHtmlBody());
 
-        // The old address is closed, and a new one exists for the same
-        // person: the client always has exactly one valid address.
+        // Nothing was revoked, and no second link was made.
         $this->entityManager->clear();
-        $stored = $this->accessLinkRepository->find($previous);
-        self::assertNotNull($stored->getRevokedAt());
-
+        self::assertNull($this->accessLinkRepository->find($previous)->getRevokedAt());
         $live = $this->accessLinkRepository->findApproversForSpace($this->reload($space), new DateTimeImmutable());
         self::assertCount(1, $live);
-        self::assertNotSame($previous, $live[0]->getId());
-        self::assertSame('camille@societe.test', $live[0]->getRecipientEmail());
+        self::assertSame($previous, $live[0]->getId());
+
+        // And the address in the mail opens the space.
+        self::assertSame(1, preg_match('#(/spaces/[a-f0-9]{32}/[a-f0-9]{64})#', (string) $mails[0]->getHtmlBody(), $matches));
+        $this->client->getCookieJar()->clear();
+        $this->client->request('GET', $matches[1]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
     /**

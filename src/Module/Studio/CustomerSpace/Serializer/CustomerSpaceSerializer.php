@@ -42,6 +42,7 @@ class CustomerSpaceSerializer implements CustomerSpaceSerializerInterface
             // palette every chart and calendar uses, so it follows the theme.
             'colourSlot' => $space->getColourSlot(),
             'timezone' => $space->getTimezone(),
+            'clientDigest' => $space->getClientDigest()->value,
             'members' => $this->members($space),
             'createdAt' => $space->getCreatedAt()->format(DATE_ATOM),
         ];

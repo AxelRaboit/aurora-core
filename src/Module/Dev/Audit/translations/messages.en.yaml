@@ -58,6 +58,9 @@ suite:
                     created: Mount point created
                     updated: Mount point updated
                     deleted: Mount point deleted
+                failed_message:
+                    retried: Failed message retried
+                    deleted: Failed message deleted
             ged:
                 document:
                     created: Document created

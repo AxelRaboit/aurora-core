@@ -22,6 +22,9 @@ use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Repository\ClientNoticeRepository;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
@@ -52,6 +55,7 @@ use Aurora\Module\Studio\CustomerInteraction\Entity\CustomerInteraction;
 use Aurora\Module\Studio\CustomerInteraction\Enum\CustomerInteractionKindEnum;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInput;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
@@ -185,6 +189,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly NoteFavoriteManagerInterface $noteFavorites,
         private readonly MarkdownNoteRepository $markdownNoteRepository,
         private readonly PipelineStageManagerInterface $pipelineStages,
+        private readonly ClientNoticeRecorder $clientNoticeRecorder,
+        private readonly ClientNoticeRepository $clientNoticeRepository,
     ) {}
 
     public static function getGroups(): array
@@ -298,6 +304,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedSpaces($marie, $jean, $sophie);
         $this->seedApprovals();
         $this->seedTrash($jean);
+        $this->seedClientNews();
         $this->seedClientFile();
         $this->seedHostedNotes();
         $this->seedPipeline($sophie);
@@ -990,6 +997,51 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ?->setExpiresAt(new DateTimeImmutable('-3 days'));
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * What a client hears of, and what they see when they come back.
+     *
+     * The social space mails its client half an hour after the studio's last
+     * gesture, and Camille has three pieces of news waiting at the top of her
+     * page. Jean has a link that shows Martin Documents' contracts - one to
+     * sign, one waiting for the countersignature, one ended - and that link
+     * runs out within the fortnight, so « À traiter » has an access to
+     * extend.
+     *
+     * Outside `seedSpaces()`, and found by name: it is added to a
+     * demonstration already in place, once.
+     */
+    private function seedClientNews(): void
+    {
+        $social = $this->spaceRepository->findOneBy(['name' => 'Atelier Dupont - Réseaux sociaux']);
+        if ($social instanceof CustomerSpaceInterface) {
+            if (ClientDigestModeEnum::Off === $social->getClientDigest()) {
+                $social->setClientDigest(ClientDigestModeEnum::Delayed);
+                $this->entityManager->flush();
+            }
+
+            $camille = $this->existingLinkFor($social, 'camille@atelier-dupont.fr');
+            if ($camille instanceof SpaceAccessLinkInterface && [] === $this->clientNoticeRepository->findUnseenForLink($camille)) {
+                $onlyCamille = static fn (SpaceAccessLinkInterface $link): bool => $link->getId() === $camille->getId();
+                $this->clientNoticeRecorder->record($social, ClientNoticeTypeEnum::StudioMessage, 'Marie Dupont', $onlyCamille);
+                $this->clientNoticeRecorder->record($social, ClientNoticeTypeEnum::AwaitingReview, 'Portes ouvertes : le teaser', $onlyCamille);
+                $this->clientNoticeRecorder->record($social, ClientNoticeTypeEnum::FileShared, 'Charte-reseaux-octobre.pdf', $onlyCamille);
+            }
+        }
+
+        $linkedIn = $this->spaceRepository->findOneBy(['name' => 'Martin Documents - Contenus LinkedIn']);
+        if ($linkedIn instanceof CustomerSpaceInterface && !$this->existingLinkFor($linkedIn, 'jean.martin@martin-documents.test') instanceof SpaceAccessLinkInterface) {
+            $this->accessLinks->issue(
+                $linkedIn,
+                'jean.martin@martin-documents.test',
+                'Jean, président',
+                10,
+                canApprove: true,
+                canComment: true,
+                canSeeContracts: true,
+            );
+        }
     }
 
     /** One link, once, however many reloads there are. */

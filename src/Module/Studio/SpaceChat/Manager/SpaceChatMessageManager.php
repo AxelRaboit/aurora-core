@@ -8,6 +8,8 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
@@ -40,6 +42,12 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
         protected readonly SpaceChatHub $hub,
         protected readonly SpaceChatMessageSerializerInterface $serializer,
         protected readonly SpaceActivityNotifier $notifier,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     public function postAsStudio(SpaceChatChannelInterface $channel, string $body): SpaceChatMessageInterface
@@ -59,7 +67,16 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
             ->setBody($body)
             ->writtenByStudio($user, $this->labelOf($user));
 
-        return $this->save($message);
+        $this->save($message);
+
+        // Only a room the client reads. A direct conversation is between
+        // colleagues since links lost theirs, and a topic closed to the
+        // client is the team's.
+        if (SpaceChatChannelKindEnum::Direct !== $channel->getKind() && $channel->isOpenToClient()) {
+            $this->clientNoticeRecorder?->record($channel->getSpace(), ClientNoticeTypeEnum::StudioMessage, $message->getAuthorLabel(), ClientNoticeRecorder::chatters());
+        }
+
+        return $message;
     }
 
     public function postAsClient(

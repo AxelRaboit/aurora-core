@@ -64,6 +64,10 @@ interface SpaceAccessLinkInterface
 
     public function setCanChat(bool $canChat): static;
 
+    public function canSeeContracts(): bool;
+
+    public function setCanSeeContracts(bool $canSeeContracts): static;
+
     public function canSeeDrive(): bool;
 
     public function setCanSeeDrive(bool $canSeeDrive): static;

@@ -73,6 +73,11 @@ interface CustomerInterface extends TimestampableInterface
 
     public function setContractualEmail(?string $contractualEmail): static;
 
+    /** The language to write to them in, null for the site's email language. */
+    public function getLocale(): ?string;
+
+    public function setLocale(?string $locale): static;
+
     public function getPhone(): ?string;
 
     public function setPhone(?string $phone): static;

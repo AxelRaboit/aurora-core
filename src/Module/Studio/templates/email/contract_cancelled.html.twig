@@ -1,0 +1,15 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{# Sent when the provider cancels a contract the customer had received, and
+   only when they ticked « Prévenir le client ». It says the document has no
+   effect and that the link they hold no longer opens it, so a click on an
+   old mail does not read as a fault. #}
+{% block content %}
+<p>{{ 'studio.email.contract_cancelled.greeting'|trans({'{name}': customer.representativeFullName ?? customer.legalName}) }}</p>
+
+<p>{{ 'studio.email.contract_cancelled.body'|trans({'{reference}': contract.reference, '{company}': siteName}) }}</p>
+
+<p>{{ 'studio.email.contract_cancelled.link'|trans }}</p>
+
+<p>{{ 'studio.email.contract_link.signature'|trans({'{company}': siteName}) }}</p>
+{% endblock %}

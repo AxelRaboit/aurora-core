@@ -115,6 +115,11 @@ const reachable = computed(() => {
             >
                 <Hash class="h-3 w-3 shrink-0" :stroke-width="2" />
                 <span class="truncate">{{ channel.name }}</span>
+                <span
+                    v-if="channel.unread > 0 && channel.id !== current"
+                    class="ml-auto shrink-0 rounded-full bg-accent px-1.5 text-[0.65rem] font-semibold leading-4 text-white"
+                    :aria-label="t('shared.space_chat.channels.unread', { count: channel.unread }, channel.unread)"
+                >{{ channel.unread }}</span>
 
                 <!-- Said on the channel's line, not only in its settings:
                      what is typed there does not leave the agency, and that
@@ -175,6 +180,11 @@ const reachable = computed(() => {
                 >
                     <MessageCircle class="h-3 w-3 shrink-0" :stroke-width="2" />
                     <span class="truncate">{{ channel.name }}</span>
+                    <span
+                        v-if="channel.unread > 0 && channel.id !== current"
+                        class="ml-auto shrink-0 rounded-full bg-accent px-1.5 text-[0.65rem] font-semibold leading-4 text-white"
+                        :aria-label="t('shared.space_chat.channels.unread', { count: channel.unread }, channel.unread)"
+                    >{{ channel.unread }}</span>
                 </button>
 
                 <!-- The question is asked by a modal, not by the rail. A

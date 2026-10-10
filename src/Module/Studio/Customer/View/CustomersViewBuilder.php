@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\View;
 
+use Aurora\Core\Locale\Service\LocaleOptionsProviderInterface;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
@@ -35,6 +36,7 @@ final readonly class CustomersViewBuilder
         private PipelineViewBuilder $pipelineViewBuilder,
         private CustomerInteractionRepository $interactionRepository,
         private CustomerInteractionSerializerInterface $interactionSerializer,
+        private LocaleOptionsProviderInterface $localeOptions,
     ) {}
 
     /**
@@ -53,6 +55,7 @@ final readonly class CustomersViewBuilder
         return [
             'customers' => $this->customers(),
             'currencies' => $this->currencyOptions(),
+            'locales' => $this->localeOptions->getActiveOptions(),
             'createPath' => $this->urlGenerator->generate('suite_studio_customers_create'),
             // Each customer's page: the list no longer edits, it leads there.
             'showPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_show', ['id' => '__id__']),
@@ -164,6 +167,7 @@ final readonly class CustomersViewBuilder
             'customer' => $this->customerSerializer->serialize($customer),
             'related' => $this->relatedViewBuilder->related($customer),
             'currencies' => $this->currencyOptions(),
+            'locales' => $this->localeOptions->getActiveOptions(),
             'indexPath' => $this->urlGenerator->generate('suite_studio_customers'),
             'updatePath' => $this->urlGenerator->generate('suite_studio_customers_update', ['id' => $id]),
             'convertPath' => $this->pathTemplateGenerator->generate('suite_studio_customers_convert', ['id' => '__id__']),

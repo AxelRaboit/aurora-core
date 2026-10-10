@@ -110,6 +110,10 @@ final readonly class SpaceActivityDigestHandler
                 ),
                 'url' => $url,
             ],
+            // The recipient's language, as their bells are: the site's
+            // email language is a default for strangers, not for a colleague
+            // who chose theirs.
+            locale: $recipient->getLocale()->value,
             subjectParameters: ['{space}' => $space->getName()],
         );
 

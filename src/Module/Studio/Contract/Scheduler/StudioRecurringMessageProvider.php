@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Contract\Scheduler;
 use Aurora\Core\Scheduler\RecurringMessageProviderInterface;
 use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Studio\Contract\Message\ExpireLapsedContractsMessage;
+use Aurora\Module\Studio\Contract\Message\NotifyEffectiveTerminationsMessage;
 use Aurora\Module\Studio\Contract\Message\RemindUnsignedContractsMessage;
 use Aurora\Module\Studio\Contract\Message\VerifyContractsMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
@@ -45,5 +46,7 @@ final readonly class StudioRecurringMessageProvider implements RecurringMessageP
         // Early, and quiet unless a sealed contract moved: then the
         // administrator has the list in the first mail of the day.
         yield RecurringMessage::cron('5 8 * * *', new VerifyContractsMessage(), $zone);
+        // The day a termination takes effect, before the day's work starts.
+        yield RecurringMessage::cron('0 8 * * *', new NotifyEffectiveTerminationsMessage(), $zone);
     }
 }

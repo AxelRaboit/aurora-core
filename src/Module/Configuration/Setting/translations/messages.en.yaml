@@ -53,6 +53,12 @@ suite:
             contract_follow_up:
                 title: "Contract follow-up"
                 lead: "How long contracts are kept, and the reminders for a contract left unanswered."
+            prospect_pipeline:
+                title: "Prospect follow-up"
+                lead: "What the prospect board shows."
+            system_health:
+                title: "System status"
+                lead: "The server's services the developer access overview watches, besides the application itself."
         studio_guide:
             title: "Your identity in contracts"
             step_1: "These fields fill in the provider identity block of each contract when it is sealed, and contracts already sealed keep their values."
@@ -589,6 +595,9 @@ suite:
         studio_contract_link_days:
             label: Signing link validity (days)
             description: "How many days the address sent to the client stays open. Between 1 and 365; a new send hands out a fresh one."
+        studio_pipeline_outcome_days:
+            label: "Won and lost deals shown (days)"
+            description: "How many days a won or lost deal stays in its column of the prospect board. Between 1 and 365; it always stays in the list."
         nav_section_aliases:
             label: Navigation section aliases
             description: JSON map of section aliases (managed via the UI).
@@ -624,6 +633,10 @@ suite:
         saved: Parameter saved.
         search_placeholder: Search by key…
         all_groups: All groups
+        system_health_units:
+            label: Watched systemd units
+            description: "The names of the server's systemd units to watch, separated by commas or spaces. Empty: none. Read with « systemctl show », without any special right; ignored on a machine without systemd."
+            placeholder: "my-worker.service, my-hub.service, my-backup.timer"
     title: Administration
     # Dashboard shell only - a module that draws a panel ships its own labels.
     stats:
@@ -645,6 +658,12 @@ suite:
             posts_pending_review: "post to review | posts to review"
             reminders_overdue: "overdue reminder | overdue reminders"
             follow_ups_due: "follow-up due | follow-ups due"
+            contracts_refused: "refused contract to rework | refused contracts to rework"
+            contracts_expired: "expired contract to resend | expired contracts to resend"
+            unread_client_messages: "unread client message | unread client messages"
+            contracts_waiting_long: "contract unanswered for more than 3 days | contracts unanswered for more than 3 days"
+            contract_links_expiring: "signing link expiring within 3 days | signing links expiring within 3 days"
+            space_links_expiring: "client access expiring within 14 days | client accesses expiring within 14 days"
     forms:
         errors:
             slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

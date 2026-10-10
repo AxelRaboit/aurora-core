@@ -1,0 +1,24 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{# What the studio did in a client's space, told to the client.
+
+   One mail for a batch of gestures, one line per kind of news, the first few
+   names on each: enough to decide whether to open it now. The button opens
+   their space, and opening it is what marks the news as read - the next mail
+   only carries what came after. #}
+{% block content %}
+<p>{{ 'studio.email.client_digest.body'|trans({'{company}': siteName, '{space}': space.name}) }}</p>
+
+<ul>
+    {% for line in lines %}
+        <li>{{ line.key|trans({'%count%': line.count, '{count}': line.count, '{names}': line.names}) }}</li>
+    {% endfor %}
+</ul>
+
+{{ include('@Shared/email/partials/action_button.html.twig', {
+    url: url,
+    label: 'studio.email.client_digest.cta'|trans,
+}) }}
+
+<p class="warning">{{ 'studio.email.client_digest.why'|trans({'{company}': siteName}) }}</p>
+{% endblock %}

@@ -9,6 +9,8 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
@@ -34,6 +36,12 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         protected readonly Security $security,
         protected readonly TranslatorInterface $translator,
         protected readonly SpaceActivityNotifier $notifier,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     public function attachAsStudio(SpaceContentItemInterface $item, DocumentInterface $document): SpaceContentAttachmentInterface
@@ -62,9 +70,22 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
             ->setPosition($this->attachmentRepository->nextPosition($item))
             ->addedByStudio($author, $authorLabel);
 
+        $wasAnswered = $item->getApproval()->isAnswered();
         $this->clearApprovalOf($item);
 
-        return $this->save($attachment);
+        $saved = $this->save($attachment);
+
+        // A visual on a card the client sees is news for them; one that
+        // replaced the visual they approved is news of another kind.
+        if ($item->isShownToClient()) {
+            if ($wasAnswered && $item->isAtClientStep()) {
+                $this->clientNoticeRecorder?->recordForItem($item, ClientNoticeTypeEnum::ApprovalReset, ClientNoticeRecorder::approvers());
+            } else {
+                $this->clientNoticeRecorder?->record($item->getSpace(), ClientNoticeTypeEnum::FileShared, $document->getOriginalName() ?? $document->getTitle());
+            }
+        }
+
+        return $saved;
     }
 
     public function uploadAsStudio(SpaceContentItemInterface $item, UploadedFile $file): SpaceContentAttachmentInterface

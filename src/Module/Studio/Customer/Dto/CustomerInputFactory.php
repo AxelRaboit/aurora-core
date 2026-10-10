@@ -66,6 +66,7 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
                 ? null
                 : (CurrencyEnum::tryFrom(Str::trimFromArray($data, 'estimatedValueCurrency')) ?? CurrencyEnum::EUR),
             lostReason: Str::trimOrNullFromArray($data, 'lostReason'),
+            locale: Str::trimOrNullFromArray($data, 'locale'),
         );
     }
 

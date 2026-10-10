@@ -53,6 +53,12 @@ suite:
             contract_follow_up:
                 title: "Seguimiento de contratos"
                 lead: "Cuánto tiempo se guardan los contratos, y los recordatorios de un contrato sin respuesta."
+            prospect_pipeline:
+                title: "Seguimiento de prospectos"
+                lead: "Lo que muestra el tablero de prospectos."
+            system_health:
+                title: "Estado del sistema"
+                lead: "Los servicios del servidor que vigila la vista general del acceso de desarrollador, además de la propia aplicación."
         studio_guide:
             title: 'Su identidad en los contratos'
             step_1: 'Estos campos rellenan el bloque de identidad del prestador de cada contrato en el momento de sellarlo, y los ya sellados conservan sus valores.'
@@ -589,6 +595,9 @@ suite:
         studio_contract_link_days:
             label: 'Validez de un enlace de firma (días)'
             description: 'Cuántos días permanece abierta la dirección enviada al cliente. Entre 1 y 365; un nuevo envío crea una nueva.'
+        studio_pipeline_outcome_days:
+            label: "Negocios ganados y perdidos mostrados (días)"
+            description: "Cuántos días un negocio ganado o perdido permanece en su columna del tablero de prospectos. Entre 1 y 365; siempre permanece en la lista."
         nav_section_aliases:
             label: 'Alias de las secciones de navegación'
             description: 'Mapa JSON de los alias de secciones (gestionado desde la interfaz).'
@@ -624,6 +633,10 @@ suite:
         saved: 'Ajuste guardado.'
         search_placeholder: 'Buscar por clave…'
         all_groups: 'Todos los grupos'
+        system_health_units:
+            label: Unidades systemd vigiladas
+            description: "Los nombres de las unidades systemd del servidor que vigilar, separados por comas o espacios. Vacío: ninguna. Se leen con « systemctl show », sin ningún derecho especial; se ignoran en una máquina sin systemd."
+            placeholder: "mi-worker.service, mi-hub.service, mi-copia.timer"
     title: Administración
     stats:
         guide:
@@ -644,6 +657,12 @@ suite:
             posts_pending_review: "publicación por revisar | publicaciones por revisar"
             reminders_overdue: "recordatorio atrasado | recordatorios atrasados"
             follow_ups_due: "seguimiento pendiente | seguimientos pendientes"
+            contracts_refused: "contrato rechazado por retomar | contratos rechazados por retomar"
+            contracts_expired: "contrato caducado por reenviar | contratos caducados por reenviar"
+            unread_client_messages: "mensaje de cliente sin leer | mensajes de cliente sin leer"
+            contracts_waiting_long: "contrato sin respuesta desde hace más de 3 días | contratos sin respuesta desde hace más de 3 días"
+            contract_links_expiring: "enlace de firma que caduca en menos de 3 días | enlaces de firma que caducan en menos de 3 días"
+            space_links_expiring: "acceso de cliente que caduca en menos de 14 días | accesos de cliente que caducan en menos de 14 días"
     forms:
         errors:
             slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'

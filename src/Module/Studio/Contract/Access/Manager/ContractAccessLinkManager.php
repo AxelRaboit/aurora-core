@@ -14,9 +14,11 @@ use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Service\ContractLinkLifetime;
+use Aurora\Module\Studio\Contract\Service\ContractTeamNotifier;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
@@ -50,6 +52,13 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractLinkLifetime $lifetime,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?ContractTeamNotifier $teamNotifier = null,
+        // Signs the token the client space opens a contract with. Last and
+        // defaulted, so a subclass written before it still constructs.
+        #[Autowire(param: 'kernel.secret')]
+        protected readonly string $secret = '',
     ) {}
 
     public function send(ContractInterface $contract): ContractAccessLinkInterface
@@ -203,7 +212,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
     {
         $this->mailService->send(
             to: $link->getRecipientEmail(),
-            subjectKey: $subjectKey,
+            // An amendment says so from the subject line: the customer has
+            // signed the original already, and « un contrat attend votre
+            // signature » read as the same document a second time.
+            subjectKey: $contract->isAmendment() ? sprintf('%s_amendment', $subjectKey) : $subjectKey,
             template: $template,
             context: [
                 'contract' => $contract,
@@ -219,7 +231,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             // the client read « le contrat {reference} attend votre
             // signature ». The first sending's subject has no placeholder and
             // ignores it.
-            subjectParameters: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: [
+                '{reference}' => (string) $contract->getReference(),
+                '{parent}' => (string) $contract->getAmendsReference(),
+            ],
         );
     }
 
@@ -255,11 +270,11 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
      */
     public function expireLapsed(): int
     {
-        $count = 0;
+        $expired = [];
 
         foreach ($this->accessLinkRepository->findContractsWaitingWithoutActiveLink() as $contract) {
             $contract->setStatus(ContractStatusEnum::Expired);
-            ++$count;
+            $expired[] = $contract;
 
             $this->auditLogger->log('studio', 'contract.expired', 'Contract', $contract->getId(), [
                 'reference' => $contract->getReference(),
@@ -268,7 +283,35 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
 
         $this->entityManager->flush();
 
-        return $count;
+        // Told once the statuses are saved. An expiry used to happen in
+        // silence: the contract left « with the customer » and landed among
+        // those to send with nobody hearing of it, and a contract the
+        // customer never signed is precisely one somebody has to chase.
+        foreach ($expired as $contract) {
+            $this->notifyExpired($contract);
+        }
+
+        return count($expired);
+    }
+
+    /**
+     * Tells the provider a contract lapsed unsigned.
+     *
+     * The administrator address, like a signature or a refusal, and the bell
+     * of the customer's team. Not the customer: they let the link run out,
+     * and the next thing they should hear is a new one, which only the
+     * provider can decide to send.
+     */
+    protected function notifyExpired(ContractInterface $contract): void
+    {
+        $this->mailService->sendToAdmin(
+            subjectKey: 'studio.email.contract_expired.subject',
+            template: '@Studio/email/contract_expired.html.twig',
+            context: ['contract' => $contract, 'customer' => $contract->getCustomer()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
+        );
+
+        $this->teamNotifier?->expired($contract);
     }
 
     /**
@@ -289,7 +332,9 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         // Constant time, on the hash rather than the secret: a comparison that
         // returns early on the first wrong character tells somebody how much of
         // it they have right.
-        if (!hash_equals($link->getHashedToken(), AbstractContractAccessLink::hashToken($token))) {
+        $spaceToken = $this->spaceToken($link);
+        if (!hash_equals($link->getHashedToken(), AbstractContractAccessLink::hashToken($token))
+            && (null === $spaceToken || !hash_equals($spaceToken, $token))) {
             return null;
         }
 
@@ -298,6 +343,25 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         }
 
         return $link;
+    }
+
+    /**
+     * The token a client space opens this link with, computed and never stored.
+     *
+     * The space lists the customer's contracts and offers to sign the one
+     * waiting; the long address went out by mail and exists nowhere else, and
+     * minting a new one would revoke the one in the customer's mailbox. Signed
+     * with the application's secret over the selector and the stored hash, it
+     * opens the same page under the same conditions and dies with the link.
+     * Signing still asks for the code mailed to the contractual address.
+     */
+    public function spaceToken(ContractAccessLinkInterface $link): ?string
+    {
+        if ('' === $this->secret) {
+            return null;
+        }
+
+        return hash_hmac('sha256', 'contract-space|'.$link->getSelector().'|'.$link->getHashedToken(), $this->secret);
     }
 
     /**

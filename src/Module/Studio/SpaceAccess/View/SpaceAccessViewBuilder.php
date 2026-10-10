@@ -43,6 +43,8 @@ final readonly class SpaceAccessViewBuilder
             'previewPath' => $this->pathTemplateGenerator->generate('workspace_space_access_preview', ['id' => $space->getId(), 'linkId' => '__id__']),
             'aliasPath' => $this->pathTemplateGenerator->generate('workspace_space_access_alias', ['id' => $space->getId(), 'linkId' => '__id__']),
             'aliasRemovePath' => $this->pathTemplateGenerator->generate('workspace_space_access_alias_remove', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'invitePath' => $this->pathTemplateGenerator->generate('workspace_space_access_invite', ['id' => $space->getId(), 'linkId' => '__id__']),
+            'extendPath' => $this->pathTemplateGenerator->generate('workspace_space_access_extend', ['id' => $space->getId(), 'linkId' => '__id__']),
         ];
     }
 
@@ -89,6 +91,7 @@ final readonly class SpaceAccessViewBuilder
             'canChat' => $link->canChat(),
             'canUpload' => $link->canUpload(),
             'canSeeDrive' => $link->canSeeDrive(),
+            'canSeeContracts' => $link->canSeeContracts(),
             // The short address can be shown again, unlike the long one: its
             // name is kept, encrypted, and its token is computed (10/10/2026).
             'shortUrl' => null === $link->getAlias() ? null : $this->urlGenerator->generate(

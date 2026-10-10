@@ -9,6 +9,7 @@ import AuditTab from "@dev/suite/audit/AuditTab.vue";
 import PermissionsTab from "@dev/suite/permissions/PermissionsTab.vue";
 import ModulesTab from "@dev/suite/modules/ModulesTab.vue";
 import MountPointsTab from "@dev/suite/mount-points/MountPointsTab.vue";
+import SystemHealthPanel from "@dev/suite/health/SystemHealthPanel.vue";
 
 const { t } = useI18n();
 
@@ -47,6 +48,10 @@ const props = defineProps({
     accessRequestRejectPath: { type: String, required: true },
     accessRequestPurgePath: { type: String, required: true },
     csrfToken: { type: String, default: "" },
+    /** The « État du système » report and its two gestures, read after the page is on screen. */
+    healthPath: { type: String, default: "" },
+    healthRetryPath: { type: String, default: "" },
+    healthDeletePath: { type: String, default: "" },
 });
 
 // Each tab is self-describing: label, icon, URL path and initial SSR data colocated.
@@ -102,6 +107,14 @@ function initialDataFor(key) {
                     <li v-for="step in 5" :key="step">{{ t(`suite.settings.administration_guide.step_${step}`) }}</li>
                 </ol>
             </AppGuide>
+            <!-- Above the figures: whether what produces them is running at all. -->
+            <SystemHealthPanel
+                v-if="tab === 'overview' && healthPath"
+                :health-path="healthPath"
+                :retry-path="healthRetryPath"
+                :delete-path="healthDeletePath"
+                :csrf-token="csrfToken"
+            />
             <KeepAlive>
                 <DashboardOverview
                     v-if="tab === 'overview'"

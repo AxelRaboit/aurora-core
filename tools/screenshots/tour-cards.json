@@ -917,6 +917,18 @@
         "tour-notes-remplacer-carnet": {
             "document": 906,
             "slug": "notes-markdown"
+        },
+        "tour-clients-tableau": {
+            "document": 907,
+            "slug": "clients-et-contrats"
+        },
+        "tour-clients-relances": {
+            "document": 908,
+            "slug": "clients-et-contrats"
+        },
+        "tour-client-suivi": {
+            "document": 909,
+            "slug": "clients-et-contrats"
         }
     }
 }

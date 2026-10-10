@@ -34,4 +34,7 @@ interface ContractAccessLinkManagerInterface
     public function markOpened(ContractAccessLinkInterface $link): void;
 
     public function urlFor(ContractAccessLinkInterface $link, string $token): string;
+
+    /** The token a client space opens this link with, or null without a secret. */
+    public function spaceToken(ContractAccessLinkInterface $link): ?string;
 }

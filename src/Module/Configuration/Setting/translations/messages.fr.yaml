@@ -53,6 +53,12 @@ suite:
             contract_follow_up:
                 title: "Suivi des contrats"
                 lead: "Combien de temps les contrats sont gardés, et les relances d'un contrat resté sans réponse."
+            prospect_pipeline:
+                title: "Suivi des prospects"
+                lead: "Ce que montre le tableau des prospects."
+            system_health:
+                title: "État du système"
+                lead: "Les services du serveur que la Vue d'ensemble de l'Accès développeur surveille, en plus de l'application elle-même."
         studio_guide:
             title: "Votre identité dans les contrats"
             step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."
@@ -589,6 +595,9 @@ suite:
         studio_contract_link_days:
             label: Validité d'un lien de signature (jours)
             description: "Combien de jours l'adresse envoyée au client reste ouverte. Entre 1 et 365 ; un nouvel envoi en crée une neuve."
+        studio_pipeline_outcome_days:
+            label: "Affaires gagnées et perdues affichées (jours)"
+            description: "Combien de jours une affaire gagnée ou perdue reste dans ses colonnes du tableau des prospects. Entre 1 et 365 ; elle reste toujours dans la liste."
         nav_section_aliases:
             label: Alias des sections de navigation
             description: 'Carte JSON des alias de sections (géré via l''interface).'
@@ -624,6 +633,10 @@ suite:
         saved: Paramètre enregistré.
         search_placeholder: Rechercher par clé…
         all_groups: Tous les groupes
+        system_health_units:
+            label: Unités systemd surveillées
+            description: "Les noms des unités systemd du serveur à surveiller, séparés par des virgules ou des espaces. Vide : aucune. Lu avec « systemctl show », sans droit particulier ; ignoré sur une machine sans systemd."
+            placeholder: "mon-worker.service, mon-hub.service, ma-sauvegarde.timer"
     title: Administration
     # Dashboard shell only - a module that draws a panel ships its own
     # labels.
@@ -646,6 +659,12 @@ suite:
             posts_pending_review: "publication à relire | publications à relire"
             reminders_overdue: "rappel en retard | rappels en retard"
             follow_ups_due: "relance à faire | relances à faire"
+            contracts_refused: "contrat refusé à reprendre | contrats refusés à reprendre"
+            contracts_expired: "contrat expiré à renvoyer | contrats expirés à renvoyer"
+            unread_client_messages: "message client non lu | messages client non lus"
+            contracts_waiting_long: "contrat sans réponse depuis plus de 3 jours | contrats sans réponse depuis plus de 3 jours"
+            contract_links_expiring: "lien de signature qui expire sous 3 jours | liens de signature qui expirent sous 3 jours"
+            space_links_expiring: "accès client qui expire sous 14 jours | accès client qui expirent sous 14 jours"
     forms:
         errors:
             slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

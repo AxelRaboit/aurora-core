@@ -1,0 +1,15 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{# The customer's receipt for their own signature.
+
+   Signing used to end on the page: nothing in the mailbox said it had worked,
+   or what came next. This says both, and nothing of the document itself - the
+   signed copy follows once the provider countersigns, attached to the mail
+   that says the contract is concluded. #}
+{% block content %}
+<p>{{ 'studio.email.signature_received.body'|trans({'{reference}': contract.reference, '{at}': signature.signedAt|site_datetime}) }}</p>
+
+<p>{{ 'studio.email.signature_received.next'|trans({'{company}': siteName}) }}</p>
+
+<p class="warning">{{ 'studio.email.signature_received.hash'|trans({'{hash}': signature.signedContentHash|slice(0, 16)}) }}</p>
+{% endblock %}

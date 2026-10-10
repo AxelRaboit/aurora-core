@@ -30,6 +30,8 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_filter;
+use function array_values;
 use function json_decode;
 use function preg_match;
 use function sprintf;
@@ -131,6 +133,15 @@ final class ContractSigningFlowTest extends IntegrationTestCase
 
         $guest->jsonRequest('POST', $url.'/sign', $this->signPayload($code));
         self::assertSame(200, $guest->getResponse()->getStatusCode());
+
+        // The customer keeps a receipt: signing used to end on the page, with
+        // nothing in their mailbox to say it had worked.
+        $receipts = array_filter(
+            $this->mailerMessages(),
+            static fn (Email $email): bool => 'contact@durand.test' === ($email->getTo()[0] ?? null)?->getAddress(),
+        );
+        self::assertCount(1, $receipts);
+        self::assertStringContainsString('signature est enregistrée', (string) array_values($receipts)[0]->getSubject());
 
         $this->entityManager->clear();
         $contract = $this->contractRepository->find($contractId);
