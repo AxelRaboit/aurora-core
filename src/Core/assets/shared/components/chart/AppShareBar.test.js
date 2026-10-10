@@ -94,9 +94,15 @@ describe("AppShareBar", () => {
             { key: "archived", label: "Archivée", value: 3, slot: "muted" },
         ]).findAll("li");
 
-        expect(legend[0].find("span").attributes("style")).toContain("var(--color-secondary)");
-        expect(legend[1].find("span").attributes("style")).toContain("var(--color-primary)");
-        expect(legend[2].find("span").attributes("style")).toContain("var(--color-muted)");
+        expect(legend[0].find("span").attributes("style")).toContain(
+            "var(--color-secondary)",
+        );
+        expect(legend[1].find("span").attributes("style")).toContain(
+            "var(--color-primary)",
+        );
+        expect(legend[2].find("span").attributes("style")).toContain(
+            "var(--color-muted)",
+        );
     });
 
     it("lays the legend out as ruled rows, the count beside its name", () => {
