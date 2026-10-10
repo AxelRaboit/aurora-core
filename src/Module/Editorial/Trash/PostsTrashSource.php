@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Trash;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -20,7 +20,7 @@ use Aurora\Module\Editorial\Post\Service\PostAccessService;
  * forgetting that would be a leak rather than a detail: the count, the rows
  * and the oldest date all go through the same author filter.
  */
-final readonly class PostsTrashSource implements TrashSourceInterface
+final readonly class PostsTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(
         private PostRepository $postRepository,
@@ -36,6 +36,11 @@ final readonly class PostsTrashSource implements TrashSourceInterface
     public function getRequiredPrivilege(): string
     {
         return 'editorial.posts.view';
+    }
+
+    public function countTrashed(): int
+    {
+        return $this->postRepository->countTrashed($this->postAccessService->scopedAuthorId());
     }
 
     public function getSummary(int $limit): TrashSummary

@@ -10,13 +10,8 @@ import {
 
 describe("statusBadge", () => {
     it("returns the correct classes for known statuses", () => {
-        expect(statusBadge("published")).toBe(
-            "bg-emerald-500/15 text-emerald-400",
-        );
-        expect(statusBadge("draft")).toBe("bg-surface-2 text-secondary");
-        expect(statusBadge("pending_review")).toBe(
-            "bg-amber-500/15 text-amber-400",
-        );
+        expect(statusBadge("draft")).toBe("bg-amber-500/15 text-amber-400");
+        expect(statusBadge("published")).toBe("bg-primary/10 text-primary");
     });
 
     it("returns fallback classes for unknown status", () => {
@@ -26,8 +21,8 @@ describe("statusBadge", () => {
 
 describe("statusBadgeColor", () => {
     it("returns color name for known status", () => {
-        expect(statusBadgeColor("scheduled")).toBe("sky");
-        expect(statusBadgeColor("archived")).toBe("zinc");
+        expect(statusBadgeColor("scheduled")).toBe("emerald");
+        expect(statusBadgeColor("published")).toBe("ink");
     });
 
     it("returns gray for unknown status", () => {

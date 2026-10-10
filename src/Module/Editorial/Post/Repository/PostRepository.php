@@ -676,13 +676,21 @@ class PostRepository extends ResolveTargetEntityRepository
         return (int) $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
-    public function countTrashed(): int
+    /**
+     * Publications in the trash, all of them or one author's - the scope the
+     * trash screen applies (`PostAccessService::scopedAuthorId()`).
+     */
+    public function countTrashed(?int $authorId = null): int
     {
-        return (int) $this->createQueryBuilder('p')
+        $queryBuilder = $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
-            ->where('p.deletedAt IS NOT NULL')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->where('p.deletedAt IS NOT NULL');
+
+        if (null !== $authorId) {
+            $queryBuilder->andWhere('p.author = :authorId')->setParameter('authorId', $authorId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**

@@ -455,7 +455,7 @@ Pill coloré statut. `<span>` ou `<a>` si `href`.
 | `spinning` | `Boolean` | `false` (icône qui tourne, ex « En cours ») |
 
 Couleurs supportées : `accent`, `rose`, `sky`, `amber`, `emerald`, `violet`,
-`slate`, `gray`. **Pas de hex personnalisé** - c'est un set fermé.
+`slate`, `gray`, `ink` (la couleur du texte sur sa teinte : un état réglé, une publication publiée). **Pas de hex personnalisé** - c'est un set fermé.
 
 ```vue
 <AppBadge color="emerald">{{ $t('status.active') }}</AppBadge>
@@ -851,8 +851,10 @@ Un segment peut nommer son `slot` quand la couleur appartient à la chose plutô
 qu'à son rang (un rôle, un statut de publication : `POST_STATUS_CHART_SLOTS`
 dans `statusStyles.js`, aligné sur les badges de la liste). `slot: "neutral"` et
 `slot: "muted"` donnent les deux gris de l'interface, pour un état qui n'est pas
-une catégorie (un brouillon, une publication archivée) : la palette n'a pas de
-gris, exprès. Des créneaux nommés ne sont plus voisins dans l'ordre validé :
+une catégorie (une publication archivée), et `slot: "ink"` la couleur du texte,
+pour l'état réglé d'une série (une publication publiée) : la palette n'a pas de
+gris, exprès. La légende est une grille de deux colonnes (une sur téléphone),
+une ligne filetée par entrée : le nom à gauche, le nombre et sa part à droite. Des créneaux nommés ne sont plus voisins dans l'ordre validé :
 mesurer leurs jointures sous protanopie, deutéranopie et tritanopie avant de
 les poser.
 

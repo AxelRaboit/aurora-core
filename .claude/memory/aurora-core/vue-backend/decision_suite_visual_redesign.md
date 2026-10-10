@@ -38,9 +38,12 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   `SidemenuExtension` (`sidemenu_nav_sections(true)` dans le layout, et la vue
   de module). Comptés : publications (au périmètre de la liste,
   `PostAccessService::scopedAuthorId()`), types de contenu, taxonomies,
-  documents, utilisateurs. **Pas la corbeille** : neuf sources à interroger à
-  chaque page, trop cher pour un chiffre. Pas Studio : ses listes ont des
-  périmètres (mes espaces, perso/partagés) qu'un compte global trahirait.
+  documents, utilisateurs, et la corbeille (`TrashOverviewService::countAll`,
+  mêmes sources et mêmes droits que l'écran ; chaque source implémente
+  `CountableTrashSourceInterface` pour se compter en une requête). Mesuré le
+  10/10 : 9 → 23 requêtes sur la liste des utilisateurs en dev, dont 9 pour la
+  corbeille. Pas Studio : ses listes ont des périmètres (mes espaces,
+  perso/partagés) qu'un compte global trahirait.
 - **Un chiffre de tableau de bord = `AppStatTile`, un bloc = `AppSectionCard`.**
   La tuile s'aligne par sous-grille : la poser directement dans la grille.
 - **Une couleur par statut de publication, une seule source** :
@@ -67,8 +70,10 @@ l'un de l'autre.
   `POST_STATUS_COLORS`, ne pas recopier la table.
 - Créneaux de graphique nommés : voir [[convention_chart_palette]] (mesurer les
   jointures sous les trois déficiences).
-- Écarts à la maquette, assumés : la légende des barres reste en ligne
-  (une grille de deux colonnes éloignait le chiffre de son nom, cf.
-  `AppShareBar`), les statuts gardent les couleurs des badges de la liste
-  (publiée verte, brouillon gris) plutôt qu'ardoise / ambre, pas de chiffre
-  sur la corbeille ni d'étiquettes de valeurs sur la courbe.
+- **Palette des statuts de la maquette** : brouillon ambre, en revue ciel,
+  programmée émeraude, publiée ardoise (`ink` : badge `bg-primary/10
+  text-primary`, créneau `ink` = `--color-primary`), archivée gris. Violet
+  refusé pour « programmée » (protanopie, sombre : 2,5 contre le bleu).
+- **Légende des barres en grille** de deux colonnes, filetée.
+- **Courbe annotée** : plugin Chart.js inline (`AppChart` accepte `plugins`)
+  qui écrit le pic et le dernier mois.

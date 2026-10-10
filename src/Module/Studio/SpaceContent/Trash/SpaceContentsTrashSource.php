@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceContent\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -28,7 +28,7 @@ use function count;
  * Restoring and destroying require the right that put the content there,
  * editing the space.
  */
-final readonly class SpaceContentsTrashSource implements TrashSourceInterface
+final readonly class SpaceContentsTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(
         private SpaceContentItemRepository $itemRepository,
@@ -46,14 +46,14 @@ final readonly class SpaceContentsTrashSource implements TrashSourceInterface
         return 'studio.spaces.view';
     }
 
+    public function countTrashed(): int
+    {
+        return count($this->visibleRows());
+    }
+
     public function getSummary(int $limit): TrashSummary
     {
-        $rows = $this->studioContext->areSpacesEnabled()
-            ? array_values(array_filter(
-                $this->itemRepository->findAllTrashed(),
-                fn (SpaceContentItemInterface $item): bool => $this->visibility->canSee($item->getSpace()),
-            ))
-            : [];
+        $rows = $this->visibleRows();
 
         $oldest = null;
         foreach ($rows as $row) {
@@ -86,5 +86,21 @@ final readonly class SpaceContentsTrashSource implements TrashSourceInterface
             deletedAt: $item->getDeletedAt(),
             context: $item->getSpace()->getName(),
         );
+    }
+
+    /**
+     * The trashed contents the reader may see, read once for the summary and
+     * for the count alike.
+     *
+     * @return list<SpaceContentItemInterface>
+     */
+    private function visibleRows(): array
+    {
+        return $this->studioContext->areSpacesEnabled()
+            ? array_values(array_filter(
+                $this->itemRepository->findAllTrashed(),
+                fn (SpaceContentItemInterface $item): bool => $this->visibility->canSee($item->getSpace()),
+            ))
+            : [];
     }
 }

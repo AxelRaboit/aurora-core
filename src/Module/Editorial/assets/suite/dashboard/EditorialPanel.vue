@@ -122,6 +122,51 @@ const commentCount = computed(() =>
     Object.values(props.stats.commentsByStatus ?? {}).reduce((sum, count) => sum + count, 0),
 );
 
+/**
+ * The two values worth reading off the curve without hovering it: its highest
+ * month and the month in progress, written above their points as the
+ * validated mockup does (10/10/2026). Drawn on the canvas, in the theme's text
+ * colour read at draw time, so the dark theme gets light figures.
+ */
+const valueTags = {
+    id: "editorialValueTags",
+    afterDatasetsDraw(chart) {
+        const values = chart.data.datasets[0]?.data ?? [];
+        const points = chart.getDatasetMeta(0)?.data ?? [];
+        if (!values.length || points.length !== values.length) return;
+
+        const lastIndex = values.length - 1;
+        const peakIndex = values.indexOf(Math.max(...values));
+        const tagged = peakIndex === lastIndex ? [lastIndex] : [peakIndex, lastIndex];
+
+        const rootStyle = getComputedStyle(document.documentElement);
+        const canvasContext = chart.ctx;
+        canvasContext.save();
+        canvasContext.font = `600 12px ${rootStyle.getPropertyValue("--th-font-sans").trim() || "sans-serif"}`;
+        canvasContext.fillStyle = rootStyle.getPropertyValue("--th-primary").trim() || "#111827";
+        for (const index of tagged) {
+            if (values[index] <= 0) continue;
+            const { x, y } = points[index];
+            if (index === lastIndex && index !== peakIndex) {
+                // The last point sits on the right edge, and the curve comes
+                // into it from the left: its figure goes below and to the
+                // left, where neither the canvas edge nor the line cuts it.
+                canvasContext.textAlign = "right";
+                canvasContext.textBaseline = "top";
+                canvasContext.fillText(String(values[index]), x - 8, y + 8);
+            } else {
+                canvasContext.textAlign = index === lastIndex ? "right" : "center";
+                canvasContext.textBaseline = "bottom";
+                canvasContext.fillText(String(values[index]), index === lastIndex ? x - 8 : x, y - 9);
+            }
+        }
+        canvasContext.restore();
+    },
+};
+
+// Room above the curve for the peak's figure.
+const chartOptions = { layout: { padding: { top: 22 } } };
+
 const hasActivity = computed(() =>
     Object.values(props.stats.publishedByMonth ?? {}).some((count) => count > 0),
 );
@@ -173,7 +218,7 @@ const byStatus = computed(() =>
             <!-- A fixed height, because the canvas has no content to be sized by
                  and `maintainAspectRatio: false` leaves it to the parent. -->
             <div class="h-56">
-                <AppChart type="line" :data="publishedByMonth" />
+                <AppChart type="line" :data="publishedByMonth" :options="chartOptions" :plugins="[valueTags]" />
             </div>
         </AppSectionCard>
 

@@ -47,6 +47,21 @@ final class SidemenuCountsTest extends IntegrationTestCase
         );
     }
 
+    public function testTheTrashFigureIsWhatTheTrashScreenLists(): void
+    {
+        $items = $this->menuItems();
+
+        $this->client->request('GET', '/suite/trash/list');
+        self::assertResponseIsSuccessful();
+        $trashes = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['trashes'];
+
+        self::assertSame(
+            array_sum(array_column($trashes, 'count')),
+            $items['suite_general_trash']['count'] ?? null,
+            'The figure beside « Corbeille » must be the sum of the trashes its screen lists.',
+        );
+    }
+
     public function testAnEntryNobodyCountsHasNoFigure(): void
     {
         $items = $this->menuItems();

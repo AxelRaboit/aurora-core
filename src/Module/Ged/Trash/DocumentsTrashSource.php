@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Ged\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 
-final readonly class DocumentsTrashSource implements TrashSourceInterface
+final readonly class DocumentsTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(private DocumentRepository $documentRepository) {}
 
@@ -22,6 +22,11 @@ final readonly class DocumentsTrashSource implements TrashSourceInterface
     public function getRequiredPrivilege(): string
     {
         return 'ged.documents.view';
+    }
+
+    public function countTrashed(): int
+    {
+        return $this->documentRepository->countTrashed();
     }
 
     public function getSummary(int $limit): TrashSummary

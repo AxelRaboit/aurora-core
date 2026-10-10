@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Trash;
 
+use Aurora\Core\Trash\CountableTrashSourceInterface;
 use Aurora\Core\Trash\TrashItem;
-use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
@@ -20,7 +20,7 @@ use Symfony\Bundle\SecurityBundle\Security;
  * there is nothing to count, and the row is shown empty rather than hidden, so
  * the page does not change shape depending on how it was reached.
  */
-final readonly class NotesTrashSource implements TrashSourceInterface
+final readonly class NotesTrashSource implements CountableTrashSourceInterface
 {
     public function __construct(
         private MarkdownNoteRepository $noteRepository,
@@ -35,6 +35,13 @@ final readonly class NotesTrashSource implements TrashSourceInterface
     public function getRequiredPrivilege(): string
     {
         return 'notes.markdown.use';
+    }
+
+    public function countTrashed(): int
+    {
+        $user = $this->security->getUser();
+
+        return $user instanceof CoreUserInterface ? count($this->noteRepository->findTrashedRootsForUser($user)) : 0;
     }
 
     public function getSummary(int $limit): TrashSummary

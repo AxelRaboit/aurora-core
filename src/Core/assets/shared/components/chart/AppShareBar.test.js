@@ -86,4 +86,24 @@ describe("AppShareBar", () => {
         expect(text).toContain("Publiée");
         expect(text).toContain("80");
     });
+
+    it("paints the interface's own colours for the named neutral slots", () => {
+        const legend = mountBar([
+            { key: "draft", label: "Brouillon", value: 1, slot: "neutral" },
+            { key: "published", label: "Publiée", value: 2, slot: "ink" },
+            { key: "archived", label: "Archivée", value: 3, slot: "muted" },
+        ]).findAll("li");
+
+        expect(legend[0].find("span").attributes("style")).toContain("var(--color-secondary)");
+        expect(legend[1].find("span").attributes("style")).toContain("var(--color-primary)");
+        expect(legend[2].find("span").attributes("style")).toContain("var(--color-muted)");
+    });
+
+    it("lays the legend out as ruled rows, the count beside its name", () => {
+        const row = mountBar(THREE).find("li[data-share-legend]");
+
+        expect(row.classes()).toContain("border-t");
+        expect(row.text()).toContain("Brouillon");
+        expect(row.text()).toContain("20");
+    });
 });

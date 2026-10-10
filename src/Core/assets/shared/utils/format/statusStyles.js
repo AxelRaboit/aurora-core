@@ -3,26 +3,29 @@
  * list, the editor, the revisions, the search palette and the dashboard.
  *
  * Written once, here. The list, the editor and the revisions each kept their
- * own copy - three that agreed - while the search palette and this file
- * carried a fourth that did not: a draft was grey in the list and amber in the
- * search, a scheduled post sky in one and violet in the other (visual redesign
- * of the suite, 09/10/2026). A draft is grey because nothing is asked of
- * anyone yet; amber is kept for what waits on a reviewer.
+ * own copy while the search palette carried a fourth that disagreed (visual
+ * redesign of the suite, 09/10/2026).
+ *
+ * The palette is the validated mockup's (10/10/2026): a published post is in
+ * ardoise, the text colour itself - it is the settled state, the one that
+ * needs nothing - and a draft in amber, because a draft is what is left to
+ * do. Waiting for a reviewer is sky, dated for later is emerald (it will go
+ * out on its own), archived is grey.
  */
 export const POST_STATUS_COLORS = Object.freeze({
-    draft: "gray",
-    pending_review: "amber",
-    scheduled: "sky",
-    published: "emerald",
-    archived: "zinc",
+    draft: "amber",
+    pending_review: "sky",
+    scheduled: "emerald",
+    published: "ink",
+    archived: "gray",
 });
 
 const POST_STATUS_CLASSES = {
-    draft: "bg-surface-2 text-secondary",
-    pending_review: "bg-amber-500/15 text-amber-400",
-    scheduled: "bg-sky-500/15 text-sky-400",
-    published: "bg-emerald-500/15 text-emerald-400",
-    archived: "bg-zinc-500/15 text-zinc-400",
+    draft: "bg-amber-500/15 text-amber-400",
+    pending_review: "bg-sky-500/15 text-sky-400",
+    scheduled: "bg-emerald-500/15 text-emerald-400",
+    published: "bg-primary/10 text-primary",
+    archived: "bg-surface-2 text-secondary",
 };
 
 export function statusBadge(status) {
@@ -38,29 +41,22 @@ export function statusBadgeColor(status) {
  * for `AppShareBar`'s `slot`.
  *
  * The colour belongs to the status, not to its rank, so it is named rather
- * than left to the position: a dashboard bar painted by position showed a
- * published post in yellow, three rows above a list that shows it green. Each
- * status takes the slot nearest its badge - green for emerald, yellow for
- * amber, blue for sky - and the two greys the palette deliberately lacks come
- * from the interface's own neutrals, which `AppShareBar` reads as `neutral`
- * and `muted`.
+ * than left to the position: each status takes the slot nearest its badge -
+ * yellow for amber, blue for sky, aqua for emerald - and the two the palette
+ * deliberately lacks come from the interface itself: `ink` (the text colour)
+ * for published, `muted` (the light grey) for archived.
  *
  * The palette was validated for neighbours in its own order, and these are not
- * neighbours there, so the four joints of the bar (grey, yellow, blue, green,
- * light grey) were measured again under protanopia, deuteranopia and
- * tritanopia, in both modes: the closest pair is blue against green under
- * tritanopia, about twice the separation of aqua against blue, which is why
- * published takes the green slot and not the aqua one (09/10/2026).
- *
- * Comments keep the palette's order: their natural colours are green for
- * approved and red for spam, the one pair colour-blind readers cannot tell
- * apart, and the legend already names each part.
+ * neighbours there, so the four joints of the bar were measured again under
+ * protanopia, deuteranopia and tritanopia, in both modes (10/10/2026). Violet
+ * for "scheduled" was tried first and refused: against the blue of "waiting"
+ * it all but vanished for a protanope in the dark theme. Aqua holds.
  */
 export const POST_STATUS_CHART_SLOTS = Object.freeze({
-    draft: "neutral",
-    pending_review: 4,
-    scheduled: 1,
-    published: 6,
+    draft: 4,
+    pending_review: 1,
+    scheduled: 3,
+    published: "ink",
     archived: "muted",
 });
 
