@@ -264,6 +264,11 @@ describe("the column's head, the drawer's too", () => {
         });
 
         expect(wrapper.find("[data-sidemenu-foot]").text()).toContain("4.9.0");
+        // Its own element: the tour's capture script hides `[data-app-version]`,
+        // and a version merged into the copyright showed "dev" on every shot.
+        expect(
+            wrapper.find("[data-sidemenu-foot] [data-app-version]").text(),
+        ).toContain("4.9.0");
     });
 });
 
