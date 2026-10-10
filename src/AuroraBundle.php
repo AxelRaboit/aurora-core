@@ -166,6 +166,8 @@ use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMemberInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatReadMarker;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatReadMarkerInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
@@ -327,6 +329,7 @@ class AuroraBundle extends AbstractBundle
                     SpaceChatMessageInterface::class => SpaceChatMessage::class,
                     SpaceChatChannelInterface::class => SpaceChatChannel::class,
                     SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
+                    SpaceChatReadMarkerInterface::class => SpaceChatReadMarker::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     SpaceResourceInterface::class => SpaceResource::class,
                     ClientNoticeInterface::class => ClientNotice::class,

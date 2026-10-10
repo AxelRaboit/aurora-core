@@ -143,6 +143,10 @@ const props = defineProps({
     chatReloadPath: { type: String, required: true },
     chatDeletePath: { type: String, required: true },
     chatChannels: { type: Array, default: () => [] },
+    /** Messages this reader has not read, across their rooms. */
+    chatUnread: { type: Number, default: 0 },
+    /** With `__channel__`: marks a room read when it is on screen. */
+    chatReadPath: { type: String, default: null },
     chatChannelId: { type: [Number, null], default: null },
     chatTeam: { type: Array, default: () => [] },
     chatChannelCreatePath: { type: String, default: null },
@@ -264,7 +268,12 @@ const views = computed(() =>
 const reviewBannerHidden = ref(false);
 
 /** What is waiting for an action, per section: the posts to send for review. */
-const navBadges = computed(() => ({ content: can("studio.spaces.share") ? props.awaitingApproval : 0 }));
+const chatUnreadLeft = ref(props.chatUnread);
+const navBadges = computed(() => ({
+    content: can("studio.spaces.share") ? props.awaitingApproval : 0,
+    // Gone once the conversation is opened: the panel marks what it shows.
+    chat: chatUnreadLeft.value,
+}));
 const navUrgent = computed(() => (props.lateForReview > 0 ? ["content"] : []));
 
 /**
@@ -314,6 +323,13 @@ watch(
 );
 
 watch(view, (next) => viewInUrl.set(next), { immediate: true });
+watch(
+    view,
+    (next) => {
+        if ("chat" === next) chatUnreadLeft.value = 0;
+    },
+    { immediate: true },
+);
 
 const {
     shape,
@@ -789,6 +805,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     :chat-direct-path="editable ? chatDirectPath : null"
                     :older-path="chatOlderPath"
                     :hide-path="editable ? chatHidePath : null"
+                    :read-path="chatReadPath"
                     :people="chatPeople"
                 />
             </div>

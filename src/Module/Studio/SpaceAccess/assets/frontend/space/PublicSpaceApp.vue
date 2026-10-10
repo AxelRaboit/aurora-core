@@ -24,7 +24,7 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip, Upload } from "lucide-vue-next";
+import { CalendarDays, FileSignature, IdCard, Link2, MessagesSquare, NotebookText, Paperclip, Upload } from "lucide-vue-next";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -91,6 +91,10 @@ const props = defineProps({
     chatPostPath: { type: String, default: null },
     chatReloadPath: { type: String, required: true },
     chatChannels: { type: Array, default: () => [] },
+    /** Messages this person has not read yet, across their rooms. */
+    chatUnread: { type: Number, default: 0 },
+    /** With `__channel__`: marks the open room read. Null on a preview. */
+    chatReadPath: { type: String, default: null },
     chatDirectPath: { type: String, default: null },
     chatOlderPath: { type: String, default: null },
     chatHidePath: { type: String, default: null },
@@ -113,6 +117,12 @@ const props = defineProps({
      * page is what makes it seen.
      */
     news: { type: Array, default: () => [] },
+    /**
+     * The customer's contracts that reached them, when this link may see
+     * them: `{ id, reference, isAmendment, amendsReference, step, signUrl,
+     * pdfUrl, effectiveDate, terminationEffectiveAt }`.
+     */
+    contracts: { type: Array, default: () => [] },
 });
 
 const { t, d: formatDate } = useI18n();
@@ -266,6 +276,8 @@ const VIEWS = [
     // What the provider wrote for this client, an audit, a strategy: they are
     // read, so they sit near the files rather than with the record.
     { key: "documents", labelKey: "studio.public.space.tab_documents", icon: NotebookText },
+    // What binds them, near what they read: one to sign, the signed copies.
+    { key: "contracts", labelKey: "studio.public.space.tab_contracts", icon: FileSignature },
     // What the provider pinned for this client, then the record they keep on
     // them. Last because they are looked up now and then: what people come to
     // see is the calendar.
@@ -281,6 +293,7 @@ const hasFiles = computed(
 );
 const hasResources = computed(() => props.resources.length > 0);
 const hasDocuments = computed(() => props.documents.length > 0);
+const hasContracts = computed(() => props.contracts.length > 0);
 const hasInformation = computed(() => null !== props.information);
 
 const views = computed(() => VIEWS.filter((entry) => {
@@ -288,12 +301,61 @@ const views = computed(() => VIEWS.filter((entry) => {
     if ("files" === entry.key) return hasFiles.value;
     if ("resources" === entry.key) return hasResources.value;
     if ("documents" === entry.key) return hasDocuments.value;
+    if ("contracts" === entry.key) return hasContracts.value;
     if ("information" === entry.key) return hasInformation.value;
 
     return true;
 }));
 
 const view = ref("calendar");
+
+/**
+ * The count on the conversation's tab, gone once it is opened: the panel marks
+ * what it shows as read.
+ */
+const chatUnreadLeft = ref(props.chatUnread);
+watch(view, (next) => {
+    if ("chat" === next) chatUnreadLeft.value = 0;
+});
+
+function badgeOf(key) {
+    return "chat" === key && "chat" !== view.value ? chatUnreadLeft.value : 0;
+}
+
+/**
+ * What waits on this person, before anything else: the contents to give an
+ * opinion on, the contracts to sign. Each line opens where it is done.
+ */
+const contractsToSign = computed(() => props.contracts.filter((contract) => "to_sign" === contract.step).length);
+
+const todo = computed(() => {
+    const lines = [];
+
+    if (props.canApprove && pendingEvents.value.length > 0) {
+        lines.push({ key: "review", count: pendingEvents.value.length });
+    }
+    if (contractsToSign.value > 0) {
+        lines.push({ key: "sign", count: contractsToSign.value });
+    }
+
+    return lines;
+});
+
+function openTodo(line) {
+    if ("review" === line.key) {
+        view.value = "calendar";
+        reviewOnly.value = true;
+    } else if ("sign" === line.key) {
+        view.value = "contracts";
+    }
+}
+
+/** A contract's name as the customer reads it: an amendment says which contract it changes. */
+function contractTitle(contract) {
+    return contract.isAmendment
+        ? t("studio.public.space.contracts.amendment_title", { reference: contract.reference, parent: contract.amendsReference })
+        : t("studio.public.space.contracts.title", { reference: contract.reference });
+}
 
 /** A line of news opens the tab it is about, when the page has that tab. */
 function openNews(line) {
@@ -656,6 +718,25 @@ function isLate(event) {
              reason most people open the page, and the line a digest mail
              points at. Each line opens its tab. -->
         <section
+            v-if="todo.length"
+            class="aurora-card space-y-2 border-accent/40 p-4"
+            :aria-label="t('studio.public.space.todo_title')"
+        >
+            <h2 class="m-0 text-sm font-semibold text-primary">{{ t("studio.public.space.todo_title") }}</h2>
+            <ul class="m-0 flex list-none flex-col gap-1 p-0">
+                <li v-for="line in todo" :key="line.key">
+                    <button
+                        type="button"
+                        class="w-full rounded-md px-2 py-1 text-left text-sm font-medium text-accent transition-colors hover:bg-surface-2"
+                        v-on:click="openTodo(line)"
+                    >
+                        {{ t(`studio.public.space.todo.${line.key}`, { count: line.count }, line.count) }}
+                    </button>
+                </li>
+            </ul>
+        </section>
+
+        <section
             v-if="news.length"
             class="aurora-card space-y-2 p-4"
             :aria-label="t('studio.public.space.news_title')"
@@ -711,6 +792,10 @@ function isLate(event) {
                 <span :class="view === entry.key ? '' : 'sr-only sm:not-sr-only'">
                     {{ t(entry.labelKey) }}
                 </span>
+                <span
+                    v-if="badgeOf(entry.key) > 0"
+                    class="shrink-0 rounded-full bg-accent px-1.5 text-[0.65rem] font-semibold leading-4 text-white"
+                >{{ badgeOf(entry.key) }}</span>
             </button>
         </div>
 
@@ -906,6 +991,7 @@ function isLate(event) {
             :chat-direct-path="chatDirectPath"
             :older-path="chatOlderPath"
             :hide-path="chatHidePath"
+            :read-path="chatReadPath"
             :people="chatPeople"
             own-side="client"
             :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
@@ -1075,6 +1161,38 @@ function isLate(event) {
         <!-- The documents written for this client. Each opens in its own
              page, without the rest of the space around it, through the
              space's link: no extra password. -->
+        <section v-if="'contracts' === view" class="space-y-3">
+            <ul class="m-0 flex list-none flex-col gap-2 p-0">
+                <li v-for="contract in contracts" :key="contract.id" class="aurora-card flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span class="flex min-w-0 flex-col gap-1">
+                        <span class="text-sm font-medium text-primary">{{ contractTitle(contract) }}</span>
+                        <span class="text-xs text-secondary">{{ t(`studio.public.space.contracts.steps.${contract.step}`) }}</span>
+                        <span v-if="'ended' === contract.step && contract.terminationEffectiveAt" class="text-xs text-muted">
+                            {{ t("studio.public.space.contracts.ended_on", { date: formatDate(new Date(contract.terminationEffectiveAt), "long") }) }}
+                        </span>
+                    </span>
+                    <span class="flex shrink-0 flex-wrap gap-2">
+                        <a
+                            v-if="contract.signUrl"
+                            :href="contract.signUrl"
+                            class="inline-flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white no-underline"
+                        >
+                            <FileSignature class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("studio.public.space.contracts.sign") }}
+                        </a>
+                        <a
+                            v-if="contract.pdfUrl"
+                            :href="contract.pdfUrl"
+                            class="inline-flex items-center justify-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-sm text-primary no-underline hover:bg-surface-2"
+                        >
+                            <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("studio.public.space.contracts.download") }}
+                        </a>
+                    </span>
+                </li>
+            </ul>
+        </section>
+
         <section v-if="'documents' === view" class="space-y-3">
             <ul class="space-y-2">
                 <li v-for="document in documents" :key="document.id">

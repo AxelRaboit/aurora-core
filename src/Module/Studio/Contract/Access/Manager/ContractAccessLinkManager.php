@@ -18,6 +18,7 @@ use Aurora\Module\Studio\Contract\Service\ContractTeamNotifier;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
@@ -52,6 +53,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         protected readonly TranslatorInterface $translator,
         protected readonly ContractLinkLifetime $lifetime,
         protected readonly ContractTeamNotifier $teamNotifier,
+        // Signs the token the client space opens a contract with. Last and
+        // defaulted, so a subclass written before it still constructs.
+        #[Autowire(param: 'kernel.secret')]
+        protected readonly string $secret = '',
     ) {}
 
     public function send(ContractInterface $contract): ContractAccessLinkInterface
@@ -325,7 +330,9 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         // Constant time, on the hash rather than the secret: a comparison that
         // returns early on the first wrong character tells somebody how much of
         // it they have right.
-        if (!hash_equals($link->getHashedToken(), AbstractContractAccessLink::hashToken($token))) {
+        $spaceToken = $this->spaceToken($link);
+        if (!hash_equals($link->getHashedToken(), AbstractContractAccessLink::hashToken($token))
+            && (null === $spaceToken || !hash_equals($spaceToken, $token))) {
             return null;
         }
 
@@ -334,6 +341,25 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         }
 
         return $link;
+    }
+
+    /**
+     * The token a client space opens this link with, computed and never stored.
+     *
+     * The space lists the customer's contracts and offers to sign the one
+     * waiting; the long address went out by mail and exists nowhere else, and
+     * minting a new one would revoke the one in the customer's mailbox. Signed
+     * with the application's secret over the selector and the stored hash, it
+     * opens the same page under the same conditions and dies with the link.
+     * Signing still asks for the code mailed to the contractual address.
+     */
+    public function spaceToken(ContractAccessLinkInterface $link): ?string
+    {
+        if ('' === $this->secret) {
+            return null;
+        }
+
+        return hash_hmac('sha256', 'contract-space|'.$link->getSelector().'|'.$link->getHashedToken(), $this->secret);
     }
 
     /**

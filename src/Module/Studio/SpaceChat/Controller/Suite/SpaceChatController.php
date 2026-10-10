@@ -21,6 +21,7 @@ use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
+use Aurora\Module\Studio\SpaceChat\Service\SpaceChatReadTracker;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -65,6 +66,7 @@ class SpaceChatController extends AbstractController
         protected readonly UserRepository $userRepository,
         protected readonly Security $security,
         protected readonly ClientVisibility $clientVisibility,
+        protected readonly ?SpaceChatReadTracker $readTracker = null,
     ) {}
 
     /**
@@ -156,7 +158,39 @@ class SpaceChatController extends AbstractController
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
 
+        // What somebody answers, they have read.
+        $this->markRead($channel);
+
         return $this->jsonSuccess($this->viewBuilder->payload($channel));
+    }
+
+    /**
+     * The room is on screen: everything in it is read, up to now.
+     *
+     * Asked by the panel rather than done when the space opens: a space opened
+     * on its calendar has read nothing of its conversation.
+     */
+    #[Route('/{channelId}/read', name: '_read', requirements: ['channelId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function read(
+        CustomerSpace $space,
+        #[MapEntity(id: 'channelId')]
+        SpaceChatChannel $channel,
+    ): JsonResponse {
+        $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
+
+        $this->markRead($channel);
+
+        return $this->jsonSuccess([]);
+    }
+
+    private function markRead(SpaceChatChannel $channel): void
+    {
+        $user = $this->security->getUser();
+
+        if ($user instanceof CoreUserInterface) {
+            $this->readTracker?->markRead($channel, $user);
+        }
     }
 
     /**

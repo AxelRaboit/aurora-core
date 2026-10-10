@@ -143,6 +143,7 @@ class SpaceAccessController extends AbstractController
             $input->canChat(),
             $input->canUpload(),
             $input->canSeeDrive(),
+            $input->canSeeContracts(),
         );
 
         // Written by the application when asked, which the screen does by

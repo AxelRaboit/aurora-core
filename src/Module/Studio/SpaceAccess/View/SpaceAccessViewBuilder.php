@@ -90,6 +90,7 @@ final readonly class SpaceAccessViewBuilder
             'canChat' => $link->canChat(),
             'canUpload' => $link->canUpload(),
             'canSeeDrive' => $link->canSeeDrive(),
+            'canSeeContracts' => $link->canSeeContracts(),
             // The short address can be shown again, unlike the long one: its
             // name is kept, encrypted, and its token is computed (10/10/2026).
             'shortUrl' => null === $link->getAlias() ? null : $this->urlGenerator->generate(

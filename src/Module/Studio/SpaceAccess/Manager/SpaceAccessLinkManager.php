@@ -76,6 +76,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         bool $canChat = true,
         bool $canUpload = false,
         bool $canSeeDrive = true,
+        bool $canSeeContracts = false,
     ): SpaceAccessLinkInterface {
         $days = max(1, min(static::MAX_VALID_DAYS, $validForDays));
 
@@ -90,6 +91,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setCanChat($canChat)
             ->setCanUpload($canUpload)
             ->setCanSeeDrive($canSeeDrive)
+            ->setCanSeeContracts($canSeeContracts)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
 
         $this->entityManager->persist($link);
@@ -137,6 +139,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setCanChat($source->canChat())
             ->setCanUpload($source->canUpload())
             ->setCanSeeDrive($source->canSeeDrive())
+            ->setCanSeeContracts($source->canSeeContracts())
             ->setPreviewOf($source)
             // A few minutes: time to look, not time to forget.
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d minutes', static::PREVIEW_MINUTES)));

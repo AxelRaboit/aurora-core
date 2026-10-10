@@ -1303,6 +1303,8 @@ suite:
             issued_and_invited: 'Link created, invitation sent to {email}.'
             invite: Send the link again by email
             invited: 'Link sent to {email}.'
+            can_see_contracts: Sees the customer's contracts
+            can_see_contracts_hint: "A Contracts tab lists what was sent to them, offers to sign the one waiting and to download the signed copies. Signing still asks for the code sent to the contractual address."
         client_visibility:
             share_needed: "Only someone who can share the space shows it to the client or hides it from them."
         space_files:
@@ -2739,6 +2741,23 @@ studio:
                 upload_too_large: That file is over 25 MB. Send a lighter version.
                 upload_type_refused: That file type is not accepted. Images, PDF and common videos only.
             news_title: Since your last visit
+            tab_contracts: Contracts
+            todo_title: To do
+            todo:
+                review: "{count} piece of content awaits your opinion | {count} pieces of content await your opinion"
+                sign: "{count} contract to sign | {count} contracts to sign"
+            contracts:
+                title: 'Contract {reference}'
+                amendment_title: 'Amendment {reference} to contract {parent}'
+                steps:
+                    to_sign: To read and sign.
+                    awaiting_countersignature: "Signed by you, awaiting the countersignature."
+                    concluded: "Concluded: signed by both parties."
+                    refused: "You refused it. A new version may be sent to you."
+                    ended: Terminated.
+                ended_on: 'Ended on {date}'
+                sign: Read and sign
+                download: Download the signed PDF
         unavailable:
             title: This link is no longer valid
             message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a contract, ask your contact for a new link.

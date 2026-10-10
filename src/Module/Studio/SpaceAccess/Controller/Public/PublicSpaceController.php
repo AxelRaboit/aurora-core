@@ -18,6 +18,10 @@ use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Studio\ClientNotice\View\ClientNoticeViewBuilder;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
+use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
+use Aurora\Module\Studio\Contract\View\SpaceContractsViewBuilder;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
@@ -25,6 +29,7 @@ use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
+use Aurora\Module\Studio\SpaceChat\Service\SpaceChatReadTracker;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -49,6 +54,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -117,6 +124,10 @@ final class PublicSpaceController extends AbstractController
         private readonly DriveArchive $driveArchives,
         private readonly SpaceFileManagerInterface $spaceFileManager,
         private readonly ClientNoticeViewBuilder $clientNoticeViewBuilder,
+        private readonly SpaceChatReadTracker $chatReadTracker,
+        private readonly SpaceContractsViewBuilder $contractsViewBuilder,
+        private readonly ContractRepository $contractRepository,
+        private readonly ContractPdfGenerator $contractPdfGenerator,
     ) {}
 
     /**
@@ -150,6 +161,7 @@ final class PublicSpaceController extends AbstractController
             ...$this->viewBuilder->view($link, $token),
             ...$this->chatViewBuilder->publicView($link, $token, $rooms),
             ...$this->filesViewBuilder->publicView($link, $token),
+            ...$this->contractsViewBuilder->publicView($link, $token),
             // Last, because it marks what it reads as seen: the page is the
             // visit, and the API calls that follow it are not.
             ...$this->clientNoticeViewBuilder->publicView($link),
@@ -169,6 +181,50 @@ final class PublicSpaceController extends AbstractController
         }
 
         return $response;
+    }
+
+    /**
+     * The signed copy of a contract, from the client's space.
+     *
+     * Only for a link that may see the contracts, only a contract of the
+     * space's customer, only once it is concluded: the file that was signed,
+     * byte for byte, never a render.
+     */
+    #[Route(
+        '/{selector}/{token}/contracts/{contractId}/pdf',
+        name: '_contract_pdf',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'contractId' => '\d+'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function contractPdf(string $selector, string $token, int $contractId): Response
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+        $contract = $this->contractRepository->find($contractId);
+
+        if (!$link instanceof SpaceAccessLinkInterface
+            || !$this->contractsViewBuilder->canShow($link)
+            || null === $contract
+            || $contract->getCustomer()->getId() !== $link->getSpace()->getCustomer()->getId()
+            || ContractStatusEnum::Countersigned !== $contract->getStatus()
+            || !$contract->hasPdf()
+            || !$this->contractPdfGenerator->exists($contract)) {
+            throw $this->createNotFoundException();
+        }
+
+        $response = new StreamedResponse(function () use ($contract): void {
+            foreach ($this->contractPdfGenerator->readStream($contract) as $chunk) {
+                echo $chunk;
+                flush();
+            }
+        });
+
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            sprintf('%s.pdf', (string) $contract->getReference()),
+        ));
+
+        return $this->privately($response);
     }
 
     /**
@@ -609,8 +665,37 @@ final class PublicSpaceController extends AbstractController
         }
 
         $this->links->markOpened($link);
+        $this->chatReadTracker->markRead($channel, null, $link);
 
         return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
+    }
+
+    /**
+     * The room is on the client's screen: read up to now.
+     *
+     * Not rate limited like a write: it changes nothing anybody else sees,
+     * and the page calls it every time a message arrives in the open room.
+     * A preview is refused by the tracker, which writes nothing for one.
+     */
+    #[Route(
+        '/{selector}/{token}/chat/{channelId}/read',
+        name: '_chat_read',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function chatRead(string $selector, string $token, int $channelId, Request $request): JsonResponse
+    {
+        $this->assertFromThisPage($request);
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->chatReadTracker->markRead($this->readableChannel($link, $channelId), null, $link);
+
+        return $this->jsonSuccess([]);
     }
 
     /**

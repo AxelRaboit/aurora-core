@@ -1303,6 +1303,8 @@ suite:
             issued_and_invited: 'Lien créé, invitation envoyée à {email}.'
             invite: Renvoyer le lien par email
             invited: 'Lien envoyé à {email}.'
+            can_see_contracts: Voit les contrats du client
+            can_see_contracts_hint: "Un onglet Contrats liste ce qui lui a été envoyé, propose de signer celui qui attend et de télécharger les copies signées. La signature demande toujours le code envoyé à l'adresse contractuelle."
         client_visibility:
             share_needed: "Seule une personne qui peut partager l'espace le montre au client ou le lui cache."
         space_files:
@@ -2746,6 +2748,23 @@ studio:
                 upload_too_large: Ce fichier dépasse 25 Mo. Envoyez une version plus légère.
                 upload_type_refused: Ce type de fichier n'est pas accepté. Images, PDF et vidéos courantes uniquement.
             news_title: Depuis votre dernière visite
+            tab_contracts: Contrats
+            todo_title: À faire
+            todo:
+                review: "{count} contenu attend votre avis | {count} contenus attendent votre avis"
+                sign: "{count} contrat à signer | {count} contrats à signer"
+            contracts:
+                title: 'Contrat {reference}'
+                amendment_title: 'Avenant {reference} au contrat {parent}'
+                steps:
+                    to_sign: À lire et signer.
+                    awaiting_countersignature: "Signé par vous, en attente de la contresignature."
+                    concluded: "Conclu : signé par les deux parties."
+                    refused: "Vous l'avez refusé. Une nouvelle version peut vous être adressée."
+                    ended: Résilié.
+                ended_on: 'Fin le {date}'
+                sign: Lire et signer
+                download: Télécharger le PDF signé
         unavailable:
             title: Ce lien n'est plus valide
             message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez un contrat, demandez un nouveau lien à votre interlocuteur.

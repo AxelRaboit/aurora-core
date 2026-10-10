@@ -33,6 +33,8 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             canUpload: (bool) ($data['canUpload'] ?? false),
             // Missing means true: only an explicit false removes the folder.
             canSeeDrive: false !== ($data['canSeeDrive'] ?? true),
+            // Only an explicit true: contracts are shown by choice.
+            canSeeContracts: true === ($data['canSeeContracts'] ?? false),
         );
     }
 }

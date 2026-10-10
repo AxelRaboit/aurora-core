@@ -83,6 +83,8 @@ const issueForm = ref({
     // rather than assumed.
     canUpload: false,
     canSeeDrive: true,
+    // Off, as everything the client is shown: contracts are chosen per link.
+    canSeeContracts: false,
     // The application writes the invitation itself unless told not to: the
     // address used to leave by copy and paste, and a link nobody pasted was
     // a link never sent.
@@ -128,6 +130,7 @@ function openIssue() {
         canChat: true,
         canUpload: false,
         canSeeDrive: true,
+        canSeeContracts: false,
         sendInvitation: true,
     };
     clearIssue();
@@ -513,6 +516,12 @@ function openedLabel(link) {
                     v-on:update:model-value="issueForm.canUpload = $event"
                 />
 
+                <AppCheckbox
+                    :model-value="issueForm.canSeeContracts"
+                    :label="t('suite.studio.space_access.can_see_contracts')"
+                    :hint="t('suite.studio.space_access.can_see_contracts_hint')"
+                    v-on:update:model-value="issueForm.canSeeContracts = $event"
+                />
                 <AppCheckbox
                     :model-value="issueForm.sendInvitation"
                     :label="t('suite.studio.space_access.send_invitation')"

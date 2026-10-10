@@ -30,6 +30,8 @@ import SpaceChatPeopleModal from "./SpaceChatPeopleModal.vue";
 import SpaceChatRoomModal from "./SpaceChatRoomModal.vue";
 import { useSpaceChat } from "./composables/useSpaceChat.js";
 import { useSpaceChatChannels } from "./composables/useSpaceChatChannels.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 const props = defineProps({
     messages: { type: Array, default: () => [] },
@@ -41,6 +43,11 @@ const props = defineProps({
     olderPath: { type: String, default: null },
     /** Null when this reader may not put a conversation away. */
     hidePath: { type: String, default: null },
+    /**
+     * With `__channel__`: marks the open room read. Null on a preview, which
+     * reads without writing.
+     */
+    readPath: { type: String, default: null },
     /** Null when no hub is running, and then nothing tries to connect. */
     streamUrl: { type: String, default: null },
     /** The rooms this reader may hear, and which one is open. */
@@ -436,6 +443,28 @@ watch(currentChannel, () => {
     focused.value = null;
     focusPending = false;
 });
+
+/**
+ * The open room is read: the panel is only mounted while its tab is on
+ * screen, so what it shows has been seen. Marked on arrival, on a change of
+ * room, and on every message that comes in while it is open; the room's own
+ * count drops to nothing at once rather than at the next load.
+ */
+const { request: readRequest } = useRequest();
+
+function markRead() {
+    const channelId = currentChannel.value;
+    if (!props.readPath || null === channelId) return;
+
+    const room = channels.value.find((channel) => channel.id === channelId);
+    if (room) room.unread = 0;
+
+    void readRequest(buildPath(props.readPath, { channel: channelId }), {}, { noGuard: true, silent: true });
+}
+
+watch(currentChannel, markRead);
+watch(() => messages.value.length, markRead);
+onMounted(markRead);
 
 onMounted(() => {
     if (typeof ResizeObserver === "undefined") {

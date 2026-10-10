@@ -52,6 +52,8 @@
     chatDirectPath: chatDirectPath,
     chatOlderPath: chatOlderPath,
     chatHidePath: chatHidePath,
+    chatUnread: chatUnread|default(0),
+    chatReadPath: chatReadPath|default(null),
     chatPeople: chatPeople,
             spaceFiles: spaceFiles,
             spaceFileUploadPath: spaceFileUploadPath,
@@ -62,6 +64,7 @@
             resources: resources,
             documents: documents,
             news: news|default([]),
+            contracts: contracts|default([]),
         }) }} class="min-h-screen"></div>
     </body>
 </html>

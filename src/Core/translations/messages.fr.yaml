@@ -84,6 +84,7 @@ shared:
             uninvite: Retirer du canal
             uninvited: Retiré du canal
             members: 'Personne | 1 personne | {count} personnes'
+            unread: "{count} message non lu | {count} messages non lus"
     attachments:
         title: Fichiers
         empty: Aucun fichier pour le moment.

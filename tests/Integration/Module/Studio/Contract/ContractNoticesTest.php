@@ -27,6 +27,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,10 +38,15 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function html_entity_decode;
 use function json_decode;
+use function parse_url;
 use function preg_match;
 use function sprintf;
 use function str_contains;
+use function str_replace;
+
+use const PHP_URL_PATH;
 
 /**
  * Who hears about a contract that moves.
@@ -97,7 +103,7 @@ final class ContractNoticesTest extends IntegrationTestCase
             ->setParameter('prefix', 'studio.contract.%')
             ->execute();
 
-        foreach ([CustomerSpaceMember::class, CustomerSpace::class, Contract::class, ContractTemplate::class, Customer::class] as $class) {
+        foreach ([SpaceAccessLink::class, CustomerSpaceMember::class, CustomerSpace::class, Contract::class, ContractTemplate::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -225,12 +231,47 @@ final class ContractNoticesTest extends IntegrationTestCase
     }
 
     /**
+     * A link that may see contracts lists the one sent, and the way to sign
+     * opens the contract's page without revoking the link in the customer's
+     * mailbox. A link without the right sees nothing of it.
+     */
+    public function testTheClientSpaceShowsTheContractToSign(): void
+    {
+        $spaceId = $this->givenSpaceForTheCustomer();
+        [, $mailedUrl] = $this->sentContract();
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $spaceId), [
+            'recipientEmail' => 'camille@durand.test', 'label' => 'Camille', 'canSeeContracts' => true,
+        ]);
+        $withContracts = (string) parse_url(json_decode((string) $this->client->getResponse()->getContent(), true)['url'], PHP_URL_PATH);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $spaceId), [
+            'recipientEmail' => 'lecteur@durand.test', 'label' => 'Lecteur',
+        ]);
+        $without = (string) parse_url(json_decode((string) $this->client->getResponse()->getContent(), true)['url'], PHP_URL_PATH);
+
+        $this->client->getCookieJar()->clear();
+        $this->client->request('GET', $without);
+        self::assertStringNotContainsString('to_sign', (string) $this->client->getResponse()->getContent());
+
+        $this->client->request('GET', $withContracts);
+        $page = html_entity_decode((string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('"step":"to_sign"', $page);
+        self::assertSame(1, preg_match('#"signUrl":"([^"]+)"#', $page, $matches));
+
+        $this->client->request('GET', str_replace('\/', '/', $matches[1]));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        // The mailed address still works: nothing was revoked.
+        $this->client->request('GET', $mailedUrl);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
      * A space for the customer, with the signed-in account on its team.
      *
      * Put on it by hand: an administrator who creates a space sees every
      * space already, and is not made its lead.
      */
-    private function givenSpaceForTheCustomer(): void
+    private function givenSpaceForTheCustomer(): int
     {
         $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace Durand',
@@ -248,6 +289,8 @@ final class ContractNoticesTest extends IntegrationTestCase
 
         $this->entityManager->persist($member);
         $this->entityManager->flush();
+
+        return $spaceId;
     }
 
     /** @return array{0: int, 1: string} the contract and the path of its signing page */

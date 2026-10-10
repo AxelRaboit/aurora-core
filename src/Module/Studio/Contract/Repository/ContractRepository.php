@@ -268,6 +268,33 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * A customer's contracts as their client space shows them: the ones that
+     * reached them, newest first. A draft, a sealed contract never sent, a
+     * cancelled one and a link left to lapse or revoked are the studio's
+     * business, not the customer's.
+     *
+     * @return list<ContractInterface>
+     */
+    public function findShownToCustomer(CustomerInterface $customer): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.customer = :customer')
+            ->andWhere('c.status IN (:statuses)')
+            ->setParameter('customer', $customer)
+            ->setParameter('statuses', [
+                ContractStatusEnum::Sent,
+                ContractStatusEnum::Opened,
+                ContractStatusEnum::SignedByCustomer,
+                ContractStatusEnum::Countersigned,
+                ContractStatusEnum::Refused,
+            ])
+            ->orderBy('c.createdAt', Order::Descending->value)
+            ->addOrderBy('c.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Contracts a reminder is due on.
      *
      * Sent or opened and nothing more: signed, concluded, refused, expired and

@@ -13,6 +13,7 @@ use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatMessageRepository;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatReadMarkerRepository;
 use Aurora\Module\Studio\SpaceChat\Serializer\SpaceChatChannelSerializerInterface;
 use Aurora\Module\Studio\SpaceChat\Serializer\SpaceChatMessageSerializerInterface;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
@@ -46,6 +47,9 @@ final readonly class SpaceChatViewBuilder
         private SpaceChatHub $hub,
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplateGenerator,
+        // Optional and last: a subclass written before read marks still
+        // constructs, and simply shows no unread counts.
+        private ?SpaceChatReadMarkerRepository $readMarkerRepository = null,
     ) {}
 
     /**
@@ -97,6 +101,10 @@ final readonly class SpaceChatViewBuilder
         return [
             'chatChannels' => $this->channels($rooms, $user, null),
             'chatChannelId' => $open?->getId(),
+            // What the reader has not read yet, across their rooms: the badge
+            // on the space's « Discussion » tab.
+            'chatUnread' => $this->readMarkerRepository?->totalUnread($rooms, $user, null) ?? 0,
+            'chatReadPath' => $this->channelTemplate('workspace_space_chat_read', $space),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
             // Two holes in the same address: the room, and the message to go
@@ -162,6 +170,13 @@ final readonly class SpaceChatViewBuilder
         return [
             'chatChannels' => $this->channels($rooms, null, $link),
             'chatChannelId' => $open?->getId(),
+            'chatUnread' => $this->readMarkerRepository?->totalUnread($rooms, null, $link) ?? 0,
+            // Null on a preview, which reads without writing.
+            'chatReadPath' => $link->isPreview() ? null : $this->pathTemplateGenerator->generate('public_space_chat_read', [
+                'selector' => $link->getSelector(),
+                'token' => $token,
+                'channelId' => '__channel__',
+            ]),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
             // **Neither a private conversation path, nor a directory.** Both
@@ -208,9 +223,13 @@ final readonly class SpaceChatViewBuilder
     private function channels(array $rooms, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): array
     {
         $this->channelRepository->warmMembers($rooms);
+        $unread = $this->readMarkerRepository?->unreadByChannel($rooms, $user, $link) ?? [];
 
         return array_map(
-            fn (SpaceChatChannelInterface $room): array => $this->channelSerializer->serializeFor($room, $user, $link),
+            fn (SpaceChatChannelInterface $room): array => [
+                ...$this->channelSerializer->serializeFor($room, $user, $link),
+                'unread' => $unread[(int) $room->getId()] ?? 0,
+            ],
             $rooms,
         );
     }

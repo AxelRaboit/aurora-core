@@ -23,6 +23,7 @@ interface SpaceAccessLinkManagerInterface
         bool $canChat = true,
         bool $canUpload = false,
         bool $canSeeDrive = true,
+        bool $canSeeContracts = false,
     ): SpaceAccessLinkInterface;
 
     /**

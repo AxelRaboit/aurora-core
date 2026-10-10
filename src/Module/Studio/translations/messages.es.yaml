@@ -1282,6 +1282,8 @@ suite:
             issued_and_invited: 'Enlace creado, invitación enviada a {email}.'
             invite: Volver a enviar el enlace por correo
             invited: 'Enlace enviado a {email}.'
+            can_see_contracts: Ve los contratos del cliente
+            can_see_contracts_hint: "Una pestaña Contratos lista lo que se le envió, propone firmar el pendiente y descargar las copias firmadas. La firma sigue pidiendo el código enviado a la dirección contractual."
         client_visibility:
             share_needed: "Solo una persona que puede compartir el espacio lo muestra al cliente o se lo oculta."
         space_files:
@@ -2705,6 +2707,23 @@ studio:
                 upload_too_large: 'Ese archivo supera los 25 MB. Envíe una versión más ligera.'
                 upload_type_refused: 'Ese tipo de archivo no se acepta. Solo imágenes, PDF y vídeos habituales.'
             news_title: Desde su última visita
+            tab_contracts: Contratos
+            todo_title: Pendiente
+            todo:
+                review: "{count} contenido espera su opinión | {count} contenidos esperan su opinión"
+                sign: "{count} contrato por firmar | {count} contratos por firmar"
+            contracts:
+                title: 'Contrato {reference}'
+                amendment_title: 'Adenda {reference} al contrato {parent}'
+                steps:
+                    to_sign: Por leer y firmar.
+                    awaiting_countersignature: "Firmado por usted, pendiente de contrafirma."
+                    concluded: "Concluido: firmado por ambas partes."
+                    refused: "Lo rechazó. Se le puede enviar una nueva versión."
+                    ended: Resuelto.
+                ended_on: 'Finalizó el {date}'
+                sign: Leer y firmar
+                download: Descargar el PDF firmado
         unavailable:
             title: 'Este enlace ya no es válido'
             message: 'La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.'
