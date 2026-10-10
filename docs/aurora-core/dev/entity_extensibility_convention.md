@@ -50,7 +50,7 @@ avec un tableau ET un formulaire de création/édition dédié ?*
   admin) → seul le niveau 1 (entité substituable via `resolve_target_entities`)
   est requis
 
-### 2.1 Entités portant le pattern complet (33)
+### 2.1 Entités portant le pattern complet (35)
 
 Mesuré le 2026-09-16. Le marqueur est mécanique : une entité concrète dont le
 sous-domaine porte un `Dto/<X>Input.php`. Se recompte en une commande (§2.3)
@@ -66,7 +66,7 @@ l'ancienne version de cette table listait treize modules qui n'existent plus.
 | Notes | `MarkdownNote`, `NoteFolder` |
 | Planning | `Planning`, `PlanningEvent`, `PlanningReminder`, `PlanningShareLink` |
 | Platform | `AccessRequest`, `User` |
-| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateCategory`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
+| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateCategory`, `ContractTemplateVersion`, `Customer`, `CustomerInteraction`, `CustomerSpace`, `PipelineStage`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
 
 Une nuance que le critère de la §2 laisse de côté : toutes n'ont pas leur propre
 page. `FormField`, `MenuItem`, `PostTypeField`, `TaxonomyTerm`,

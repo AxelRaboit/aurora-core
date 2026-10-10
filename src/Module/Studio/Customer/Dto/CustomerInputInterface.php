@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Customer\Dto;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
+use DateTimeImmutable;
 
 interface CustomerInputInterface
 {
@@ -47,4 +49,17 @@ interface CustomerInputInterface
     public function getLinks(): array;
 
     public function getInformationNotes(): ?string;
+
+    public function getNextFollowUpOn(): ?DateTimeImmutable;
+
+    public function getFollowUpNote(): ?string;
+
+    public function getSource(): ?CustomerSourceEnum;
+
+    /** An estimate to weigh the pipeline with, never an amount invoiced. */
+    public function getEstimatedValueCents(): ?int;
+
+    public function getEstimatedValueCurrency(): ?CurrencyEnum;
+
+    public function getLostReason(): ?string;
 }

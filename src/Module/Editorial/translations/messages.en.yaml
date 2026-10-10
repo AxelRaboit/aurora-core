@@ -1885,6 +1885,9 @@ suite:
             empty: "No questions in this step."
             add_question_here: "Add a question here"
         submissions:
+            create_prospect: "Create a prospect"
+            see_prospect: "See the prospect"
+            prospect_created: "Prospect created: their message opens their history."
             title: "Answers"
             intro: "Most recent first. The export includes every answer, for a spreadsheet."
             empty: "No answers yet."

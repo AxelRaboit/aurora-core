@@ -1885,6 +1885,9 @@ suite:
             empty: "Aucune question dans cette étape."
             add_question_here: "Ajouter une question ici"
         submissions:
+            create_prospect: "Créer un prospect"
+            see_prospect: "Voir le prospect"
+            prospect_created: "Prospect créé : son message ouvre son historique."
             title: "Réponses"
             intro: "Les plus récentes en premier. L'export reprend toutes les réponses, pour un tableur."
             empty: "Aucune réponse pour le moment."

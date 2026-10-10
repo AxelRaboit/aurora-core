@@ -15,6 +15,13 @@ registerDashboardPanel({
 
         return [
             {
+                key: "follow_ups",
+                labelKey: "suite.stats.todo.follow_ups_due",
+                count: stats.followUpsDue ?? 0,
+                href: stats.followUpsPath,
+                tone: "warning",
+            },
+            {
                 key: "countersign",
                 labelKey: "suite.stats.todo.countersign",
                 count: stats.awaitingCountersignature ?? 0,

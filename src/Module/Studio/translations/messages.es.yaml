@@ -53,6 +53,15 @@ suite:
                     updated: 'Cliente actualizado'
                     deleted: 'Cliente eliminado'
                     information_updated: 'Ficha de cliente actualizada'
+                    stage_changed: "Prospecto movido de etapa"
+                customer_interaction:
+                    created: "Intercambio anotado"
+                    updated: "Intercambio editado"
+                    deleted: "Intercambio eliminado"
+                pipeline_stage:
+                    created: "Etapa de seguimiento creada"
+                    updated: "Etapa de seguimiento editada"
+                    deleted: "Etapa de seguimiento eliminada"
                 customer_space:
                     created: 'Espacio de cliente creado'
                     updated: 'Espacio de cliente modificado'
@@ -780,6 +789,8 @@ suite:
                 step_3: "Complete después el SIRET, la forma jurídica, el domicilio social y el representante: los contratos los retoman."
                 step_4: "Abra una ficha para completarla: identidad legal, representante, contacto, enlaces y notas. Pertenece al cliente, no a un espacio: cada uno de sus espacios la muestra tal cual."
                 step_5: "Una ficha con contratos o espacios, aunque estén en la papelera, no se puede eliminar."
+                step_6: "Los prospectos también se leen como tablero: una columna por etapa. Arrastra una tarjeta para hacerla avanzar; soltarla en «Ganado» la convierte en cliente, en «Perdido» pregunta el motivo."
+                step_7: "Una fecha de seguimiento envía una notificación la mañana de ese día, y la pestaña «Seguimientos pendientes» reúne los de hoy y los atrasados."
             title: Clientes
             spaces: 'Sus espacios'
             spaces_description: "Abre la lista de espacios de este cliente."
@@ -866,6 +877,7 @@ suite:
                 step_2: 'Es el único lugar donde se modifica. La pestaña Información de cada uno de sus espacios la muestra tal cual, y es lo que el cliente lee allí.'
                 step_3: 'A la derecha, lo que lo rodea: sus espacios, sus contratos y los entregables de Studio escritos para él, a un clic.'
                 step_4: 'Un cliente potencial se convierte en cliente desde el botón «…»: se pide entonces su email contractual.'
+                step_5: "A la derecha, el seguimiento: la etapa, el próximo seguimiento, el importe estimado y el origen. Anota cada llamada o reunión en el historial: ahí se decide el siguiente seguimiento."
             facts:
                 contracts: "Contratos"
                 spaces: "Espacios"
@@ -890,6 +902,17 @@ suite:
                 open_description: 'Abrir la página de este cliente: su ficha, sus espacios, sus contratos'
                 convert_description: "Introducir el email contractual al que irán sus contratos"
                 delete_description: 'Eliminar este cliente'
+            source: "Origen"
+            source_reference: "Creado desde la respuesta {reference}"
+            sources:
+                none: "Sin indicar"
+                website_form: "Formulario del sitio"
+                referral: "Recomendación"
+                network: "Red de contactos"
+                event: "Feria o evento"
+                social_media: "Redes sociales"
+                other: "Otro"
+
             errors:
                 legal_name_required: 'La razón social es obligatoria.'
                 legal_name_too_long: 'La razón social no puede superar los 180 caracteres.'
@@ -910,6 +933,100 @@ suite:
                 link_url_required: 'Este enlace no tiene dirección.'
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
+                follow_up_note_too_long: "Este recordatorio no puede superar los 255 caracteres."
+                estimated_value_invalid: "El importe estimado no puede ser negativo."
+                lost_reason_too_long: "El motivo no puede superar los 255 caracteres."
+        pipeline:
+            card_title: "Seguimiento"
+            card_hint: "En qué punto está el negocio y cuándo volver a contactar."
+            stage: "Etapa"
+            stage_hint: "Cambia al momento, sin esperar a guardar. «Ganado» convierte en cliente."
+            stage_changed: "Etapa cambiada."
+            estimated_value: "Importe estimado"
+            estimated_value_placeholder: "1500"
+            estimated_value_hint: "Una estimación para valorar el tablero; no se factura nada."
+            shape_board: "Tablero"
+            shape_list: "Lista"
+            col_follow_up: "Seguimiento"
+            move_card: "Mover"
+            move_stage: "Mover la etapa"
+            edit_stage: "Editar la etapa"
+            add_stage: "Añadir una etapa"
+            empty_stage: "Ningún prospecto aquí."
+            outcome_window: "Últimos {days} días"
+            last_interaction: "Último intercambio"
+            stage_name: "Nombre"
+            stage_name_placeholder: "Reunión fijada"
+            stage_colour: "Color"
+            stage_role: "Función"
+            stage_role_hint: "«Ganado» recibe los prospectos convertidos en clientes, «Perdido» los que ya no se siguen. Una sola etapa por función."
+            stage_saved: "Etapa guardada."
+            stage_deleted: "Etapa eliminada."
+            delete_stage_title: "¿Eliminar la etapa {name}?"
+            delete_stage_body: "Una etapa que aún contiene prospectos no se puede eliminar: muévelos primero."
+            lost_title: "{name}: negocio perdido"
+            lost_reason: "Motivo"
+            lost_reason_placeholder: "Presupuesto, plazo, eligió a otro proveedor…"
+            lost_reason_hint: "Opcional. Su seguimiento se retira."
+            mark_lost: "Marcar como perdido"
+            marked_lost: "Negocio marcado como perdido."
+            stage_roles:
+                none: "Etapa en curso"
+                won: "Ganado"
+                lost: "Perdido"
+            default_stages:
+                new: "Nuevo"
+                contacted: "Contactado"
+                proposal_sent: "Propuesta enviada"
+                won: "Ganado"
+                lost: "Perdido"
+            follow_up:
+                tab: "Seguimientos pendientes"
+                date: "Próximo seguimiento"
+                date_hint: "Llega una notificación la mañana de ese día."
+                note: "Sobre"
+                note_placeholder: "Enviar el presupuesto revisado"
+                states:
+                    late: "Atrasado · {date}"
+                    today: "Hoy"
+                    upcoming: "{date}"
+                due_count: "{count} seguimiento pendiente | {count} seguimientos pendientes"
+                notification_title: "Contactar de nuevo con {name}"
+                notification_body: "El seguimiento previsto para hoy."
+            errors:
+                stage_name_required: "El nombre de la etapa es obligatorio."
+                stage_name_too_long: "El nombre de una etapa no puede superar los 100 caracteres."
+                stage_not_empty: "Esta etapa contiene {count} cliente. Muévelo antes de eliminarla. | Esta etapa contiene {count} clientes. Muévelos antes de eliminarla."
+                role_taken: "La etapa {name} ya tiene esta función."
+                stage_last_in_progress: "Debe quedar al menos una etapa en curso: es donde llegan los nuevos prospectos."
+                won_needs_conversion: "Un prospecto ganado se convierte en cliente: usa «Convertir en cliente»."
+                client_stays_won: "Un cliente permanece en la etapa «Ganado»."
+        customer_interactions:
+            title: "Historial de intercambios"
+            hint: "Llamadas, correos, reuniones: lo que se dijo, para saber en qué punto quedó. El cliente no lo ve."
+            add: "Anotar un intercambio"
+            edit: "Editar el intercambio"
+            empty: "Ningún intercambio anotado todavía."
+            kind: "Tipo"
+            occurred_at: "Cuándo"
+            summary: "Lo que se dijo"
+            summary_placeholder: "Quiere un rediseño antes de primavera, presupuesto de unos 2000 €. Llamar después de su feria."
+            next_follow_up: "Siguiente seguimiento"
+            next_follow_up_hint: "Déjalo vacío para retirar el seguimiento previsto."
+            saved: "Intercambio guardado."
+            deleted: "Intercambio eliminado."
+            delete_title: "¿Eliminar este intercambio?"
+            delete_body: "Desaparece del historial de este cliente."
+            kinds:
+                call: "Llamada"
+                email: "Correo"
+                meeting: "Reunión"
+                message: "Mensaje"
+                note: "Nota"
+            errors:
+                occurred_at_required: "La fecha del intercambio es obligatoria."
+                summary_required: "Anota lo que se dijo."
+                summary_too_long: "Un intercambio no puede superar los 5000 caracteres."
         spaces:
             guide:
                 title: 'Cómo funcionan los espacios'

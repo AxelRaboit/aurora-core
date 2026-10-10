@@ -44,15 +44,20 @@ use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
 use Aurora\Module\Studio\Contract\Signature\Enum\ContractSignatureRoleEnum;
 use Aurora\Module\Studio\Customer\Dto\CustomerInput;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\Customer\Manager\CustomerManagerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
+use Aurora\Module\Studio\CustomerInteraction\Entity\CustomerInteraction;
+use Aurora\Module\Studio\CustomerInteraction\Enum\CustomerInteractionKindEnum;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInput;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
+use Aurora\Module\Studio\Pipeline\Entity\PipelineStageInterface;
+use Aurora\Module\Studio\Pipeline\Manager\PipelineStageManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
@@ -179,6 +184,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly NoteFolderInputFactoryInterface $noteFolderInputs,
         private readonly NoteFavoriteManagerInterface $noteFavorites,
         private readonly MarkdownNoteRepository $markdownNoteRepository,
+        private readonly PipelineStageManagerInterface $pipelineStages,
     ) {}
 
     public static function getGroups(): array
@@ -294,6 +300,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedTrash($jean);
         $this->seedClientFile();
         $this->seedHostedNotes();
+        $this->seedPipeline($sophie);
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -1317,6 +1324,122 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 visibleToClient: $visible,
             ));
         }
+    }
+
+    /**
+     * The prospect pipeline, with a card in every stage.
+     *
+     * Every state the board can draw is here once: a follow-up late, one due
+     * today, one to come and none at all; an estimate on most cards and not
+     * on all; a message from the website as the first line of a history; a
+     * deal won (a client, recently converted) and one lost, with its reason.
+     * The won and lost deals are dated within the board's window, or the two
+     * outcome columns would demonstrate an empty board.
+     *
+     * Skipped once any customer has a stage: like the spaces, re-running the
+     * demo must not shuffle a board somebody arranged.
+     */
+    private function seedPipeline(CustomerInterface $recentlyWon): void
+    {
+        if (0 !== $this->customerRepository->count(['pipelineStage' => $this->pipelineStages->stages()])) {
+            return;
+        }
+
+        $byRole = [];
+        $inProgress = [];
+        foreach ($this->pipelineStages->stages() as $stage) {
+            if (null === $stage->getRole()) {
+                $inProgress[] = $stage;
+            } else {
+                $byRole[$stage->getRole()->value] = $stage;
+            }
+        }
+
+        [$new, $contacted, $proposal] = $inProgress;
+        $author = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
+        $positions = [];
+
+        $place = function (CustomerInterface $customer, PipelineStageInterface $stage, string $changed, ?int $valueCents, ?CustomerSourceEnum $source) use (&$positions): void {
+            $position = $positions[(int) $stage->getId()] ?? 0;
+            $positions[(int) $stage->getId()] = $position + 1;
+
+            $customer
+                ->setPipelineStage($stage)
+                ->setPipelinePosition($position)
+                ->setPipelineStageChangedAt(new DateTimeImmutable($changed))
+                ->setEstimatedValueCents($valueCents)
+                ->setEstimatedValueCurrency(null === $valueCents ? null : CurrencyEnum::EUR)
+                ->setSource($source);
+        };
+
+        $exchange = function (CustomerInterface $customer, CustomerInteractionKindEnum $kind, string $at, string $summary, ?string $by = null) use ($author): void {
+            $interaction = new CustomerInteraction();
+            $interaction
+                ->setCustomer($customer)
+                ->setKind($kind)
+                ->setOccurredAt(new DateTimeImmutable($at))
+                ->setSummary($summary)
+                ->setAuthor(null === $by ? $author : null, $by ?? 'Marie Dupont');
+            $this->entityManager->persist($interaction);
+        };
+
+        // Nouveau: a message from the website, nobody has answered yet.
+        $bakery = $this->prospectNamed('Boulangerie Lemoine');
+        $place($bakery, $new, '-1 day', null, CustomerSourceEnum::WebsiteForm);
+        $bakery
+            ->setContractualEmail('contact@boulangerie-lemoine.test')
+            ->setNextFollowUpOn(new DateTimeImmutable('+2 days midnight'))
+            ->setFollowUpNote('Rappeler pour comprendre le besoin');
+        $exchange($bakery, CustomerInteractionKindEnum::Message, '-1 day 18:42', "Nom : Hélène Lemoine\nE-mail : contact@boulangerie-lemoine.test\nMessage : Bonjour, notre site date de 2015 et ne s'affiche pas bien sur téléphone. Pouvez-vous nous faire une proposition ?", 'Formulaire de contact');
+
+        $garage = $this->prospectNamed('Garage Moreau');
+        $place($garage, $new, '-4 days', 90000, CustomerSourceEnum::Event);
+
+        // Contacté: one due today, one with no date at all.
+        $fabre = $this->prospectNamed('Menuiserie Fabre');
+        $place($fabre, $contacted, '-9 days', 250000, CustomerSourceEnum::Network);
+        $fabre
+            ->setNextFollowUpOn(new DateTimeImmutable('today'))
+            ->setFollowUpNote('Envoyer la proposition de charte');
+        $exchange($fabre, CustomerInteractionKindEnum::Meeting, '-9 days 10:00', "Rencontre à l'atelier. Ils veulent un logo qui ne fasse plus « menuiserie de 1990 », et une charte simple pour les camions.");
+        $exchange($fabre, CustomerInteractionKindEnum::Call, '-2 days 17:15', 'Ok pour avancer. Budget autour de 2 500 €, décision avant la fin du mois.');
+
+        $yoga = $this->prospectNamed('Studio Yoga Lumen');
+        $place($yoga, $contacted, '-3 days', 150000, CustomerSourceEnum::SocialMedia);
+        $exchange($yoga, CustomerInteractionKindEnum::Email, '-3 days 09:30', 'Premier échange par e-mail : un site vitrine avec le planning des cours.');
+
+        // Proposition envoyée: one late, one to come.
+        $lawyers = $this->prospectNamed('Cabinet Vasseur Avocats');
+        $place($lawyers, $proposal, '-6 days', 480000, CustomerSourceEnum::Referral);
+        $lawyers
+            ->setNextFollowUpOn(new DateTimeImmutable('-3 days midnight'))
+            ->setFollowUpNote('Relancer sur le devis');
+        $exchange($lawyers, CustomerInteractionKindEnum::Call, '-12 days 14:00', "Recommandés par l'Atelier Dupont. Refonte du site et des fiches d'expertise.");
+        $exchange($lawyers, CustomerInteractionKindEnum::Email, '-6 days 11:20', 'Proposition envoyée : site, 6 pages expertise, maintenance un an.');
+
+        $cheese = $this->prospectNamed('Fromagerie des Alpes');
+        $place($cheese, $proposal, '-2 days', 180000, CustomerSourceEnum::WebsiteForm);
+        $cheese
+            ->setNextFollowUpOn(new DateTimeImmutable('+6 days midnight'))
+            ->setFollowUpNote('Point après leur salon');
+
+        // Perdu: dated inside the window, with its reason.
+        $bistro = $this->prospectNamed('Bistrot du Canal');
+        $place($bistro, $byRole['lost'], '-5 days', 200000, CustomerSourceEnum::Network);
+        $bistro->setLostReason("Budget repoussé à l'an prochain");
+        $exchange($bistro, CustomerInteractionKindEnum::Call, '-5 days 16:00', 'Pas cette année : ils rouvrent le dossier en janvier.');
+
+        // Gagné: a client converted a few days ago.
+        $place($recentlyWon, $byRole['won'], '-4 days', 320000, CustomerSourceEnum::Referral);
+        $exchange($recentlyWon, CustomerInteractionKindEnum::Meeting, '-4 days 15:00', 'Signature de la proposition portfolio 2026.');
+
+        $this->entityManager->flush();
+    }
+
+    /** The prospect of that name, created when the demo does not have it yet. */
+    private function prospectNamed(string $legalName): CustomerInterface
+    {
+        return $this->customerRepository->findOneBy(['legalName' => $legalName]) ?? $this->prospect($legalName);
     }
 
     /**

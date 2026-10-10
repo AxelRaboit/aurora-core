@@ -2,7 +2,7 @@
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
-import { Download, Inbox } from "lucide-vue-next";
+import { ArrowUpRight, Download, Inbox, UserPlus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -23,7 +23,19 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { formatDateTime } = useDateFormat();
-const { submissions, total, page, totalPages, loading, load, goToPage, exportUrl } = useFormSubmissions(props);
+const {
+    submissions,
+    total,
+    page,
+    totalPages,
+    loading,
+    load,
+    goToPage,
+    exportUrl,
+    canCreateProspect,
+    creatingFor,
+    createProspect,
+} = useFormSubmissions(props);
 
 onMounted(load);
 
@@ -63,12 +75,38 @@ const formatDate = (value) => formatDateTime(value);
 
         <div v-else class="space-y-2">
             <article v-for="submission in submissions" :key="submission.id" class="rounded-lg border border-line p-3 space-y-2">
-                <p class="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-                    <span class="font-medium text-secondary">{{ formatDate(submission.submittedAt) }}</span>
-                    <span>·</span>
-                    <span class="font-mono">{{ submission.reference }}</span>
-                    <span class="rounded bg-surface-2 px-1.5 py-0.5 uppercase">{{ submission.locale }}</span>
-                </p>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                        <span class="font-medium text-secondary">{{ formatDate(submission.submittedAt) }}</span>
+                        <span>·</span>
+                        <span class="font-mono">{{ submission.reference }}</span>
+                        <span class="rounded bg-surface-2 px-1.5 py-0.5 uppercase">{{ submission.locale }}</span>
+                    </p>
+                    <!-- A message worth following becomes a prospect, its
+                         answers the first line of the prospect's history;
+                         once it is one, the button leads there. -->
+                    <a
+                        v-if="submission.prospectPath"
+                        :href="submission.prospectPath"
+                        class="inline-flex items-center gap-1 text-xs font-medium text-accent-500 hover:underline"
+                        data-submission-prospect-link
+                    >
+                        {{ t("suite.forms.submissions.see_prospect") }}
+                        <ArrowUpRight class="h-3 w-3" :stroke-width="2" />
+                    </a>
+                    <AppButton
+                        v-else-if="canCreateProspect"
+                        variant="secondary"
+                        size="sm"
+                        class="w-full justify-center sm:w-auto"
+                        :loading="creatingFor === submission.id"
+                        data-submission-prospect-create
+                        v-on:click="createProspect(submission)"
+                    >
+                        <UserPlus class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("suite.forms.submissions.create_prospect") }}
+                    </AppButton>
+                </div>
                 <dl class="m-0 grid grid-cols-1 gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
                     <template v-for="pair in submission.pairs" :key="pair.label">
                         <dt class="text-secondary">{{ pair.label }}</dt>

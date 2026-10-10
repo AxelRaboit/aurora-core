@@ -12,8 +12,20 @@ import { customerFormRules, emptyCustomerForm } from "./customerFormModel.js";
  * **Editing is no longer here.** It happens on the customer's page, where
  * the whole sheet fits in one form; the list leads there ("Ouvrir"). The
  * creation dialog keeps the same fields component, so the same sheet.
+ *
+ * @param {Array<object>} initialCustomers
+ * @param {string} createPath
+ * @param {string} deletePath
+ * @param {((data: object) => void)|null} [onResult] told of every answer that
+ *        carries the list, for a screen that draws more than the list (the
+ *        prospect board reads its own part of the same answer)
  */
-export function useCustomersForm(initialCustomers, createPath, deletePath) {
+export function useCustomersForm(
+    initialCustomers,
+    createPath,
+    deletePath,
+    onResult = null,
+) {
     const { t } = useI18n();
 
     const {
@@ -36,6 +48,7 @@ export function useCustomersForm(initialCustomers, createPath, deletePath) {
 
     function applyUpdatedList(data) {
         if (Array.isArray(data?.customers)) items.value = data.customers;
+        onResult?.(data);
     }
 
     const showCreate = ref(false);

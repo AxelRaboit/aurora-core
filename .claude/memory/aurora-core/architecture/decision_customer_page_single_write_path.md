@@ -38,7 +38,8 @@ erreur de l'une aurait effacé l'autre moitié.
 
 **How to apply:** un champ neuf de la fiche va dans `CustomerInput` (+ fabrique,
 `applyInput`, `CustomerSerializer`, `customerFormModel.js`,
-`CustomerFormFields.vue`) ; s'il est lu par le client, aussi dans
+`CustomerFormFields.vue`, ou `CustomerPipelineCard.vue` pour un champ de suivi,
+cf. [[decision_prospect_pipeline]]) ; s'il est lu par le client, aussi dans
 `CustomerInformationSerializer`/`CustomerInformationCard`. Ne jamais rouvrir une
 écriture partielle de la fiche ailleurs (onglet d'espace, conversion mise à
 part : `convertToClient()` ne touche que statut et adresse). Détail des

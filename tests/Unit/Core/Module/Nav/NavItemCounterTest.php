@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Unit\Core\Module\Nav;
 
+use Aurora\Core\Module\Nav\NavItemAttentionProviderInterface;
 use Aurora\Core\Module\Nav\NavItemCounter;
 use Aurora\Core\Module\Nav\NavItemCountProviderInterface;
 use PHPUnit\Framework\TestCase;
@@ -68,6 +69,57 @@ final class NavItemCounterTest extends TestCase
         $counter->annotateItems([['key' => 'posts', 'children' => []]]);
 
         self::assertSame(['posts'], $provider->asked);
+    }
+
+    public function testAnEntryWaitingOnSomebodyCarriesItsAttentionBesideItsCount(): void
+    {
+        $counter = new NavItemCounter(
+            [$this->provider(['customers' => 42])],
+            [$this->attention(['customers' => 3])],
+        );
+
+        $items = $counter->annotateItems([['key' => 'customers', 'children' => []]]);
+
+        self::assertSame(42, $items[0]['count']);
+        self::assertSame(['count' => 3, 'labelKey' => 'due.customers'], $items[0]['attention']);
+    }
+
+    public function testNothingWaitingDrawsNoPill(): void
+    {
+        $counter = new NavItemCounter([], [$this->attention(['customers' => 0])]);
+
+        $items = $counter->annotateItems([['key' => 'customers', 'children' => []]]);
+
+        self::assertArrayNotHasKey('attention', $items[0]);
+        self::assertArrayNotHasKey('count', $items[0]);
+    }
+
+    /**
+     * @param array<string, int> $figures
+     */
+    private function attention(array $figures): NavItemAttentionProviderInterface
+    {
+        return new readonly class($figures) implements NavItemAttentionProviderInterface {
+            /**
+             * @param array<string, int> $figures
+             */
+            public function __construct(private array $figures) {}
+
+            public function getAttentionItemKeys(): array
+            {
+                return array_keys($this->figures);
+            }
+
+            public function countAttention(string $itemKey): int
+            {
+                return $this->figures[$itemKey];
+            }
+
+            public function getAttentionLabelKey(string $itemKey): string
+            {
+                return 'due.'.$itemKey;
+            }
+        };
     }
 
     /**

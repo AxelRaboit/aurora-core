@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\Pipeline\Manager\PipelineManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -30,6 +31,7 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly ContractRepository $contractRepository,
         protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly TranslatorInterface $translator,
+        protected readonly PipelineManagerInterface $pipelineManager,
     ) {}
 
     public function create(CustomerInputInterface $input): CustomerInterface
@@ -97,6 +99,10 @@ class CustomerManager implements CustomerManagerInterface
      * The address is the only field accepted: it is the only one the status
      * requires. A sheet that already has one can therefore be converted
      * without entering anything.
+     *
+     * Converting is winning the deal, wherever it is done from: the client is
+     * filed under the pipeline's won stage, so the board and the list never
+     * disagree about what happened.
      */
     public function convertToClient(CustomerInterface $customer, ?string $contractualEmail): void
     {
@@ -111,6 +117,7 @@ class CustomerManager implements CustomerManagerInterface
         }
 
         $customer->setStatus(CustomerStatusEnum::Client);
+        $this->pipelineManager->fileAsWon($customer);
         $this->entityManager->flush();
 
         $this->auditLogger->log('studio', 'customer.converted', 'Customer', $customer->getId(), [
@@ -163,6 +170,10 @@ class CustomerManager implements CustomerManagerInterface
         $this->assertSiretIsFree($input->getSiret(), $customer->getId());
         $this->assertClientHasAnAddress($input);
 
+        // A prospect turned client from its sheet won the deal just as surely
+        // as one converted from the list: same filing.
+        $becomesClient = null !== $customer->getId() && $customer->isProspect() && !$input->getStatus()->isProspect();
+
         $customer
             ->setLegalName($input->getLegalName())
             ->setStatus($input->getStatus())
@@ -182,7 +193,17 @@ class CustomerManager implements CustomerManagerInterface
             ->setSiren($input->getSiren())
             ->setLandline($input->getLandline())
             ->setLinks($input->getLinks())
-            ->setInformationNotes($input->getInformationNotes());
+            ->setInformationNotes($input->getInformationNotes())
+            ->setNextFollowUpOn($input->getNextFollowUpOn())
+            ->setFollowUpNote($input->getFollowUpNote())
+            ->setSource($input->getSource())
+            ->setEstimatedValueCents($input->getEstimatedValueCents())
+            ->setEstimatedValueCurrency($input->getEstimatedValueCurrency())
+            ->setLostReason($input->getLostReason());
+
+        if ($becomesClient) {
+            $this->pipelineManager->fileAsWon($customer);
+        }
     }
 
     /**

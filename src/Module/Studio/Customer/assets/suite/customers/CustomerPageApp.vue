@@ -19,7 +19,7 @@
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { BadgeCheck, Save, Trash2 } from "lucide-vue-next";
+import { BadgeCheck, MessageSquareText, Save, Trash2, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
@@ -32,6 +32,15 @@ import ConvertProspectModal from "./components/ConvertProspectModal.vue";
 import CustomerDeleteModal from "./components/CustomerDeleteModal.vue";
 import CustomerFormFields from "./components/CustomerFormFields.vue";
 import { useCustomerPage } from "./composables/useCustomerPage.js";
+import { followUpFormFrom } from "./composables/customerFormModel.js";
+import CustomerPipelineCard from "../pipeline/components/CustomerPipelineCard.vue";
+import LostReasonModal from "../pipeline/components/LostReasonModal.vue";
+import { useCustomerStage } from "../pipeline/composables/useCustomerStage.js";
+import CustomerInteractionsCard from "../interactions/CustomerInteractionsCard.vue";
+import CustomerInteractionModal from "../interactions/CustomerInteractionModal.vue";
+import { useCustomerInteractions } from "../interactions/useCustomerInteractions.js";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 
 const props = defineProps({
     customer: { type: Object, required: true },
@@ -46,6 +55,18 @@ const props = defineProps({
     spacesPath: { type: String, default: null },
     /** The contracts list filtered on them, or null. */
     contractsPath: { type: String, default: null },
+    /** The pipeline's stages, to name and change theirs. */
+    stages: { type: Array, default: () => [] },
+    movePath: { type: String, default: "" },
+    sources: { type: Array, default: () => [] },
+    interactionKinds: { type: Array, default: () => [] },
+    /** Their exchanges, newest first. */
+    interactions: { type: Array, default: () => [] },
+    interactionCreatePath: { type: String, default: "" },
+    /** With `__id__`. */
+    interactionUpdatePath: { type: String, default: "" },
+    /** With `__id__`. */
+    interactionDeletePath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -71,6 +92,41 @@ const {
 } = useCustomerPage(props);
 
 const { pending: converting, email: convertEmail, error: convertError, loading: convertLoading } = conversion;
+
+/**
+ * The sheet read again after a gesture outside its form (a stage changed, an
+ * exchange recorded): the saved sheet takes it whole, the form only its
+ * follow-up - which the gesture may have moved - so input in progress in the
+ * rest of the sheet is kept.
+ */
+function takeFollowUp(row) {
+    const fields = { ...row };
+    delete fields.spaces;
+    delete fields.contracts;
+    customer.value = { ...customer.value, ...fields };
+    form.value = { ...form.value, ...followUpFormFrom(customer.value) };
+}
+
+const stages = computed(() => props.stages);
+
+const stage = useCustomerStage({
+    movePath: props.movePath,
+    customer,
+    stages,
+    askConversion: () => openConversion(),
+    onMoved: takeFollowUp,
+});
+
+const timeline = useCustomerInteractions({
+    initial: props.interactions,
+    paths: {
+        create: props.interactionCreatePath,
+        update: props.interactionUpdatePath,
+        delete: props.interactionDeletePath,
+    },
+    customer,
+    onCustomer: takeFollowUp,
+});
 
 const isProspect = computed(() => "prospect" === customer.value.status);
 
@@ -235,7 +291,7 @@ const pageActions = computed(() => {
              expanded, the choice applies to every guide. -->
         <AppGuide :title="t('suite.studio.customers.page_guide.title')" storage-key="customer-page">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 4" :key="step">{{ t(`suite.studio.customers.page_guide.step_${step}`) }}</li>
+                <li v-for="step in 5" :key="step">{{ t(`suite.studio.customers.page_guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
@@ -249,8 +305,32 @@ const pageActions = computed(() => {
                 <CustomerFormFields v-model="form" :errors="errors" :currencies="currencies" framed />
             </form>
 
-            <section class="flex min-w-0 flex-col gap-3 lg:sticky lg:top-[calc(var(--aurora-topbar)+1rem)]">
-                <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-secondary">
+            <!-- The follow-up and the history first: they are what the page
+                 is opened for while a deal is in progress. No longer sticky:
+                 a column taller than the window cannot stay in view. -->
+            <section class="flex min-w-0 flex-col gap-3">
+                <form :inert="inertWhenReadOnly" v-on:submit.prevent="save">
+                    <CustomerPipelineCard
+                        v-model="form"
+                        :errors="errors"
+                        :customer="customer"
+                        :stages="stages"
+                        :sources="sources"
+                        :currencies="currencies"
+                        :editable="canEdit"
+                        :moving="stage.moving.value"
+                        v-on:change-stage="stage.change"
+                    />
+                </form>
+                <CustomerInteractionsCard
+                    :interactions="timeline.interactions.value"
+                    :kinds="interactionKinds"
+                    :editable="canEdit"
+                    v-on:add="timeline.openCreate()"
+                    v-on:edit="timeline.openEdit"
+                    v-on:delete="timeline.pendingDelete.value = $event"
+                />
+                <h2 class="m-0 mt-2 text-xs font-semibold uppercase tracking-wider text-secondary">
                     {{ t("suite.studio.customers.group_related") }}
                 </h2>
                 <article class="aurora-card p-4 sm:p-5">
@@ -277,5 +357,47 @@ const pageActions = computed(() => {
             v-on:close="conversion.close"
             v-on:submit="conversion.submit"
         />
+
+        <LostReasonModal
+            :show="!!stage.pendingLoss.value"
+            :name="customer.legalName"
+            :model-value="stage.lostReason.value"
+            :loading="stage.moving.value"
+            v-on:update:model-value="stage.lostReason.value = $event"
+            v-on:close="stage.cancelLoss"
+            v-on:submit="stage.confirmLoss"
+        />
+
+        <CustomerInteractionModal
+            :form="timeline.form.value"
+            :errors="timeline.errors.value"
+            :kinds="interactionKinds"
+            :loading="timeline.saving.value"
+            v-on:update:form="timeline.form.value = $event"
+            v-on:close="timeline.close"
+            v-on:submit="timeline.save"
+        />
+
+        <AppModal
+            :show="!!timeline.pendingDelete.value"
+            max-width="sm"
+            :title="t('suite.studio.customer_interactions.delete_title')"
+            :icon="MessageSquareText"
+            v-on:close="timeline.pendingDelete.value = null"
+        >
+            <p class="m-0 text-sm text-secondary">{{ t("suite.studio.customer_interactions.delete_body") }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="timeline.pendingDelete.value = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="danger" size="md" :loading="timeline.deleting.value" v-on:click="timeline.remove">
+                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.delete") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
     </div>
 </template>

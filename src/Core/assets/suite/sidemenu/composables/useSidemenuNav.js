@@ -92,6 +92,20 @@ export function useSidemenuNav(
             // The figure the server counted for this entry (NavItemCounter), or
             // null when nothing counts it - which is not the same as zero.
             count: Number.isInteger(item.count) ? item.count : null,
+            // What waits on somebody behind the entry (NavItemCounter): drawn
+            // as a coloured pill, never mistaken for the grey total.
+            attention:
+                Number.isInteger(item.attention?.count) &&
+                item.attention.count > 0
+                    ? {
+                          count: item.attention.count,
+                          label: t(
+                              item.attention.labelKey,
+                              { count: item.attention.count },
+                              item.attention.count,
+                          ),
+                      }
+                    : null,
             activeColor: item.activeColor ?? "accent",
             children: (item.children ?? []).map(buildItem),
         };
