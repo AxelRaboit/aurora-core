@@ -58,6 +58,9 @@ suite:
                     created: 'Punto de montaje creado'
                     updated: 'Punto de montaje editado'
                     deleted: 'Punto de montaje eliminado'
+                failed_message:
+                    retried: Mensaje fallido relanzado
+                    deleted: Mensaje fallido eliminado
             ged:
                 document:
                     created: 'Documento creado'

@@ -56,5 +56,8 @@
     mountPointTestPath: path_template('dev_mount_points_test', {id: '__id__'}),
     impersonatePath: path_template('suite_dashboard', {_switch_user: '__email__'}),
     csrfToken: csrf_token('admin'),
+    healthPath: path('dev_dashboard_health'),
+    healthRetryPath: path_template('dev_dashboard_health_failed_retry', {id: '__id__'}),
+    healthDeletePath: path_template('dev_dashboard_health_failed_delete', {id: '__id__'}),
 }) }} class="flex-1"></div>
 {% endblock %}

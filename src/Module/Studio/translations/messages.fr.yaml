@@ -1230,7 +1230,7 @@ suite:
             guide:
                 title: "Comment fonctionnent les liens d'accès"
                 step_1: "« Nouveau lien d'accès » produit une adresse personnelle pour un destinataire, qui ouvre l'espace sans compte."
-                step_2: "Copiez-la tout de suite et envoyez-la vous-même : elle ne sera plus jamais affichée, et l'application ne l'envoie pas."
+                step_2: "L'invitation part par email à la création, case cochée par défaut ; « Renvoyer le lien par email », dans le menu « … », la renvoie plus tard sans changer l'adresse. Vous pouvez aussi copier l'adresse affichée et l'envoyer vous-même."
                 step_3: "Le lien expire après 90 jours par défaut ; ses cases règlent ce que le client peut faire : valider, commenter, écrire dans la discussion, envoyer des fichiers, voir le Drive."
                 step_4: "« Aperçu » ouvre la page exactement comme ce destinataire la voit, sans rien enregistrer en son nom."
                 step_5: "« Révoquer » coupe le lien en gardant sa trace ; « Supprimer » l'efface complètement."
@@ -1260,7 +1260,7 @@ suite:
             empty_hint: Créez-en un pour montrer ce plan de contenu à votre client.
 
             minted_title: Voici l'adresse
-            minted_hint: 'Copiez-la maintenant : elle ne sera plus jamais affichée. Seule son empreinte est conservée, donc personne ne peut la retrouver, pas même vous.'
+            minted_hint: 'Elle ne sera plus affichée en clair : copiez-la si vous l''envoyez vous-même. Pour la renvoyer plus tard, « Renvoyer le lien par email » écrit une adresse qui ouvre le même espace.'
 
             recipient_email: Email du destinataire
             recipient_email_placeholder: camille@societe.fr
@@ -2506,7 +2506,7 @@ suite:
                 banner_action: Envoyer à relire
                 banner_hide: Masquer ce bandeau
                 confirm_title: Envoyer à relire ?
-                confirm_body: "{count} contenu attend une réponse. Chaque destinataire pouvant valider recevra un email avec une adresse neuve, et son adresse précédente cessera de fonctionner. | {count} contenus attendent une réponse. Chaque destinataire pouvant valider recevra un email avec une adresse neuve, et son adresse précédente cessera de fonctionner."
+                confirm_body: "{count} contenu attend une réponse. Chaque destinataire pouvant valider recevra un email avec l'adresse de son espace, qui reste la même. | {count} contenus attendent une réponse. Chaque destinataire pouvant valider recevra un email avec l'adresse de son espace, qui reste la même."
                 confirm_send: Envoyer
                 sent: "Envoyé à {count} destinataire. | Envoyé à {count} destinataires."
                 nothing_awaiting: Rien n'attend de réponse pour le moment.

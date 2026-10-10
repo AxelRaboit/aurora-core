@@ -3123,6 +3123,19 @@ const SHOTS = [
     },
     { name: "tour-reglages-lettre", path: "/suite/configuration/settings/newsletter" },
     { name: "tour-reglages-studio", path: "/suite/configuration/settings/studio" },
+    {
+        // The bottom of the same tab: how long won and lost deals stay on the
+        // prospect board, under « Suivi des prospects » (4.11.0). The top of
+        // the tab is the provider's identity, which its own shot shows.
+        name: "tour-reglages-studio-prospects",
+        path: "/suite/configuration/settings/studio",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            const section = page.locator("main").getByText("Suivi des prospects", { exact: true }).first();
+            await placeAt(page, section, 420);
+            await page.waitForTimeout(800);
+        },
+    },
     { name: "tour-reglages-stockage", path: "/suite/configuration/settings/storage" },
     { name: "tour-reglages-systeme", path: "/suite/configuration/settings/system" },
     { name: "tour-reglages-navigation", path: "/suite/configuration/settings/navigation" },

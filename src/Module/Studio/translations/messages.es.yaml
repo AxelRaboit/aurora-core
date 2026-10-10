@@ -1215,7 +1215,7 @@ suite:
             guide:
                 title: 'Cómo funcionan los enlaces de acceso'
                 step_1: "«Nuevo enlace de acceso» genera una dirección personal para un destinatario, que abre el espacio sin cuenta."
-                step_2: 'Cópiela enseguida y envíela usted: no se volverá a mostrar, y la aplicación no la envía.'
+                step_2: "La invitación sale por correo al crearlo, casilla marcada por defecto; « Volver a enviar el enlace por correo », en el menú « … », la reenvía más tarde sin cambiar la dirección. También puede copiar la dirección mostrada y enviarla usted."
                 step_3: 'El enlace caduca a los 90 días por defecto; sus casillas definen lo que puede hacer el cliente: validar, comentar, escribir en la conversación, enviar archivos, ver el Drive.'
                 step_4: '«Vista previa» abre la página exactamente como la ve ese destinatario, sin guardar nada en su nombre.'
                 step_5: '«Revocar» corta el enlace y conserva su rastro; «Eliminar» lo borra por completo.'
@@ -1244,7 +1244,7 @@ suite:
             empty: 'Ningún enlace por el momento.'
             empty_hint: 'Cree uno para mostrar este plan de contenidos a su cliente.'
             minted_title: 'Esta es la dirección'
-            minted_hint: 'Cópiela ahora: no volverá a mostrarse nunca. Solo se conserva su huella, así que nadie puede recuperarla, ni siquiera usted.'
+            minted_hint: 'No se volverá a mostrar completa: cópiela si la envía usted. Para reenviarla más tarde, « Volver a enviar el enlace por correo » escribe una dirección que abre el mismo espacio.'
             recipient_email: 'Email del destinatario'
             recipient_email_placeholder: camille@societe.fr
             recipient_email_hint: 'La dirección a la que va a enviar el enlace. También sirve para saber quién ha abierto qué.'
@@ -2473,7 +2473,7 @@ suite:
                 banner_action: 'Enviar a revisar'
                 banner_hide: 'Ocultar este aviso'
                 confirm_title: '¿Enviar a revisar?'
-                confirm_body: "{count} contenido espera una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar. | {count} contenidos esperan una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar."
+                confirm_body: "{count} contenido espera una respuesta. Cada destinatario que puede validar recibirá un correo con la dirección de su espacio, que sigue siendo la misma. | {count} contenidos esperan una respuesta. Cada destinatario que puede validar recibirá un correo con la dirección de su espacio, que sigue siendo la misma."
                 confirm_send: Enviar
                 sent: "Enviado a {count} destinatario. | Enviado a {count} destinatarios."
                 nothing_awaiting: 'Nada espera respuesta por el momento.'

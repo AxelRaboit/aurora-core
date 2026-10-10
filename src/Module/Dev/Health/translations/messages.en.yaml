@@ -1,0 +1,114 @@
+suite:
+    health:
+        title: System status
+        checked_at: 'Measured at {time}'
+        refresh: Measure again
+        loading: Measuring…
+        load_failed: "The measurement did not complete. Try again."
+        summary:
+            ok: Everything is running.
+            warning: Everything is running, with one thing to look at.
+            danger: Something is not running.
+            unknown: Not enough hindsight yet to judge everything.
+        statuses:
+            ok: OK
+            warning: To look at
+            danger: Down
+            unknown: Not seen yet
+            'off': Not configured
+        sections:
+            background: Background work
+            foundations: What the application stands on
+            environment: Environment
+        guide:
+            title: How it works
+            step_1: "Each line is measured when the page opens, then on demand with « Measure again »."
+            step_2: "The worker writes a heartbeat every 30 seconds: silent for more than 2 minutes, it is reported down."
+            step_3: "Each scheduled task is judged on its own rhythm: a task that runs every minute silent for 10 minutes is late, a nightly task is not. After a deployment, a task is « not seen yet » until its next run."
+            step_4: "A failed message is retried or deleted from the list. Retrying sends it back to its queue."
+            step_5: "The server's systemd units are chosen in Settings > System. Without systemd, the line does not appear."
+        tasks:
+            title: Scheduled tasks
+            name: Task
+            trigger: Rhythm
+            last_run: Last run
+            next_run: Next run
+            never: Not seen yet
+        failures:
+            title: Failed messages
+            empty: No failed message.
+            from: 'from the {transport} queue'
+            retry: Retry
+            delete: Delete
+            retried: Message retried.
+            deleted: Message deleted.
+            confirm_delete: "Delete this message? What it was meant to do will not be done."
+        errors:
+            csrf: "The page has expired. Reload it."
+            failure_not_found: "This message is no longer in the failure queue."
+        worker:
+            label: Worker
+            alive: 'Seen {seconds} s ago'
+            silent: 'Silent for {seconds} s'
+            never_seen: "Never seen: the worker is not running, or has not been restarted since the update."
+        scheduler:
+            label: Scheduled tasks
+            on_time: '{count} tasks, none late'
+            late: '{late} late out of {count}'
+        queue_async:
+            label: Work queue
+            waiting: '{count} waiting'
+            uncounted: "This queue cannot count itself."
+        queue_failed:
+            label: Failure queue
+            count: '{count} failed'
+            uncounted: "This queue cannot count itself."
+        database:
+            label: Database
+            answers: 'Answers in {milliseconds} ms'
+            unreachable: 'Does not answer: {error}'
+        migrations:
+            label: Migrations
+            up_to_date: Up to date
+            pending: '{count} pending'
+            unknown: Cannot be counted
+        mercure:
+            label: Mercure hub
+            answers: 'Answers in {milliseconds} ms'
+            error: 'Answers with an error ({status})'
+            unreachable: Does not answer
+            not_configured: 'Not configured: the spaces chat works without live updates.'
+        unit:
+            label: 'Unit {unit}'
+            state: '{active} ({sub}), {restarts} restart(s)'
+            not_found: Not found on this server
+        reboot:
+            label: Server reboot
+            required: A reboot is pending.
+        updates:
+            label: Server updates
+            pending: '{count} pending'
+        application:
+            label: Application
+            running: 'Version {version}, PHP {php}'
+        disk:
+            label: Disk space
+            free: '{percent} % free'
+            unknown: Cannot be measured
+        mail:
+            label: Email sending
+            configured: 'Through {scheme}'
+            'null': "« null » transport: no email leaves."
+            missing: No transport configured.
+        storage:
+            label: File storage
+            local: 'Disk {disk}'
+            remote_answers: 'Disk {disk}, answers in {milliseconds} ms'
+            not_ready: 'Disk {disk} not configured'
+            unreachable: 'Disk {disk} unreachable'
+            unavailable: No storage available
+        certificate:
+            label: TLS certificate
+            expires: 'Expires in {days} days ({host})'
+            unreadable: 'Unreadable for {host}'
+            not_applicable: "Not applicable: the site's address is not public HTTPS."

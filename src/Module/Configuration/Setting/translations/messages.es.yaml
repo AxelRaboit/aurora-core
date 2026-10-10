@@ -56,6 +56,9 @@ suite:
             prospect_pipeline:
                 title: "Seguimiento de prospectos"
                 lead: "Lo que muestra el tablero de prospectos."
+            system_health:
+                title: "Estado del sistema"
+                lead: "Los servicios del servidor que vigila la vista general del acceso de desarrollador, además de la propia aplicación."
         studio_guide:
             title: 'Su identidad en los contratos'
             step_1: 'Estos campos rellenan el bloque de identidad del prestador de cada contrato en el momento de sellarlo, y los ya sellados conservan sus valores.'
@@ -630,6 +633,10 @@ suite:
         saved: 'Ajuste guardado.'
         search_placeholder: 'Buscar por clave…'
         all_groups: 'Todos los grupos'
+        system_health_units:
+            label: Unidades systemd vigiladas
+            description: "Los nombres de las unidades systemd del servidor que vigilar, separados por comas o espacios. Vacío: ninguna. Se leen con « systemctl show », sin ningún derecho especial; se ignoran en una máquina sin systemd."
+            placeholder: "mi-worker.service, mi-hub.service, mi-copia.timer"
     title: Administración
     stats:
         guide:
