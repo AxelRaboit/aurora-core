@@ -308,7 +308,6 @@ suite:
         resize_hint: Glisser pour redimensionner, double-clic pour réinitialiser
         filter_nav: Filtrer le menu…
         breadcrumb: Fil d'Ariane
-        show_descriptions: Afficher les descriptions
         collapse_all: Tout replier
         expand_all: Tout déplier
         filter_nav_empty: Aucun élément trouvé

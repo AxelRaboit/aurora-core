@@ -308,7 +308,6 @@ suite:
         resize_hint: Drag to resize, double-click to reset
         filter_nav: Filter menu…
         breadcrumb: Breadcrumb
-        show_descriptions: Show descriptions
         collapse_all: Collapse all
         expand_all: Expand all
         filter_nav_empty: No items found

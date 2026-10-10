@@ -11,7 +11,6 @@ import { useResizable } from "@/shared/composables/useResizable.js";
 import { useSuiteSearch } from "@core/suite/sidemenu/composables/useSuiteSearch.js";
 import { useSidemenuCollapse } from "@core/suite/sidemenu/composables/useSidemenuCollapse.js";
 import { useSidemenuPeek } from "@core/suite/sidemenu/composables/useSidemenuPeek.js";
-import { useSidemenuDescriptions } from "@core/suite/sidemenu/composables/useSidemenuDescriptions.js";
 import { useSidemenuNav } from "@core/suite/sidemenu/composables/useSidemenuNav.js";
 import { useSidemenuSectionTheme } from "@core/suite/sidemenu/composables/useSidemenuSectionTheme.js";
 import { useSidemenuLiveColors } from "@core/suite/sidemenu/composables/useSidemenuLiveColors.js";
@@ -19,7 +18,6 @@ import AppLogo from "@/shared/components/display/AppLogo.vue";
 import AppAvatar from "@/shared/components/display/AppAvatar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
-import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/suite/notifications/AppNotificationsBell.vue";
@@ -73,8 +71,6 @@ const props = defineProps({
     profilePath: { type: String, default: "/suite/general/profile" },
     sidemenuPreferencesPath: { type: String, default: "/suite/general/profile/sidemenu" },
     sidemenuCollapsedPath: { type: String, default: "/suite/general/profile/sidemenu/collapsed" },
-    sidemenuDescriptionsPath: { type: String, default: "/suite/general/profile/sidemenu/descriptions" },
-    sidemenuShowDescriptions: { type: Boolean, default: true },
     logoutPath: { type: String, default: "/logout" },
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
@@ -108,10 +104,6 @@ const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
 const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
 const { onEdgeEnter, onEdgeLeave, onMenuEnter, onMenuLeave } = useSidemenuPeek();
-const { showDescriptions, toggleDescriptions } = useSidemenuDescriptions(
-    props.sidemenuDescriptionsPath,
-    props.sidemenuShowDescriptions,
-);
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
@@ -313,18 +305,6 @@ function openSearchFromMobile() {
                     <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="h-3.5 w-3.5" :stroke-width="2" />
                 </AppIconButton>
             </div>
-
-            <!-- Beside the filter because both act on the menu itself rather
-                 than leading anywhere. `AppToggle` carries its own label above
-                 the switch, which is a form layout; here the row is tight, so
-                 the label sits alongside instead. -->
-            <div class="flex items-center justify-between gap-2">
-                <span class="truncate text-[0.8125rem] text-secondary">{{ t("suite.nav.show_descriptions") }}</span>
-                <AppToggle
-                    :model-value="showDescriptions"
-                    v-on:update:model-value="toggleDescriptions"
-                />
-            </div>
         </div>
 
         <!-- `py-1`, not `py-4`: 16px of padding left the first header and the
@@ -342,7 +322,6 @@ function openSearchFromMobile() {
                 :nav="nav"
                 :theme="sectionTheme"
                 :nav-filter="navFilter"
-                :show-descriptions="showDescriptions"
             />
 
             <!-- What a list of links cannot express: a folder tree, a note list.
@@ -525,7 +504,6 @@ function openSearchFromMobile() {
                     :sections="activeSections"
                     :nav="nav"
                     :theme="sectionTheme"
-                    :show-descriptions="showDescriptions"
                 />
 
                 <!-- The module's panel belongs here too, and its absence was a

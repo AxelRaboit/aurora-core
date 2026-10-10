@@ -77,6 +77,10 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   échelle (26 px). Restent volontairement sans : Notes Markdown (sa barre est
   l'écran) et l'éditeur de publication (ses onglets).
 
+- **Descriptions du menu toujours visibles** : l'interrupteur « Afficher les
+  descriptions » et sa colonne `sidemenu_show_descriptions` ont été retirés le
+  10/10 à la demande d'Axel. Ne pas réintroduire de préférence par utilisateur.
+
 ## Pourquoi
 
 Axel voulait une suite « encore plus pro ». La maquette montrait surtout de la

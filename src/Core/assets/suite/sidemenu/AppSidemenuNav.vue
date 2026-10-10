@@ -27,9 +27,10 @@
  * menu hid the drawer with it.
  *
  * **No hover tooltip anywhere in the column.** It repeated the label the row
- * already shows, and its only other job - carrying the description - was taken
- * over by the "show descriptions" switch, which puts the text in the row itself
- * where it can be read without hunting for it. Two ways to see the same thing
+ * already shows, and its only other job - carrying the description - is done by the row itself, which always shows
+ * the text under the label where it can be read without hunting for it (the
+ * "show descriptions" switch that once made it optional went with the visual
+ * redesign of the suite, 10/10/2026). Two ways to see the same thing
  * meant the tooltip had to be silenced whenever the switch was on, which is the
  * shape of a feature that has been replaced. The rows lost theirs first; the
  * account block and the "view site" link kept theirs a while longer, repeating
@@ -89,15 +90,6 @@ defineProps({
      * is folded - a search that obeyed the folds would hide its own results.
      */
     navFilter: { type: String, default: "" },
-    /**
-     * Show each item's description under its label instead of only on hover.
-     *
-     * Same rule as `AppActionButton`: the label goes bold only when a
-     * description sits under it, because bold is what separates the two. An
-     * item with no description keeps a normal label - bolding it would promise
-     * a second line that never comes.
-     */
-    showDescriptions: { type: Boolean, default: false },
 });
 
 /*
@@ -147,10 +139,10 @@ defineProps({
                         >
                             <span class="min-w-0 flex-1">
                                 <span class="flex items-baseline gap-2">
-                                    <span class="min-w-0 flex-1 truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                                    <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                                     <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
                                 </span>
-                                <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
+                                <span v-if="item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
                             </span>
                         </a>
                         <!-- `title` stays: it is the accessible name of a button
@@ -176,10 +168,10 @@ defineProps({
                         >
                             <span class="min-w-0 flex-1">
                                 <span class="flex items-baseline gap-2">
-                                    <span class="min-w-0 flex-1 truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
+                                    <span class="min-w-0 flex-1 truncate" :class="child.description ? 'font-semibold' : ''">{{ child.label }}</span>
                                     <span v-if="null !== (child.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(child.count) }}</span>
                                 </span>
-                                <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ child.description }}</span>
+                                <span v-if="child.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ child.description }}</span>
                             </span>
                         </AppNavLink>
                     </div>
@@ -196,13 +188,13 @@ defineProps({
                 >
                     <span class="min-w-0 flex-1">
                         <span class="flex items-baseline gap-2">
-                            <span class="min-w-0 flex-1 truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                            <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                             <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
                         </span>
                         <!-- Not truncated: a description cut at one line is
                              worse than no description, and the row is allowed
                              to grow when the reader asked for the text. -->
-                        <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
+                        <span v-if="item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
                     </span>
                 </AppNavLink>
             </template>
