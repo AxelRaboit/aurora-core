@@ -374,8 +374,6 @@ notes:
                 unpublished: "Espacio de notas despublicado"
                 badge: 'Publicado en la web'
             my_space: "Mi espacio de notas"
-            managed_badge: 'Espacio de cliente'
-            managed_hint: 'Las notas del espacio de cliente del mismo nombre. Su nombre y su equipo siguen al espacio de cliente: se ajustan en Studio.'
             errors:
                 private_owner_only: "Solo el propietario puede reservarse el espacio de notas."
                 bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'

@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteMember;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteMemberInterface;
 use Aurora\Module\Notes\Share\Enum\NoteMemberRoleEnum;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\Common\Collections\Order;
@@ -41,14 +42,21 @@ class MarkdownNoteMemberRepository extends ResolveTargetEntityRepository
      * Joined rather than `IDENTITY()` in a subselect: the join is free here
      * and reads the same on every Doctrine version.
      *
-     * The `:noteViewer` parameter is set by {@see self::bindViewer()}.
+     * Narrowed by the request's scope like the spaces are
+     * ({@see NoteSpaceScope}): a hosted note handed to somebody on its own
+     * stays out of the Notes module's lists, like the rest of its space.
+     *
+     * The `:noteViewer` parameter is set by {@see self::bindViewer()}, the
+     * scope parameters by `NoteSpaceRepository::bindViewer()`, which every
+     * query using this one also calls.
      */
     public static function grantedSubquery(string $prefix = 'gm'): string
     {
         return sprintf(
-            'SELECT %1$sn.id FROM %2$s %1$s JOIN %1$s.note %1$sn WHERE %1$s.user = :noteViewer',
+            'SELECT %1$sn.id FROM %2$s %1$s JOIN %1$s.note %1$sn JOIN %1$sn.space %1$ss WHERE %1$s.user = :noteViewer AND %3$s',
             $prefix,
             MarkdownNoteMember::class,
+            NoteSpaceScope::clause($prefix.'s'),
         );
     }
 
@@ -62,9 +70,10 @@ class MarkdownNoteMemberRepository extends ResolveTargetEntityRepository
     public static function grantedWritableSubquery(string $prefix = 'gw'): string
     {
         return sprintf(
-            'SELECT %1$sn.id FROM %2$s %1$s JOIN %1$s.note %1$sn WHERE %1$s.user = :noteViewer AND %1$s.role IN (:noteWriterRoles)',
+            'SELECT %1$sn.id FROM %2$s %1$s JOIN %1$s.note %1$sn JOIN %1$sn.space %1$ss WHERE %1$s.user = :noteViewer AND %1$s.role IN (:noteWriterRoles) AND %3$s',
             $prefix,
             MarkdownNoteMember::class,
+            NoteSpaceScope::clause($prefix.'s'),
         );
     }
 

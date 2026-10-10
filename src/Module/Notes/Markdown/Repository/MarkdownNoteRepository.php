@@ -10,6 +10,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteMemberRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Hosting\NoteSpaceScope;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -28,7 +29,13 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     /** Enough to fill a grid thumbnail, without carrying the whole note. */
     public const int EXCERPT_LENGTH = 700;
 
-    public function __construct(ManagerRegistry $registry)
+    /**
+     * @param ?NoteSpaceScope $scope the request's scope, null for every space -
+     *                               optional so that a project's own repository
+     *                               calling `parent::__construct($registry)` keeps
+     *                               booting
+     */
+    public function __construct(ManagerRegistry $registry, protected readonly ?NoteSpaceScope $scope = null)
     {
         parent::__construct($registry, MarkdownNote::class, MarkdownNoteInterface::class);
     }
@@ -108,7 +115,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
 
         MarkdownNoteMemberRepository::bindViewer($queryBuilder, $user);
 
-        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user, $this->scope);
     }
 
     /**
@@ -126,7 +133,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
 
         MarkdownNoteMemberRepository::bindViewer($queryBuilder, $user);
 
-        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user, $this->scope);
     }
 
     /** The spaces where a person writes, without the notes handed to them. */
@@ -134,7 +141,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     {
         $queryBuilder->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
 
-        return NoteSpaceRepository::bindViewer($queryBuilder, $user);
+        return NoteSpaceRepository::bindViewer($queryBuilder, $user, $this->scope);
     }
 
     /**

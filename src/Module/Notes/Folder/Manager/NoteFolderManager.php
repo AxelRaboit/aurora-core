@@ -49,7 +49,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
         $folder->setSpace(match (true) {
             $parent instanceof NoteFolderInterface => $parent->getSpace(),
             $space instanceof NoteSpaceInterface => $space,
-            default => $this->spaceAccess->personalSpace($user),
+            default => $this->spaceAccess->defaultSpace($user),
         });
 
         $this->applyInput($folder, $input);

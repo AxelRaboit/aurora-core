@@ -81,7 +81,7 @@ final class NoteFoldersController extends AbstractController
         $allowed = match (true) {
             null !== $parentId => $this->spaceAccess->writableFolder($user, $parentId) instanceof NoteFolderInterface,
             null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId) instanceof NoteSpaceInterface,
-            default => true,
+            default => $this->spaceAccess->writableDefaultSpace($user) instanceof NoteSpaceInterface,
         };
         if (!$allowed) {
             return $this->jsonNotFound();

@@ -10,6 +10,7 @@
  * Grouped by space, like the panel: one's own first, then each shared space
  * under its name. A single space needs no header.
  */
+import { withQuery } from "@/shared/utils/http/withQuery.js";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Share2, User, Users } from "lucide-vue-next";
@@ -61,7 +62,7 @@ const { request } = useRequest();
 const contentMatchIds = ref(new Set());
 
 const runContentSearch = useDebounce(async (value) => {
-    const payload = await request(`${props.searchPath}?q=${encodeURIComponent(value)}`, null, {
+    const payload = await request(withQuery(props.searchPath, { q: value }), null, {
         method: HttpMethod.Get,
         noGuard: true,
     });

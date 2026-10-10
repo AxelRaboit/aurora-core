@@ -1081,14 +1081,6 @@ onUnmounted(() => {
                     >
                         <title>{{ t('notes.markdown.spaces.publication.badge') }}</title>
                     </Globe>
-                    <!-- Set from Studio: the badge says so, and the settings
-                         do not open from here. -->
-                    <span
-                        v-if="group.space.managed"
-                        data-space-managed
-                        class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
-                        :title="t('notes.markdown.spaces.managed_hint')"
-                    >{{ t('notes.markdown.spaces.managed_badge') }}</span>
                     <span
                         v-if="!group.space.canWrite"
                         data-space-readonly
@@ -1103,6 +1095,10 @@ onUnmounted(() => {
                     >
                         <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
+                    <!-- A space another module hosts is set there, never
+                         from here. The module's lists leave those spaces out
+                         since 10/10/2026; the guard stays for a list that
+                         would carry one. -->
                     <AppIconButton
                         v-if="group.space.canManage && !group.space.managed"
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100 touch:opacity-100"

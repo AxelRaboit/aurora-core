@@ -451,7 +451,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
         $space = null === $spaceId ? null : $this->spaceRepository->find($spaceId);
 
-        return $space instanceof NoteSpaceInterface ? $space : $this->spaceAccess->personalSpace($user);
+        return $space instanceof NoteSpaceInterface ? $space : $this->spaceAccess->defaultSpace($user);
     }
 
     /**

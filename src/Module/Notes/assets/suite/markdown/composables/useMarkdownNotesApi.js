@@ -1,3 +1,4 @@
+import { withQuery } from "@/shared/utils/http/withQuery.js";
 import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
@@ -108,15 +109,12 @@ export function useMarkdownNotesApi(props) {
         daily: (date = null) =>
             call(HttpMethod.Post, props.dailyPath, date ? { date } : {}),
         dailyDays: (month) =>
-            call(
-                HttpMethod.Get,
-                `${props.dailyDaysPath}?month=${encodeURIComponent(month)}`,
-            ),
+            call(HttpMethod.Get, withQuery(props.dailyDaysPath, { month })),
         tasks: () => call(HttpMethod.Get, props.tasksPath),
         searchFull: (query, sort = "relevance") =>
             call(
                 HttpMethod.Get,
-                `${props.searchFullPath}?q=${encodeURIComponent(query)}&sort=${sort}`,
+                withQuery(props.searchFullPath, { q: query, sort }),
             ),
         /** `{ids, find, replacement, exact, dryRun}`: dry run counts only. */
         replaceInNotes: (payload) =>
@@ -160,10 +158,7 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Get, resolvePath(props.unlinkedMentionsPath, id)),
         graph: () => call(HttpMethod.Get, props.graphPath),
         searchContent: (query) =>
-            call(
-                HttpMethod.Get,
-                `${props.searchPath}?q=${encodeURIComponent(query)}`,
-            ),
+            call(HttpMethod.Get, withQuery(props.searchPath, { q: query })),
         /**
          * Multipart upload. `useRequest`'s `rawBody` exists for exactly this:
          * it sets the XHR header and leaves the browser to write the multipart
