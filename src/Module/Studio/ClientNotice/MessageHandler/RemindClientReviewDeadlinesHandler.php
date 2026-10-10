@@ -52,12 +52,15 @@ final readonly class RemindClientReviewDeadlinesHandler
             if (null === $reviewBy) {
                 continue;
             }
+
             if (!$space->getClientDigest()->sends()) {
                 continue;
             }
+
             if (!$item->isShownToClient()) {
                 continue;
             }
+
             if (!$item->isAtClientStep()) {
                 continue;
             }
