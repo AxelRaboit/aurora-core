@@ -260,7 +260,7 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
                         </template>
 
                         <template v-else-if="parameter.type === ParameterType.Textarea">
-                            <label class="block text-sm font-medium text-secondary mb-1">{{ parameter.label }}</label>
+                            <label class="mb-1.5 block text-[0.8125rem] font-medium text-primary">{{ parameter.label }}</label>
                             <textarea
                                 :placeholder="parameter.placeholder ?? ''"
                                 :value="fieldValues[parameter.key]"

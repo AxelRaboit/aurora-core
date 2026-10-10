@@ -360,7 +360,7 @@ const pageActions = computed(() => {
                 <p v-else class="text-xs text-muted">{{ t('suite.users.invite_frontend_role_hint') }}</p>
                 <!-- The message has no recipient when nothing is sent. -->
                 <div v-if="!inviteForm.disabled">
-                    <label class="block text-xs text-secondary uppercase tracking-wide mb-1.5">{{ t('suite.users.invite_message') }}</label>
+                    <label class="mb-1.5 block text-[0.8125rem] font-medium text-primary">{{ t('suite.users.invite_message') }}</label>
                     <textarea
                         v-model="inviteForm.message"
                         rows="3"

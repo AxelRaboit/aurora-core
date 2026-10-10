@@ -311,7 +311,7 @@ const pageActions = computed(() => {
                 />
             </template>
             <div class="space-y-2">
-                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("suite.post_types.supports") }}</label>
+                <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.post_types.supports") }}</label>
                 <AppCheckbox
                     v-for="support in supportOptions"
                     :key="support"
@@ -397,7 +397,7 @@ const pageActions = computed(() => {
                 />
             </template>
             <div class="space-y-2">
-                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("suite.post_types.supports") }}</label>
+                <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.post_types.supports") }}</label>
                 <AppCheckbox
                     v-for="support in supportOptions"
                     :key="support"

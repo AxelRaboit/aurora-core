@@ -12,7 +12,7 @@ defineEmits(['update:modelValue']);
 
 <template>
     <div class="flex flex-col gap-1.5">
-        <span v-if="label" class="text-xs text-muted uppercase tracking-wide">{{ label }}</span>
+        <span v-if="label" class="text-[0.8125rem] font-medium text-primary">{{ label }}</span>
         <!-- The button is the hit area, the track inside it is the drawing.
              On a phone the button grows through its padding to a finger's
              size while the track keeps its own: one element doing both drew

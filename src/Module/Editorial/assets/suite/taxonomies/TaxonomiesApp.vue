@@ -270,7 +270,7 @@ const pageActions = computed(() => {
             </div>
 
             <div class="space-y-2 border-t border-line/40 pt-3">
-                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("suite.taxonomies.post_types") }}</label>
+                <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.taxonomies.post_types") }}</label>
                 <AppCheckbox
                     v-for="postType in postTypes"
                     :key="postType.id"
@@ -327,7 +327,7 @@ const pageActions = computed(() => {
             </div>
 
             <div class="space-y-2 border-t border-line/40 pt-3">
-                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("suite.taxonomies.post_types") }}</label>
+                <label class="block text-[0.8125rem] font-medium text-primary">{{ t("suite.taxonomies.post_types") }}</label>
                 <AppCheckbox
                     v-for="postType in postTypes"
                     :key="postType.id"
