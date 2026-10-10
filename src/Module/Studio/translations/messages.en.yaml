@@ -1230,7 +1230,7 @@ suite:
             guide:
                 title: "How access links work"
                 step_1: "“New access link” makes a personal address for one recipient, which opens the space without an account."
-                step_2: "Copy it right away and send it yourself: it will never be shown again, and the app does not send it."
+                step_2: "The invitation goes out by email at creation, box ticked by default; « Send the link again by email », in the « … » menu, sends it later without changing the address. You can also copy the address shown and send it yourself."
                 step_3: "The link expires after 90 days by default; its boxes set what the client can do: validate, comment, write in the chat, upload files, see the Drive."
                 step_4: "“Preview” opens the page exactly as that recipient sees it, without saving anything on their behalf."
                 step_5: "“Revoke” cuts the link and keeps its record; “Delete” erases it completely."
@@ -1260,7 +1260,7 @@ suite:
             empty_hint: Create one to show this content plan to your client.
 
             minted_title: Here is the address
-            minted_hint: 'Copy it now: it will never be shown again. Only its fingerprint is kept, so nobody can recover it, you included.'
+            minted_hint: 'It will not be shown in full again: copy it if you send it yourself. To send it later, « Send the link again by email » writes an address that opens the same space.'
 
             recipient_email: Recipient email
             recipient_email_placeholder: camille@company.com
@@ -2499,7 +2499,7 @@ suite:
                 banner_action: Send for review
                 banner_hide: Hide this banner
                 confirm_title: Send for review?
-                confirm_body: "{count} content item is waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working. | {count} content items are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working."
+                confirm_body: "{count} piece of content awaits an answer. Each recipient who may approve will get an email with the address of their space, which stays the same. | {count} pieces of content await an answer. Each recipient who may approve will get an email with the address of their space, which stays the same."
                 confirm_send: Send
                 sent: "Sent to {count} recipient. | Sent to {count} recipients."
                 nothing_awaiting: Nothing is waiting for an answer right now.
