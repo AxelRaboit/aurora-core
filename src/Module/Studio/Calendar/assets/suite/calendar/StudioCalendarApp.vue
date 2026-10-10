@@ -208,7 +208,7 @@ function spaceName(item) {
              the spaces counted, so the page reloads. -->
         <div
             v-if="hasScopeChoice"
-            class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="flex w-fit items-center gap-0.5 aurora-segmented"
             role="group"
             :aria-label="t('suite.studio.calendar.scope_label')"
         >

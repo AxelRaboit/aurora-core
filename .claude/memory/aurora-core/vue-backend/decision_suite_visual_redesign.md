@@ -10,9 +10,19 @@ metadata:
 La refonte du 09/10/2026, faite d'après une maquette validée par Axel, a posé
 quelques invariants. Les respecter dans tout écran neuf de la suite :
 
-- **Le cadre est aligné.** L'entête du menu (`h-12`) a la hauteur de la barre
-  de titre de `page_header.html.twig` (48 px) : leurs filets courent d'un bord
-  à l'autre. Toucher l'une, c'est toucher l'autre.
+- **La barre du haut fait 60 px** (`h-15`, `--aurora-topbar` à 5.75rem en
+  `lg`) et ses commandes sont des carrés encadrés de 36 px : `TOPBAR_BUTTON` /
+  `TOPBAR_ICON` dans `suite/sidemenu/topbarButton.js`, partagés par la
+  recherche, le thème, la cloche, le repli du menu, l'historique et la barre
+  du téléphone. Remplace la règle « icône nue dans le cadre de l'app » du
+  02/10 (choix d'Axel en validant la maquette). Avatar en `lg` (36 px), `soft`.
+- **Le haut du menu est un seul bloc** (site, « Voir le site » en simple lien,
+  filtre, interrupteur des descriptions) avec un seul filet dessous ; pied
+  signé à gauche en `text-secondary`.
+- **Commutateurs segmentés = `aurora-segmented`** (spacing.css) : bande
+  `surface-2` sans bordure, 4 px de jeu, rayon 12 px. Les 21 copies de
+  `rounded-lg border border-line bg-surface-2/40 p-0.5` y sont passées.
+- **Encarts repliés encadrés** : une ligne dans une carte (`px-4 py-3`).
 - **Le fil d'Ariane est dans le contenu** (10/10/2026), plus dans l'entête
   collant : `nav[data-breadcrumb]`, texte sur le fond de la page, `h-8`, qui
   défile. Seule la barre de titre colle. `--aurora-topbar` garde sa valeur
@@ -38,8 +48,8 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   copies locales de la liste, de l'éditeur et des révisions ont été retirées.
 - **Les encarts « Comment ça marche » ouverts sont des cartes pleines**, plus des
   cadres pointillés (réservés aux zones de dépôt).
-- La barre du haut porte un interrupteur clair / sombre, en icône nue comme ses
-  voisines (règle du cadre de l'application).
+- La barre du haut porte un interrupteur clair / sombre, encadré comme ses
+  voisines (`TOPBAR_BUTTON`).
 
 ## Pourquoi
 
@@ -57,5 +67,8 @@ l'un de l'autre.
   `POST_STATUS_COLORS`, ne pas recopier la table.
 - Créneaux de graphique nommés : voir [[convention_chart_palette]] (mesurer les
   jointures sous les trois déficiences).
-- Laissé tel quel exprès : le style des commutateurs segmentés de la maison
-  (`rounded-lg border bg-surface-2/40 p-0.5`).
+- Écarts à la maquette, assumés : la légende des barres reste en ligne
+  (une grille de deux colonnes éloignait le chiffre de son nom, cf.
+  `AppShareBar`), les statuts gardent les couleurs des badges de la liste
+  (publiée verte, brouillon gris) plutôt qu'ardoise / ambre, pas de chiffre
+  sur la corbeille ni d'étiquettes de valeurs sur la courbe.

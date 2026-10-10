@@ -27,8 +27,12 @@ rien à faire dans une barre d'entête.
 - **Commande d'une barre** (entête de page, barre d'outils, barre de
   sélection) : vrai bouton, fond ou filet.
 - **Geste dans le contenu** (« … » d'une ligne de tableau, croix d'une
-  modale, outils de l'éditeur, cadre de l'application en haut) : icône nue,
-  `AppIconButton`, toujours avec un `title`.
+  modale, outils de l'éditeur) : icône nue, `AppIconButton`, toujours avec un
+  `title`.
+- **Cadre de l'application en haut** (recherche, clair/sombre, cloche, repli
+  du menu) : carré encadré de 36 px, `TOPBAR_BUTTON` de
+  `suite/sidemenu/topbarButton.js`, depuis la refonte du 10/10/2026 (icône nue
+  avant).
 
 ### Le retour
 

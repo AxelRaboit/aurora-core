@@ -77,12 +77,12 @@ const TONES = {
                  screens already wear: same strip, same raised open tab. It had
                  a heavier frame of its own here, and the landing screen was
                  the one place where a switch looked different. -->
-            <div v-if="visibleModules.length > 1" class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide" role="tablist">
+            <div v-if="visibleModules.length > 1" class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide" role="tablist">
                 <AppTab
                     v-for="module in visibleModules"
                     :key="module.id"
                     size="sm"
-                    shape-class="rounded-md"
+                    shape-class="rounded-lg"
                     role="tab"
                     :aria-selected="activeModule === module.id ? 'true' : 'false'"
                     :active="activeModule === module.id"

@@ -103,7 +103,7 @@ function itemActions(trash, item) {
                  line, scrolling sideways on a phone. -->
             <div class="flex flex-col gap-2">
                 <div
-                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
                     role="group"
                     :aria-label="t('suite.trash.modules_label')"
                 >
@@ -125,7 +125,7 @@ function itemActions(trash, item) {
                      name above already says what the list holds. -->
                 <div
                     v-if="activeModule && activeModule.rows.length > 1"
-                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+                    class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
                     role="group"
                     :aria-label="t('suite.trash.types_label')"
                 >

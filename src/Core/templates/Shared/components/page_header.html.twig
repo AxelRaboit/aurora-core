@@ -13,12 +13,13 @@
    Eighty pixels in total against a hundred and four.
 
    **Only the title strip is a bar** (visual redesign of the suite,
-   10/10/2026). The breadcrumb left the sticky header for the top of the
+   10/10/2026), and it is sixty pixels tall: its controls became framed
+   thirty-six-pixel squares, which need the air around them. The breadcrumb left the sticky header for the top of the
    content: plain text on the page's background, no surface and no border,
    and it scrolls away with the page. Drawn as a second bar, it made the
    frame two bands thick on every screen and read as a toolbar with nothing
    to click; above the content, it reads as what it is, the path to the
-   page. The sticky header is now the forty-eight pixels of the title.
+   page. The sticky header is now the sixty pixels of the title.
 
    **The name is taken from the breadcrumb's last level, not passed
    separately.** Each page's name is already the last item of its path; asking
@@ -59,7 +60,7 @@
        that carries its own bar with the logo, the search and the bell, and
        this strip would only hold a title between two hidden groups there -
        forty-eight pixels of border. #}
-    <div class="aurora-page-x hidden h-12 items-center gap-3 border-b border-line bg-surface lg:flex">
+    <div class="aurora-page-x hidden h-15 items-center gap-3 border-b border-line bg-surface lg:flex">
         {# The only control that collapses the menu, at the top left of the
            page - not in the menu it hides. A button that lives in what it hides
            needs a second copy elsewhere to bring it back, which Aurora had.
@@ -67,11 +68,11 @@
            the suite runs as an installed application, which has no toolbar of
            its own. In a browser tab they doubled the ones right above them
            (UI audit of 07/10/2026). #}
-        <div class="flex shrink-0 items-center gap-1">
+        <div class="flex shrink-0 items-center gap-2">
             <div {{ vue_component('core/suite/sidemenu/AppSidemenuToggle', {
                 collapsedPath: path('suite_general_profile_sidemenu_collapsed'),
             }) }}></div>
-            <div class="hidden border-l border-line pl-1 [@media(display-mode:standalone)]:block">
+            <div class="hidden border-l border-line pl-2 [@media(display-mode:standalone)]:block">
                 <div {{ vue_component('core/suite/sidemenu/AppTopbarNav') }}></div>
             </div>
         </div>
@@ -80,7 +81,7 @@
            about - a document's title, a section heading next to its Nouveau
            button - and a second `h1` here would leave the document outline
            with two tops. #}
-        <h2 class="min-w-0 flex-1 truncate text-base font-semibold leading-tight text-primary">{{ pageTitle }}</h2>
+        <h2 class="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold leading-tight text-primary">{{ pageTitle }}</h2>
 
         {# Search, notifications and account, far right. They used to live in
            the navigation menu, above the filter, which put controls unrelated

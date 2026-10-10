@@ -647,7 +647,7 @@ function isLate(event) {
              already visited. -->
         <div
             v-if="views.length > 1"
-            class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="flex max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented"
             role="group"
             :aria-label="t('studio.public.space.tabs_label')"
         >

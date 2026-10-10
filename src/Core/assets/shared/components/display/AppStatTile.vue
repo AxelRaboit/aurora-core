@@ -56,11 +56,11 @@ const TONES = {
         class="aurora-card row-span-3 grid grid-rows-subgrid gap-y-0 p-4 no-underline sm:p-5"
         :class="href ? 'transition-colors hover:border-accent/40 hover:bg-surface-2/40' : ''"
     >
-        <div class="flex items-start gap-2 text-xs font-medium uppercase tracking-wider text-secondary">
+        <div class="flex items-start gap-2 text-xs font-semibold uppercase tracking-wider text-secondary">
             <component :is="icon" v-if="icon" class="mt-px h-4 w-4 shrink-0" :stroke-width="2" />
             <span class="min-w-0">{{ label }}</span>
         </div>
-        <p class="mt-3 text-3xl font-semibold leading-none tracking-tight tabular-nums" :class="TONES[tone] ?? TONES.default">
+        <p class="mt-3.5 text-[2.125rem] font-semibold leading-none tracking-tight tabular-nums" :class="TONES[tone] ?? TONES.default">
             {{ value }}
         </p>
         <p v-if="caption" class="mt-2 text-xs text-secondary">{{ caption }}</p>

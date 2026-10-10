@@ -235,7 +235,7 @@ suite:
             posts_live: "{count} en ligne"
             posts_total: "{count} publication | {count} publications"
             comments_total: "{count} commentaire | {count} commentaires"
-            last_months: "Le dernier mois | Les {count} derniers mois"
+            months_range: "{from} à {to}"
     post_galleries:
         editor_guide:
             title: "Comment se compose la galerie"

@@ -15,7 +15,7 @@
  * **Open once, then folded.** Without an `open` from the caller and without
  * a choice from the reader, a panel opens the first time its screen is
  * visited (`storageKey`, or the title) and stays folded on the next visits.
- * Folded, it is one discreet line rather than a dashed box: open on every
+ * Folded, it is one framed row rather than the whole panel: open on every
  * screen, the panels pushed every list below the fold (UI audit of
  * 07/10/2026).
  *
@@ -75,20 +75,19 @@ function onToggle(event) {
     <!-- A named region rather than an <aside> or a <section>: the screens
          keep those tags for their side panels and their groups, and their
          tests count them. `data-guide` points to it without ambiguity. -->
-    <!-- Folded, the frame goes: one muted line the reader can open, not a
-         box the width of the page on every screen.
-
+    <!-- A card, folded or open (visual redesign of the suite, 10/10/2026).
          Open, it is a card like its neighbours - surface, line, rounding -
-         rather than the dashed outline it used to wear. A dashed frame is
-         the house sign for a drop zone, a place waiting for something; on a
-         panel of text it read as an unfinished block (visual redesign of
-         the suite, 09/10/2026). -->
+         rather than the dashed outline it used to wear: a dashed frame is the
+         house sign for a drop zone. Folded, it keeps the frame around a
+         single row, the height of a list toolbar: a bare grey line at the top
+         of a screen read as stray text, and the reader did not see that it
+         opened. -->
     <div
         data-guide
         role="region"
-        class="min-w-0"
+        class="min-w-0 border border-line bg-surface"
         :class="[
-            expanded ? 'border border-line bg-surface p-4 sm:p-5' : '',
+            expanded ? 'p-4 sm:p-5' : 'px-4 py-3',
             rounded ? 'rounded-xl' : 'rounded-none',
         ]"
         :aria-label="title"
@@ -96,7 +95,7 @@ function onToggle(event) {
         <details :open="isOpen" class="group" v-on:toggle="onToggle">
             <summary
                 class="flex cursor-pointer list-none items-center gap-2 text-sm [&::-webkit-details-marker]:hidden"
-                :class="expanded ? 'font-medium text-primary' : 'w-fit text-muted hover:text-primary'"
+                :class="expanded ? 'font-medium text-primary' : 'text-secondary hover:text-primary'"
             >
                 <BookOpen class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                 <span class="min-w-0 flex-1">{{ title }}</span>

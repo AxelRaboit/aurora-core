@@ -20,6 +20,7 @@ import { useTheme } from "@/shared/composables/useTheme.js";
 import AppNotificationsBell from "@core/suite/notifications/AppNotificationsBell.vue";
 import AppTopbarAccount from "./AppTopbarAccount.vue";
 import { SEARCH_OPEN_EVENT } from "./composables/useSuiteSearch.js";
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "./topbarButton.js";
 
 defineProps({
     notificationsListPath: { type: String, default: "" },
@@ -63,27 +64,27 @@ function openSearch() {
 </script>
 
 <template>
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-2">
         <button
             type="button"
-            class="shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            :class="TOPBAR_BUTTON"
             :title="t('suite.search.button')"
             :aria-label="t('suite.search.button')"
             v-on:click="openSearch"
         >
-            <Search class="w-5 h-5" :stroke-width="2" />
+            <Search :class="TOPBAR_ICON" :stroke-width="2" />
         </button>
 
         <button
             type="button"
             data-topbar-theme
-            class="shrink-0 rounded-lg p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            :class="TOPBAR_BUTTON"
             :title="themeLabel"
             :aria-label="themeLabel"
             v-on:click="toggleTheme"
         >
-            <Moon v-if="theme !== 'dark'" class="w-5 h-5" :stroke-width="2" />
-            <Sun v-else class="w-5 h-5" :stroke-width="2" />
+            <Moon v-if="theme !== 'dark'" :class="TOPBAR_ICON" :stroke-width="2" />
+            <Sun v-else :class="TOPBAR_ICON" :stroke-width="2" />
         </button>
 
         <AppNotificationsBell

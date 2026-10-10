@@ -235,7 +235,7 @@ suite:
             posts_live: "{count} live"
             posts_total: "{count} post | {count} posts"
             comments_total: "{count} comment | {count} comments"
-            last_months: "Last month | Last {count} months"
+            months_range: "{from} to {to}"
     post_galleries:
         editor_guide:
             title: "How the gallery is put together"

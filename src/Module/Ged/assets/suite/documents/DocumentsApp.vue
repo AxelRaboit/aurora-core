@@ -612,7 +612,7 @@ const pageActions = computed(() => {
                         {{ t("suite.ged.documents.originals_only") }}
                     </label>
                     <div class="flex items-center gap-1.5">
-                        <div class="flex h-9.5 items-stretch gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5">
+                        <div class="flex h-9.5 items-stretch gap-0.5 aurora-segmented">
                             <AppTab
                                 v-for="sortField in DOCUMENT_SORT_FIELDS"
                                 :key="sortField.key"
@@ -633,7 +633,7 @@ const pageActions = computed(() => {
                              on screen, and a button that does nothing reads as a
                              broken button. The choice is kept and comes back
                              with the room. -->
-                        <div v-if="!isNarrow" class="flex h-9.5 items-stretch gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5">
+                        <div v-if="!isNarrow" class="flex h-9.5 items-stretch gap-0.5 aurora-segmented">
                             <AppIconButton
                                 class="px-2"
                                 :class="storedViewMode === 'grid' ? 'bg-surface text-primary shadow-sm' : 'text-muted hover:text-primary'"
@@ -657,7 +657,7 @@ const pageActions = computed(() => {
                         </div>
                         <div
                             v-if="can('ged.documents.delete') || can('ged.documents.edit')"
-                            class="flex h-9.5 items-stretch rounded-lg border border-line bg-surface-2/40 p-0.5"
+                            class="flex h-9.5 items-stretch aurora-segmented"
                         >
                             <AppIconButton
                                 class="px-2"

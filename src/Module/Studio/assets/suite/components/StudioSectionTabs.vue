@@ -39,7 +39,7 @@ function open(tab) {
 <template>
     <div
         v-if="visible.length > 1"
-        class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+        class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
         role="tablist"
         :aria-label="label"
     >

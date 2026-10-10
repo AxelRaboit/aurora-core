@@ -19,13 +19,13 @@ import AppLogo from "@/shared/components/display/AppLogo.vue";
 import AppAvatar from "@/shared/components/display/AppAvatar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
-import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/suite/notifications/AppNotificationsBell.vue";
 import AppTopbarAccount from "./AppTopbarAccount.vue";
 import AppSidemenuNav from "./AppSidemenuNav.vue";
+import { TOPBAR_BUTTON, TOPBAR_ICON } from "./topbarButton.js";
 import { getModulePanel } from "@/shared/nav/modulePanelRegistry.js";
 import {
     AlarmClock,
@@ -211,100 +211,94 @@ function openSearchFromMobile() {
         v-on:mouseenter="onMenuEnter"
         v-on:mouseleave="onMenuLeave"
     >
-        <!-- `h-12`, the height of the page header's title strip: the two
-             borders run as one line across the screen. At `h-16` the menu's
-             line sat sixteen pixels under the page's, and the eye read two
-             frames glued side by side instead of one. -->
-        <div class="sh-wrap flex items-center h-12 border-b border-line shrink-0 transition-all duration-200">
-            <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">
-                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-contain">
-                <AppLogo v-else :size="32" class="shrink-0" />
-                <div class="flex flex-col min-w-0">
-                    <span class="text-primary font-bold text-lg tracking-tight truncate leading-tight">{{ siteName }}</span>
-                    <span v-if="appVersion" data-app-version class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
+        <!-- The head of the column, in one block: who the site is, a way out to
+             it, and the two controls that act on the menu itself. No line
+             between them (visual redesign of the suite, 10/10/2026): they were
+             four bands stacked with a border each, and the column read as a
+             form before it read as a menu. One line under the block, where the
+             list starts to scroll: without it a row cut by the edge looked
+             like a rendering fault. -->
+        <div class="sidemenu-head flex shrink-0 flex-col gap-3 border-b border-line px-4 pb-3 pt-4">
+            <a :href="dashboardPath" class="flex min-w-0 items-center gap-2.5 px-1">
+                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
+                <AppLogo v-else :size="28" class="shrink-0" />
+                <div class="flex min-w-0 flex-col">
+                    <span class="truncate text-[0.9375rem] font-semibold leading-tight tracking-tight text-primary">{{ siteName }}</span>
+                    <span v-if="appVersion" data-app-version class="text-xs leading-tight text-secondary">{{ appVersion }}</span>
                 </div>
             </a>
-        </div>
 
-        <!-- `h-8`: a single compact link. It used to line up with the
-             breadcrumb band across the page; since the breadcrumb moved into
-             the content (10/10/2026) only the header above still lines up with
-             the page's title strip, both `h-12`. Pinned rather than left
-             implicit so a change to `.si` cannot quietly change the row.
-
-             The row keeps its height, so the *link* has to be shorter than it:
-             at a full 32px its hover fill reaches both borders and the rounded
-             corners clip against them. `.sh-view-site` trims it to 28px, which
-             centres with 2px of clearance - see sidemenu.css.
-
-             The hover stays neutral, like every other row: it was emerald, a
-             colour of its own that no theme could change and that clashed with
-             any accent but green. -->
-        <div v-if="hasEnabledFronts" class="sh-view-site h-8 flex items-center px-3 border-b border-line shrink-0">
-            <AppNavLink
+            <!-- A link, not a menu row: it leaves the suite for the public
+                 site, and drawn as a row it looked like one more destination
+                 among the modules. The hover follows the theme's text colour:
+                 it was emerald, a colour of its own that no theme could change. -->
+            <a
+                v-if="hasEnabledFronts"
                 :href="frontPath"
                 target="_blank"
+                rel="noopener"
+                data-sidemenu-view-site
+                class="-my-1 inline-flex w-fit items-center gap-1.5 rounded-md px-1 py-1 text-[0.8125rem] text-secondary transition-colors hover:text-primary"
             >
-                <Globe class="w-4 h-4 shrink-0 text-muted group-hover:text-primary transition-colors" :stroke-width="2" />
-                <span class="si-label truncate">{{ t("suite.nav.view_site") }}</span>
-            </AppNavLink>
-        </div>
+                <Globe class="h-[15px] w-[15px] shrink-0" :stroke-width="2" />
+                <span class="truncate">{{ t("suite.nav.view_site") }}</span>
+            </a>
 
-        <!-- Shown only inside a module. Two rows, because they answer two
-             different questions and merging them would make the module's name a
-             button that leaves it: the first says where the column is, the
-             second is the way out. The dot before the name borrows the module's
-             section colour from the same registry the project view uses - the
-             reader already reads lime as "GED", so it is reused rather than
-             re-invented. -->
-        <div v-if="inModuleView" class="px-3 py-2 border-b border-line shrink-0 flex flex-col gap-1">
-            <div
-                class="si-section-header flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
-                :class="[sectionTheme.headerClasses(moduleId), sectionTheme.labelClasses(moduleId)]"
-            >
-                <span class="size-2 shrink-0 rounded-full" :class="sectionTheme.dotClasses(moduleId)" aria-hidden="true" />
-                <span class="truncate">{{ moduleLabel }}</span>
+            <!-- Shown only inside a module. Two rows, because they answer two
+                 different questions and merging them would make the module's
+                 name a button that leaves it: the first says where the column
+                 is, the second is the way out. The dot before the name borrows
+                 the module's section colour from the same registry the project
+                 view uses - the reader already reads lime as "GED", so it is
+                 reused rather than re-invented. -->
+            <div v-if="inModuleView" class="flex flex-col gap-1">
+                <div
+                    class="si-section-header flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
+                    :class="[sectionTheme.headerClasses(moduleId), sectionTheme.labelClasses(moduleId)]"
+                >
+                    <span class="size-2 shrink-0 rounded-full" :class="sectionTheme.dotClasses(moduleId)" aria-hidden="true" />
+                    <span class="truncate">{{ moduleLabel }}</span>
+                </div>
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs text-secondary transition-colors hover:bg-surface-2 hover:text-primary"
+                    v-on:click="backToProject"
+                >
+                    <ChevronLeft class="h-3.5 w-3.5 shrink-0" :stroke-width="2.5" />
+                    <span class="truncate">{{ t("suite.nav.back_to_modules") }}</span>
+                </button>
             </div>
+
+            <!-- The door swings both ways.
+
+                 `backToProject` above had no counterpart: leaving the module
+                 view was one press of Escape, and nothing short of reloading
+                 the page brought it back. `enterModuleView` existed and was
+                 tested from the day the view shipped - it simply had no control
+                 wired to it, which is invisible until something the reader
+                 needs lives only in that view. A folder they cannot create is
+                 how it surfaced. -->
             <button
+                v-if="hasModuleView && !inModuleView"
                 type="button"
-                class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-muted hover:text-primary hover:bg-surface-2 transition-colors"
-                v-on:click="backToProject"
+                class="flex w-fit items-center gap-1.5 rounded-md px-2 py-1 text-xs text-secondary transition-colors hover:bg-surface-2 hover:text-primary"
+                v-on:click="enterModuleView"
             >
-                <ChevronLeft class="w-3.5 h-3.5 shrink-0" :stroke-width="2.5" />
-                <span class="truncate">{{ t("suite.nav.back_to_modules") }}</span>
+                <ChevronRight class="h-3.5 w-3.5 shrink-0" :stroke-width="2.5" />
+                <span class="truncate">{{ t("suite.nav.back_to_module", { module: moduleLabel }) }}</span>
             </button>
-        </div>
 
-        <!-- The door swings both ways.
-
-             `backToProject` above had no counterpart: leaving the module view
-             was one press of Escape, and nothing short of reloading the page
-             brought it back. `enterModuleView` existed and was tested from the
-             day the view shipped - it simply had no control wired to it, which
-             is invisible until something the reader needs lives only in that
-             view. A folder they cannot create is how it surfaced. -->
-        <button
-            v-if="hasModuleView && !inModuleView"
-            type="button"
-            class="mx-3 my-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary"
-            v-on:click="enterModuleView"
-        >
-            <ChevronRight class="w-3.5 h-3.5 shrink-0" :stroke-width="2.5" />
-            <span class="truncate">{{ t("suite.nav.back_to_module", { module: moduleLabel }) }}</span>
-        </button>
-
-        <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
             <div class="flex items-center gap-1">
-                <div class="relative flex flex-1 min-w-0 items-center">
-                    <Filter class="absolute left-2.5 w-3 h-3 text-muted pointer-events-none" :stroke-width="2" />
+                <div class="relative flex min-w-0 flex-1 items-center">
+                    <Filter class="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-secondary" :stroke-width="2" />
                     <input
                         v-model="navFilter"
                         type="text"
                         :placeholder="t('suite.nav.filter_nav')"
-                        class="w-full pl-7 pr-6 py-1.5 rounded-md text-xs bg-surface-2/60 border border-line/40 text-primary placeholder:text-muted focus:outline-none focus:border-line focus:bg-surface-2 transition-colors"
+                        class="w-full rounded-[10px] border border-line bg-bg py-2 pl-8 pr-7 text-sm text-primary transition-colors placeholder:text-muted focus:border-line-strong focus:outline-none"
                     >
-                    <button v-if="navFilter" type="button" class="absolute right-2 text-muted hover:text-primary transition-colors" v-on:click="navFilter = ''">
-                        <X class="w-3 h-3" :stroke-width="2.5" />
+                    <button v-if="navFilter" type="button" class="absolute right-2.5 text-muted transition-colors hover:text-primary" v-on:click="navFilter = ''">
+                        <X class="h-3.5 w-3.5" :stroke-width="2.5" />
                     </button>
                 </div>
                 <!-- Folds or unfolds the whole menu at once, the way the notes
@@ -316,7 +310,7 @@ function openSearchFromMobile() {
                     :title="nav.anyExpanded.value ? t('suite.nav.collapse_all') : t('suite.nav.expand_all')"
                     v-on:click="nav.setAllExpanded(!nav.anyExpanded.value)"
                 >
-                    <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="w-3.5 h-3.5" :stroke-width="2" />
+                    <component :is="nav.anyExpanded.value ? ChevronsDownUp : ChevronsUpDown" class="h-3.5 w-3.5" :stroke-width="2" />
                 </AppIconButton>
             </div>
 
@@ -325,7 +319,7 @@ function openSearchFromMobile() {
                  the switch, which is a form layout; here the row is tight, so
                  the label sits alongside instead. -->
             <div class="flex items-center justify-between gap-2">
-                <span class="text-xs text-muted truncate">{{ t("suite.nav.show_descriptions") }}</span>
+                <span class="truncate text-[0.8125rem] text-secondary">{{ t("suite.nav.show_descriptions") }}</span>
                 <AppToggle
                     :model-value="showDescriptions"
                     v-on:update:model-value="toggleDescriptions"
@@ -362,8 +356,11 @@ function openSearchFromMobile() {
             />
         </nav>
 
-        <div class="flex justify-center py-2 border-t border-line">
-            <span class="text-xs text-muted/40 tracking-wide select-none">
+        <!-- Signed at the foot, on the left like everything above it, and
+             legible: it was centred in a grey at forty per cent, a line the
+             eye had to look for. -->
+        <div class="flex shrink-0 border-t border-line px-4 py-3">
+            <span class="select-none truncate text-xs text-secondary">
                 {{ t('shared.common.built_with', { year: new Date().getFullYear(), siteName }) }}
             </span>
         </div>
@@ -392,20 +389,18 @@ function openSearchFromMobile() {
                 :class="siteNameOnPhone || !siteLogoUrl ? '' : 'sr-only sm:not-sr-only'"
             >{{ siteName }}</span>
         </a>
-        <div class="flex items-center gap-1">
-            <!-- The application bar: bare icons, like the bell and the account
-                 next to them (the page bar rule does not apply to the app
-                 frame), but each one with its name. -->
-            <AppButton
-                variant="icon"
-                size="none"
-                class="p-2 text-muted hover:text-primary"
+        <div class="flex items-center gap-1.5">
+            <!-- The application bar: framed squares, the same as the desktop
+                 top bar (`TOPBAR_BUTTON`), each one with its name. -->
+            <button
+                type="button"
+                :class="TOPBAR_BUTTON"
                 :title="t('suite.search.button')"
                 :aria-label="t('suite.search.button')"
                 v-on:click="openPalette"
             >
-                <Search class="w-5 h-5" :stroke-width="2" />
-            </AppButton>
+                <Search :class="TOPBAR_ICON" :stroke-width="2" />
+            </button>
             <!-- The bell belongs here too. On desktop it moved to the page
                  header, which is hidden below the large breakpoint - so without
                  this, a phone had no way to reach notifications at all. -->
@@ -439,17 +434,16 @@ function openSearchFromMobile() {
                  The icon shows the state, not the action - same reason as on
                  desktop: a control that announced what it would do flips under
                  the finger at the moment of tapping. -->
-            <AppButton
-                variant="icon"
-                size="none"
-                class="p-2"
+            <button
+                type="button"
+                :class="TOPBAR_BUTTON"
                 :title="mobileOpen ? t('suite.nav.collapse_menu') : t('suite.nav.expand_menu')"
                 :aria-label="mobileOpen ? t('suite.nav.collapse_menu') : t('suite.nav.expand_menu')"
                 v-on:click="mobileOpen ? closeMobile() : openMobile()"
             >
-                <PanelLeftClose v-if="mobileOpen" class="w-5 h-5" :stroke-width="2" />
-                <PanelLeft v-else class="w-5 h-5" :stroke-width="2" />
-            </AppButton>
+                <PanelLeftClose v-if="mobileOpen" :class="TOPBAR_ICON" :stroke-width="2" />
+                <PanelLeft v-else :class="TOPBAR_ICON" :stroke-width="2" />
+            </button>
         </div>
     </div>
 

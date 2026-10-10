@@ -23,7 +23,7 @@ const props = defineProps({
     stats: { type: Object, default: () => ({}) },
 });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { formatMonthYear } = useDateFormat();
 // Resolved, not `var(--chart-cat-1)`: a canvas cannot read a CSS property.
 const { colours, withAlpha } = useChartPalette(1);
@@ -87,8 +87,10 @@ const publishedByMonth = computed(() => {
                 borderColor: colours.value[0],
                 backgroundColor: withAlpha(0, 0.18),
                 borderWidth: 2,
-                pointRadius: 3,
-                pointHoverRadius: 5,
+                // The last month is the one being lived: its point stands out,
+                // the way a sparkline marks its end.
+                pointRadius: (context) => (context.dataIndex === context.dataset.data.length - 1 ? 5 : 3),
+                pointHoverRadius: 6,
                 tension: 0.3,
                 fill: true,
             },
@@ -96,7 +98,25 @@ const publishedByMonth = computed(() => {
     };
 });
 
-const monthCount = computed(() => Object.keys(props.stats.publishedByMonth ?? {}).length);
+/**
+ * The period the curve covers, from its first month to its last - "novembre
+ * 2025 à octobre 2026" rather than a count of months, which made the reader
+ * work out where the window started.
+ */
+const monthRange = computed(() => {
+    const months = Object.keys(props.stats.publishedByMonth ?? {});
+    if (!months.length) return "";
+
+    // `formatMonthYear` capitalises for a label on its own. Mid-sentence,
+    // French and Spanish write the month in lower case; English does not.
+    const last = formatMonthYear(months[months.length - 1]);
+    const lowerMonths = ["fr", "es"].includes(locale.value.slice(0, 2));
+
+    return t("suite.stats.editorial.months_range", {
+        from: formatMonthYear(months[0]),
+        to: lowerMonths ? last.charAt(0).toLocaleLowerCase(locale.value) + last.slice(1) : last,
+    });
+});
 
 const commentCount = computed(() =>
     Object.values(props.stats.commentsByStatus ?? {}).reduce((sum, count) => sum + count, 0),
@@ -147,7 +167,7 @@ const byStatus = computed(() =>
 
         <AppSectionCard v-if="hasActivity" :title="t('suite.stats.editorial.published_per_month')">
             <template #meta>
-                {{ t("suite.stats.editorial.last_months", { count: monthCount }, monthCount) }}
+                {{ monthRange }}
             </template>
 
             <!-- A fixed height, because the canvas has no content to be sized by

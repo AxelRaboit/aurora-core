@@ -84,7 +84,7 @@ const tabs = computed(() => [
              a phone too: it scrolls sideways rather than wrapping. -->
         <div class="overflow-x-auto scrollbar-thin">
             <div
-                class="inline-flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+                class="inline-flex items-center gap-0.5 aurora-segmented"
                 role="group"
                 :aria-label="t('suite.comments.title')"
             >

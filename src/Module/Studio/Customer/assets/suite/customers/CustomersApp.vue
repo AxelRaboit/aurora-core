@@ -181,7 +181,7 @@ const pageActions = computed(() => {
              visible: a prospect created from a space would otherwise be
              filed somewhere nobody thinks to open. -->
         <div
-            class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            class="flex items-center gap-0.5 aurora-segmented"
             role="group"
             :aria-label="t('suite.studio.customers.status')"
         >

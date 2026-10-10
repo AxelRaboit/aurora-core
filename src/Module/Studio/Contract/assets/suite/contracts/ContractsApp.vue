@@ -228,7 +228,7 @@ const pageActions = computed(() =>
              three lines stood apart from every other list (UI audit of
              07/10/2026). -->
         <nav
-            class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5 scrollbar-hide"
+            class="flex w-fit max-w-full items-center gap-0.5 overflow-x-auto aurora-segmented scrollbar-hide"
             :aria-label="t(`${CONTRACT_KEYS}.title`)"
         >
             <button
