@@ -68,6 +68,17 @@ function isFoldable(section) {
     return false !== section.foldable;
 }
 
+/**
+ * A section holding a single plain entry: Calendrier > Calendrier, Notes >
+ * Notes Markdown. Its header said the same thing one line above the entry,
+ * so the entry stands alone with the section's dot before its name, where
+ * the header's dot sat (visual redesign of the suite, 10/10/2026). Nothing
+ * to fold either: the entry is the section.
+ */
+function isSingle(section) {
+    return isFoldable(section) && 1 === section.items.length && !section.items[0].children?.length;
+}
+
 const { locale } = useI18n();
 
 /**
@@ -105,10 +116,11 @@ defineProps({
 <template>
     <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
-            v-if="!navFilter && isFoldable(section)"
+            v-if="!navFilter && isFoldable(section) && !isSingle(section)"
             type="button"
             class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider transition-colors"
             :class="[theme.headerClasses(themeId(section)), theme.labelClasses(themeId(section))]"
+            :aria-expanded="nav.isSectionExpanded(section) ? 'true' : 'false'"
             v-on:click="nav.toggleSection(section)"
         >
             <span class="flex min-w-0 items-center gap-2">
@@ -123,7 +135,7 @@ defineProps({
         </button>
 
         <template v-for="item in section.items" :key="item.route">
-            <template v-if="navFilter || !isFoldable(section) || nav.isSectionExpanded(section)">
+            <template v-if="navFilter || !isFoldable(section) || isSingle(section) || nav.isSectionExpanded(section)">
                 <!-- A group parent: the label navigates, the chevron unfolds.
                      Two targets in one row, because the parent is itself a
                      page - collapsing them into one would cost the page. -->
@@ -135,14 +147,15 @@ defineProps({
                         <a
                             :href="item.path"
                             :data-sidemenu-active="nav.itemIsActive(item) ? 'true' : null"
-                            class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
+                            :aria-current="nav.itemIsCurrent(item) ? 'page' : undefined"
+                            class="flex items-center flex-1 min-w-0 gap-3 py-[0.4375rem] pl-3"
                         >
                             <span class="min-w-0 flex-1">
                                 <span class="flex items-baseline gap-2">
                                     <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                                     <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
                                 </span>
-                                <span v-if="item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
+                                <span v-if="item.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="item.description">{{ item.description }}</span>
                             </span>
                         </a>
                         <!-- `title` stays: it is the accessible name of a button
@@ -150,6 +163,7 @@ defineProps({
                              reader announces "button" and nothing else. -->
                         <AppIconButton
                             :title="item.label"
+                            :aria-expanded="nav.isGroupExpanded(item.route) ? 'true' : 'false'"
                             class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
                             v-on:click.stop="nav.toggleGroup(item.route)"
                         >
@@ -171,7 +185,7 @@ defineProps({
                                     <span class="min-w-0 flex-1 truncate" :class="child.description ? 'font-semibold' : ''">{{ child.label }}</span>
                                     <span v-if="null !== (child.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(child.count) }}</span>
                                 </span>
-                                <span v-if="child.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ child.description }}</span>
+                                <span v-if="child.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="child.description">{{ child.description }}</span>
                             </span>
                         </AppNavLink>
                     </div>
@@ -188,13 +202,20 @@ defineProps({
                 >
                     <span class="min-w-0 flex-1">
                         <span class="flex items-baseline gap-2">
+                            <span
+                                v-if="isSingle(section) && !navFilter"
+                                class="size-2 shrink-0 self-center rounded-full"
+                                :class="theme.dotClasses(themeId(section))"
+                                aria-hidden="true"
+                            />
                             <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                             <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
                         </span>
-                        <!-- Not truncated: a description cut at one line is
-                             worse than no description, and the row is allowed
-                             to grow when the reader asked for the text. -->
-                        <span v-if="item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
+                        <!-- Two lines at most, the whole sentence on hover:
+                             one line cut a description in the middle, and an
+                             unbounded one let a long sentence stretch a row
+                             now that every row carries one. -->
+                        <span v-if="item.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="item.description">{{ item.description }}</span>
                     </span>
                 </AppNavLink>
             </template>

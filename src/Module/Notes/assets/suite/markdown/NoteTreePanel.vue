@@ -982,7 +982,7 @@ onUnmounted(() => {
         <!-- Favourites, before the tree: what one comes for every day does
              not have to be found in a tree. -->
         <div v-if="favorites.length" class="mb-2 border-b border-line pb-2">
-            <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
+            <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-secondary">
                 {{ t('notes.markdown.library.favorites') }}
             </p>
 
@@ -1012,7 +1012,7 @@ onUnmounted(() => {
             class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-md border px-2 py-1.5 text-sm no-underline transition-colors"
             :class="'root' === dropHint?.key
                 ? 'border-accent-600/40 bg-accent-600/15 text-accent-400 ring-2 ring-accent-500'
-                : null === selectedKey ? 'border-transparent bg-surface-2 font-medium text-primary' : 'border-transparent text-primary hover:bg-surface-2'"
+                : null === selectedKey ? 'sidemenu-row-active border-transparent bg-accent/10 font-medium text-accent' : 'border-transparent text-primary hover:bg-surface-2'"
             v-on:click.prevent="onSelect({ kind: 'folder', id: null, key: null })"
             v-on:dragover="onDragOver(rootNode, $event)"
             v-on:dragleave="onDragLeave(rootNode, $event)"
@@ -1058,7 +1058,7 @@ onUnmounted(() => {
                 >
                     <button
                         type="button"
-                        class="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-primary"
+                        class="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 text-left text-xs font-semibold uppercase tracking-wider text-secondary transition-colors hover:text-primary"
                         :aria-expanded="isSpaceOpen(group.space)"
                         v-on:click="toggleSpace(group.space)"
                     >
@@ -1168,7 +1168,7 @@ onUnmounted(() => {
         <div v-if="allTags.length && !searching" class="mt-2 border-t border-line pt-2">
             <button
                 type="button"
-                class="flex w-full items-center gap-1 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-primary"
+                class="flex w-full items-center gap-1 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-secondary transition-colors hover:text-primary"
                 v-on:click="toggleTagsSection"
             >
                 <ChevronDown v-if="tagsOpen" class="h-3 w-3 shrink-0" :stroke-width="2" />

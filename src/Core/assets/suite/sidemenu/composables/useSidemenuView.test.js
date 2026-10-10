@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 
-const { useSidemenuNav } = await import("./useSidemenuNav.js");
+const { useSidemenuNav, foldForSearch } = await import("./useSidemenuNav.js");
 
 const PROJECT_SECTIONS = [
     {
@@ -327,5 +327,66 @@ describe("folding the whole menu", () => {
         expect(nav.isSectionExpanded({ id: "ged:library" })).toBe(false);
         expect(nav.isSectionExpanded({ id: "ged" })).toBe(true);
         expect(nav.anyExpanded.value).toBe(false);
+    });
+});
+
+/**
+ * « etiquettes » missed « Étiquettes », and « couleurs » missed Thèmes, whose
+ * description is the only place the word is (sidemenu audit of 10/10/2026).
+ */
+describe("what the nav filter compares", () => {
+    const SECTIONS = [
+        {
+            id: "configuration",
+            items: [
+                {
+                    route: "suite_configuration_themes",
+                    path: "/suite/configuration/themes",
+                    labelKey: "suite.nav.themes",
+                    label: "Thèmes",
+                    description:
+                        "Habiller le site : couleurs, logo et favicon.",
+                    icon: "palette",
+                    children: [],
+                },
+                {
+                    route: "suite_ged_tags",
+                    path: "/suite/ged/tags",
+                    labelKey: "suite.nav.ged_tags",
+                    label: "Étiquettes",
+                    icon: "tags",
+                    children: [],
+                },
+            ],
+        },
+    ];
+
+    const routesFor = (needle) => {
+        const nav = useSidemenuNav(
+            SECTIONS,
+            "suite_dashboard",
+            {},
+            {},
+            {},
+            null,
+        );
+        nav.setNavFilter(needle);
+
+        return nav.displayedSections.value.flatMap((section) =>
+            section.items.map((item) => item.route),
+        );
+    };
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it("ignores accents and case", () => {
+        expect(routesFor("ETIQUETTES")).toEqual(["suite_ged_tags"]);
+        expect(foldForSearch("Étiquettes")).toBe("etiquettes");
+    });
+
+    it("reads the description as well as the name", () => {
+        expect(routesFor("couleurs")).toEqual(["suite_configuration_themes"]);
     });
 });

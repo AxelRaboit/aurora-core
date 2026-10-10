@@ -81,6 +81,14 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   descriptions » et sa colonne `sidemenu_show_descriptions` ont été retirés le
   10/10 à la demande d'Axel. Ne pas réintroduire de préférence par utilisateur.
 
+- **Audit du menu latéral (10/10, 14 points tous faits)** : une seule tête
+  `AppSidemenuHead` pour la colonne et le tiroir du téléphone ; état actif =
+  accent (pas la couleur de la section : la décision du 07/10 contre
+  l'arc-en-ciel tient) ; chiffres d'entrée par `NavItem::$count`, jamais en
+  description ; filtre insensible aux accents (`foldForSearch`) qui lit les
+  descriptions ; Studio a une vue module sans chiffres ; Calendrier en cyan.
+  Piège jsdom noté : `#id a[href='/x']` ne trouve rien, filtrer à la main.
+
 ## Pourquoi
 
 Axel voulait une suite « encore plus pro ». La maquette montrait surtout de la

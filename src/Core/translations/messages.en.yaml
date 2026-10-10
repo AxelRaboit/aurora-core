@@ -311,11 +311,11 @@ suite:
         collapse_all: Collapse all
         expand_all: Expand all
         filter_nav_empty: No items found
+        filter_clear: "Clear the filter"
+        filter_all_modules: "Search every module"
+        filter_shortcut: "Press / to filter the menu"
+        module_path_label: "Where you are in the menu"
         view_site: View site
-        counts:
-            terms: '{0}No term|{1}One term|]1,Inf[%count% terms'
-            fields: '{0}No field|{1}One field|]1,Inf[%count% fields'
-            posts: '{0}No post|{1}One post|]1,Inf[%count% posts'
         back_to_modules: All modules
         back_to_module: "Back to {module}"
         logout: Log out

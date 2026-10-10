@@ -65,6 +65,7 @@ const linkClasses = computed(() => {
             :target="target"
             :rel="target === '_blank' ? 'noopener' : undefined"
             :data-sidemenu-active="sidemenuActive ? 'true' : null"
+            :aria-current="active ? 'page' : undefined"
             class="si flex items-center rounded-lg text-sm font-medium transition-colors group relative"
             :class="linkClasses"
         >

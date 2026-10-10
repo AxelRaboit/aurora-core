@@ -16,6 +16,14 @@ import { resolveNavIcon } from "@/shared/nav/navMeta.js";
  *   null when the menu stays in its project view - which is every page until a
  *   module implements `ModuleNavViewProviderInterface`.
  */
+/** Lower case, accents dropped: what a menu filter compares. */
+export function foldForSearch(text) {
+    return String(text ?? "")
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .toLowerCase();
+}
+
 export function useSidemenuNav(
     navSections,
     activeRoute,
@@ -185,25 +193,37 @@ export function useSidemenuNav(
 
     const navFilter = ref("");
 
+    /** What a child component calls to change the filter it does not own. */
+    function setNavFilter(value) {
+        navFilter.value = value;
+    }
+
     /**
      * The filter searches the view on screen and nothing else. A field that
      * returned rows the column is not showing would need a sentence to explain
-     * itself; the palette is what searches everywhere, and it says so.
+     * itself; the palette is what searches everywhere, and it says so. When the
+     * module has nothing, the column offers the project view with the same
+     * word (`AppSidemenu`).
+     *
+     * Accents and case do not count, and the description is read as well as
+     * the name: « etiquettes » missed « Étiquettes », and « couleurs » missed
+     * Thèmes, whose description is the only place the word is (sidemenu audit
+     * of 10/10/2026).
      */
     const displayedSections = computed(() => {
-        const needle = navFilter.value.trim().toLowerCase();
+        const needle = foldForSearch(navFilter.value.trim());
         if (!needle) return activeSections.value;
+        const matches = (item) =>
+            foldForSearch(item.label).includes(needle) ||
+            foldForSearch(item.description ?? "").includes(needle);
         const results = [];
         for (const section of activeSections.value) {
             const matchingItems = [];
             for (const item of section.items) {
-                if (item.label.toLowerCase().includes(needle)) {
+                if (matches(item)) {
                     matchingItems.push(item);
                 } else if (item.children?.length) {
-                    const matchingChildren = item.children.filter((child) =>
-                        child.label.toLowerCase().includes(needle),
-                    );
-                    matchingItems.push(...matchingChildren);
+                    matchingItems.push(...item.children.filter(matches));
                 }
             }
             if (matchingItems.length)
@@ -340,6 +360,7 @@ export function useSidemenuNav(
         moduleId: moduleNavView?.moduleId ?? null,
         navItems,
         navFilter,
+        setNavFilter,
         displayedSections,
         isGroupExpanded,
         toggleGroup,

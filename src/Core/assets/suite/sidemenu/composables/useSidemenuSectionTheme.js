@@ -35,12 +35,17 @@ import { isRef } from "vue";
  *
  * `studio` (45) closes the list under notes (violet), so it takes emerald:
  * the furthest hue from a purple, and the one every ledger already reads in.
+ *
+ * `planning` was teal until 10/10/2026: beside studio's emerald it measured
+ * a ΔE of 3.2 under the worst colour-vision deficiency, two greens nobody
+ * could tell apart. Cyan doubles that (6.2, against sky, which sits at the
+ * other end of the list) - sidemenu audit of 10/10/2026.
  */
 const SECTION_THEMES = {
     general: makeTheme("sky"),
     platform: makeTheme("indigo"),
     configuration: makeTheme("fuchsia"),
-    planning: makeTheme("teal"),
+    planning: makeTheme("cyan"),
     editorial: makeTheme("rose"),
     ged: makeTheme("lime"),
     notes: makeTheme("violet"),
@@ -405,9 +410,14 @@ export function useSidemenuSectionTheme(overrides = {}) {
      */
     function itemClasses(sectionId, { isActive, inTree }) {
         // One active state for the whole suite, whatever the module: the
-        // place you are reads the same everywhere.
+        // place you are reads the same everywhere. In the site's accent, a
+        // tint, its name in the colour and a 2 px edge (`sidemenu-row-active`):
+        // the grey it was matched the hover, and the open page did not stand
+        // out from the one under the pointer (visual redesign of the suite,
+        // 10/10/2026). The accent and not the section's hue, so the 07/10
+        // decision against a rainbow of active rows holds.
         if (isActive) {
-            return "bg-surface-2 text-primary font-medium";
+            return "sidemenu-row-active bg-accent/10 text-accent font-medium";
         }
         if (inTree) {
             return "text-primary hover:bg-surface-2";

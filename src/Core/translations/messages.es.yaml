@@ -307,11 +307,11 @@ suite:
         collapse_all: Plegar todo
         expand_all: Desplegar todo
         filter_nav_empty: 'Ningún elemento encontrado'
+        filter_clear: "Borrar el filtro"
+        filter_all_modules: "Buscar en todos los módulos"
+        filter_shortcut: "Pulse / para filtrar el menú"
+        module_path_label: "Dónde está en el menú"
         view_site: 'Ver el sitio'
-        counts:
-            terms: '{0}Ningún término|{1}Un término|]1,Inf[%count% términos'
-            fields: '{0}Ningún campo|{1}Un campo|]1,Inf[%count% campos'
-            posts: '{0}Ninguna publicación|{1}Una publicación|]1,Inf[%count% publicaciones'
         back_to_modules: 'Todos los módulos'
         back_to_module: 'Volver a {module}'
         logout: 'Cerrar sesión'

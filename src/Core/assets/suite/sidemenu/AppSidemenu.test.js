@@ -194,3 +194,123 @@ describe("the figure beside an entry", () => {
         rows.forEach((row) => expect(row.find("svg").exists()).toBe(false));
     });
 });
+
+/**
+ * The sidemenu audit of 10/10/2026: one head for the column and the phone
+ * drawer, a filter that offers the other modules, and the attributes a
+ * keyboard or a screen reader needs.
+ */
+describe("the column's head, the drawer's too", () => {
+    it("tells the drawer which module it shows, and how to leave it", () => {
+        const wrapper = render();
+        const drawer = wrapper.find(".sidemenu-drawer");
+
+        expect(drawer.find("[data-sidemenu-module-path]").exists()).toBe(true);
+        expect(drawer.find("[data-sidemenu-back-to-modules]").exists()).toBe(
+            true,
+        );
+        expect(drawer.find("[data-sidemenu-filter]").exists()).toBe(true);
+    });
+
+    it("offers every module when the filter finds nothing in this one", async () => {
+        const wrapper = render();
+
+        await wrapper
+            .find("#sidemenu [data-sidemenu-filter]")
+            .setValue("nothing-like-this");
+        const searchAll = wrapper.find("#sidemenu [data-sidemenu-search-all]");
+        expect(searchAll.exists()).toBe(true);
+
+        await searchAll.trigger("click");
+        expect(buttonSaying(wrapper, "Revenir à GED")).toBeTruthy();
+        expect(
+            wrapper.find("#sidemenu [data-sidemenu-filter]").element.value,
+        ).toBe("nothing-like-this");
+    });
+
+    it("clears the filter on Escape before anything else", async () => {
+        const wrapper = render();
+        const filter = wrapper.find("#sidemenu [data-sidemenu-filter]");
+
+        await filter.setValue("doc");
+        await filter.trigger("keydown", { key: "Escape" });
+
+        expect(filter.element.value).toBe("");
+        // Still in the module: clearing a search does not leave it.
+        expect(buttonSaying(wrapper, "Tous les modules")).toBeTruthy();
+    });
+
+    it("signs the foot with the version", () => {
+        const wrapper = mount(AppSidemenu, {
+            props: {
+                navSections: NAV_SECTIONS,
+                activeRoute: "suite_ged_documents",
+                appVersion: "4.9.0",
+            },
+            global: { plugins: [i18n] },
+        });
+
+        expect(wrapper.find("[data-sidemenu-foot]").text()).toContain("4.9.0");
+    });
+});
+
+describe("what a screen reader is told", () => {
+    it("marks the open page as the current one", () => {
+        const current = render(null).findAll(
+            "#sidemenu a[aria-current='page']",
+        );
+
+        expect(current.length).toBe(1);
+        expect(current[0].attributes("href")).toBe("/suite/ged/documents");
+    });
+});
+
+describe("a section with a single entry", () => {
+    it("draws the entry alone, without a header that repeats it", () => {
+        const wrapper = render(null);
+
+        expect(wrapper.find("#sidemenu .si-section-header").exists()).toBe(
+            false,
+        );
+        // Filtered by hand: the selector engine under jsdom misses an `href`
+        // attribute selector once it is scoped by an id.
+        const rows = wrapper
+            .findAll("#sidemenu nav a")
+            .filter(
+                (link) => "/suite/ged/documents" === link.attributes("href"),
+            );
+        expect(rows).toHaveLength(1);
+        // The section's dot moves onto the entry.
+        expect(rows[0].find("span.rounded-full").exists()).toBe(true);
+    });
+
+    it("keeps a foldable header, with its state, over two entries", () => {
+        const wrapper = mount(AppSidemenu, {
+            props: {
+                navSections: [
+                    {
+                        id: "ged",
+                        items: [
+                            NAV_SECTIONS[0].items[0],
+                            {
+                                route: "suite_ged_tags",
+                                path: "/suite/ged/tags",
+                                labelKey: "suite.nav.ged_tags",
+                                icon: "tags",
+                                children: [],
+                            },
+                        ],
+                    },
+                ],
+                activeRoute: "suite_ged_documents",
+            },
+            global: { plugins: [i18n] },
+        });
+
+        expect(
+            wrapper
+                .find("#sidemenu .si-section-header")
+                .attributes("aria-expanded"),
+        ).toBe("true");
+    });
+});

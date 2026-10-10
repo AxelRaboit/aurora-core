@@ -82,7 +82,7 @@ function badgeOf(key) {
         :aria-label="t('suite.studio.space_content.view_label')"
     >
         <div v-for="group in groups" :key="group.key" class="flex flex-col gap-1">
-            <p class="m-0 px-2.5 text-2xs font-semibold uppercase tracking-wider text-muted">
+            <p class="m-0 px-2.5 text-xs font-semibold uppercase tracking-wider text-secondary">
                 {{ t(`suite.studio.space_content.nav_groups.${group.key}`) }}
             </p>
             <button
@@ -90,7 +90,7 @@ function badgeOf(key) {
                 :key="entry.key"
                 type="button"
                 class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors"
-                :class="view === entry.key ? 'bg-surface-2 font-medium text-primary' : 'text-secondary hover:bg-surface-2/60 hover:text-primary'"
+                :class="view === entry.key ? 'bg-accent/10 font-medium text-accent shadow-[inset_2px_0_0_var(--color-accent-500)]' : 'text-secondary hover:bg-surface-2/60 hover:text-primary'"
                 :aria-current="view === entry.key ? 'page' : undefined"
                 v-on:click="go(entry.key)"
             >
@@ -115,7 +115,7 @@ function badgeOf(key) {
             <button
                 type="button"
                 class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors"
-                :class="view === settings.key ? 'bg-surface-2 font-medium text-primary' : 'text-secondary hover:bg-surface-2/60 hover:text-primary'"
+                :class="view === settings.key ? 'bg-accent/10 font-medium text-accent shadow-[inset_2px_0_0_var(--color-accent-500)]' : 'text-secondary hover:bg-surface-2/60 hover:text-primary'"
                 :aria-current="view === settings.key ? 'page' : undefined"
                 v-on:click="go(settings.key)"
             >
@@ -151,7 +151,7 @@ function badgeOf(key) {
     <AppModal :show="sheetOpen" max-width="sm" :title="t('suite.studio.space_content.nav_title')" v-on:close="sheetOpen = false">
         <div class="flex flex-col gap-4">
             <div v-for="group in groups" :key="group.key" class="flex flex-col gap-1">
-                <p class="m-0 px-2.5 text-2xs font-semibold uppercase tracking-wider text-muted">
+                <p class="m-0 px-2.5 text-xs font-semibold uppercase tracking-wider text-secondary">
                     {{ t(`suite.studio.space_content.nav_groups.${group.key}`) }}
                 </p>
                 <button
@@ -159,7 +159,7 @@ function badgeOf(key) {
                     :key="entry.key"
                     type="button"
                     class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left text-sm transition-colors"
-                    :class="view === entry.key ? 'bg-surface-2 font-medium text-primary' : 'text-secondary hover:bg-surface-2/60'"
+                    :class="view === entry.key ? 'bg-accent/10 font-medium text-accent shadow-[inset_2px_0_0_var(--color-accent-500)]' : 'text-secondary hover:bg-surface-2/60'"
                     :aria-current="view === entry.key ? 'page' : undefined"
                     v-on:click="go(entry.key)"
                 >
@@ -180,7 +180,7 @@ function badgeOf(key) {
                 <button
                     type="button"
                     class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left text-sm transition-colors"
-                    :class="view === settings.key ? 'bg-surface-2 font-medium text-primary' : 'text-secondary hover:bg-surface-2/60'"
+                    :class="view === settings.key ? 'bg-accent/10 font-medium text-accent shadow-[inset_2px_0_0_var(--color-accent-500)]' : 'text-secondary hover:bg-surface-2/60'"
                     :aria-current="view === settings.key ? 'page' : undefined"
                     v-on:click="go(settings.key)"
                 >

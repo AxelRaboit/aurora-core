@@ -39,7 +39,7 @@ function swatch() {
 
 <template>
     <div
-        class="group flex items-center gap-2 text-sm transition-opacity"
+        class="group flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors hover:bg-surface-2/60"
         :class="hidden ? 'opacity-40' : ''"
     >
         <!-- A row holding two actions, not a button: the name toggles and the
@@ -52,7 +52,7 @@ function swatch() {
             v-on:click="emit('toggle', calendar.id)"
         >
             <span class="h-3 w-3 shrink-0 rounded" :style="swatch()" />
-            <span class="truncate text-secondary">{{ calendar.name }}</span>
+            <span class="truncate font-medium text-primary/80">{{ calendar.name }}</span>
         </button>
 
         <!-- Events in the range on screen, not a lifetime total. Titled, because a
@@ -64,7 +64,7 @@ function swatch() {
              No number says "nothing here right now", which is what it means. -->
         <span
             v-if="count"
-            class="shrink-0 text-2xs tabular-nums text-muted"
+            class="shrink-0 text-xs font-medium tabular-nums text-secondary"
             :class="canManage ? 'md:group-hover:hidden' : ''"
             :title="t('suite.plannings.events_in_range')"
         >
