@@ -834,6 +834,8 @@ Le haut d'un écran : son nom en grand (26 px), une ligne dessous (ce qu'il
 contient, ses chiffres), et dans le slot `actions`, à droite, les commandes de
 tout l'écran. Sur téléphone, les commandes passent sous le titre, pleine
 largeur. Une liste le reçoit par `AppListToolbar` (`title`, `subtitle`).
+Le slot par défaut, sous la ligne, porte ce qui qualifie l'élément ouvert
+(slug, pastilles) : un écran qui montre un enregistrement le prend pour titre.
 
 | Prop | Type | Défaut |
 |---|---|---|

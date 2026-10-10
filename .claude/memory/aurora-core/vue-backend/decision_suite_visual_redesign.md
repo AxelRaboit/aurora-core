@@ -70,6 +70,13 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   Écart à la maquette : « Actions » et « Enregistrer » restent dans
   `AppPageBar`, la barre de tout écran de détail, pas à côté du titre.
 
+- **Tout écran s'ouvre sur un titre** (10/10 après-midi, passe sur toute la
+  suite) : un écran qui montre un enregistrement (menu, type de contenu,
+  taxonomie, document) le prend pour titre, slug et pastilles dans le slot par
+  défaut d'`AppPageHeading`. Les `h1` des écrans de détail sont à la même
+  échelle (26 px). Restent volontairement sans : Notes Markdown (sa barre est
+  l'écran) et l'éditeur de publication (ses onglets).
+
 ## Pourquoi
 
 Axel voulait une suite « encore plus pro ». La maquette montrait surtout de la
