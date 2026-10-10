@@ -15,12 +15,10 @@ use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
-use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
-use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -175,7 +173,6 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly AuditLogger $auditLogger,
         private readonly ContractPdfGenerator $pdfGenerator,
         private readonly SpaceNoteSpaceProvider $spaceNoteSpaceProvider,
-        private readonly NoteSpaceAccess $noteSpaceAccess,
         private readonly MarkdownNoteManagerInterface $markdownNotes,
         private readonly MarkdownNoteInputFactoryInterface $markdownNoteInputs,
         private readonly NoteFolderManagerInterface $noteFolders,
@@ -1393,84 +1390,60 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * is left to decide, what got stuck - because a demonstration where notes
      * are filler paragraphs does not teach what they are for.
      *
-     * **In the Notes module, through its managers**: the note space of the
-     * client space, opened the way the tab would, receives the team's notes;
-     * private notes go into their author's personal space, filed in a folder
-     * named after the client space - where the migration files the older
-     * ones. A pinned note becomes a favourite of its author.
-     */
-    /**
-     * @param list<array{0: string, 1: bool, 2: bool, 3: list<string>}>|null $notes the notes to write, those of {@see noteContents()} when null
+     * **In the client space's notes space**, opened the way the section
+     * would, through the Notes module's managers. None goes into somebody's
+     * personal notebook any more (10/10/2026): a client's notes are written in
+     * its client space, and a client folder in the Notes module would show the
+     * opposite of how the suite works. A pinned note becomes a favourite of
+     * its author.
+     *
+     * @param list<array{0: string, 1: bool, 2: list<string>}>|null $notes the notes to write, those of {@see noteContents()} when null
      */
     private function seedNotes(CustomerSpaceInterface $space, ?array $notes = null): void
     {
         $marie = $this->userRepository->find($this->suiteUser('marie.dupont@aurora.app'));
-        // The personal notes are taken by the development account, and that
-        // is the only choice that shows anything: a personal note is read only
-        // in its author's space, so signed by somebody else it would stay
-        // invisible to whoever is looking.
-        $admin = $this->userRepository->find($this->suiteUser('dev@aurora.app'));
 
-        if (!$marie instanceof User || !$admin instanceof User) {
+        if (!$marie instanceof User) {
             return;
         }
 
         $team = $this->spaceNoteSpaceProvider->resolve($space);
-        $folder = null;
 
-        foreach ($notes ?? $this->noteContents() as [$title, $pinned, $personal, $paragraphs]) {
-            $author = $personal ? $admin : $marie;
-
-            if ($personal && !$folder instanceof NoteFolderInterface) {
-                $folder = $this->noteFolders->create($admin, $this->noteFolderInputs->fromArray([
-                    'name' => $space->getName(),
-                    'spaceId' => $this->noteSpaceAccess->personalSpace($admin)->getId(),
-                ]));
-            }
-
-            $note = $this->markdownNotes->create($author, $this->markdownNoteInputs->fromArray([
+        foreach ($notes ?? $this->noteContents() as [$title, $pinned, $paragraphs]) {
+            $note = $this->markdownNotes->create($marie, $this->markdownNoteInputs->fromArray([
                 'title' => $title,
                 'content' => implode("\n\n", $paragraphs),
-                'spaceId' => $personal ? null : $team->getId(),
-                'folderId' => $personal ? $folder?->getId() : null,
+                'spaceId' => $team->getId(),
             ]));
 
             if ($pinned) {
-                $this->noteFavorites->toggle($author, $note);
+                $this->noteFavorites->toggle($marie, $note);
             }
         }
     }
 
     /**
-     * Three team notes and two private ones, pinned ones first.
+     * Four team notes, pinned ones first.
      *
-     * The personal ones are not one more example of the same object: they are
-     * the only ones that show a private note belongs somewhere other than the
-     * space the team reads.
-     *
-     * @return list<array{0: string, 1: bool, 2: bool, 3: list<string>}>
+     * @return list<array{0: string, 1: bool, 2: list<string>}>
      */
     private function noteContents(): array
     {
         return [
-            ['Brief téléphonique', true, false, [
+            ['Brief téléphonique', true, [
                 'Le client veut **éviter le vert** : trop proche de son concurrent de la zone.',
                 'Livraison souhaitée avant les portes ouvertes. Marge réelle : trois semaines.',
                 'Contact technique : son neveu, qui gère le site. Passer par lui pour les accès.',
             ]],
-            ['À décider', false, false, [
+            ['À relancer', true, [
+                "- [ ] Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.\n- [ ] Ne pas proposer le mardi pour les points, l'équipe est en formation.",
+            ]],
+            ['À décider', false, [
                 "- Format des visuels : carré pour Instagram, ou 4:5 partout ?\n- Est-ce qu'on reprend les photos existantes ou on refait une séance ?",
             ]],
-            ['Ce qui a coincé en mars', false, false, [
+            ['Ce qui a coincé en mars', false, [
                 "Les validations partaient par mail et se perdaient. D'où l'espace.",
                 'Deux allers-retours sur un texte déjà validé, faute de trace écrite.',
-            ]],
-            ['À relancer', true, true, [
-                "- [ ] Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.\n- [ ] Ne pas proposer le mardi pour les points, je suis en formation.",
-            ]],
-            ['Ce que je ne dirai pas comme ça', false, true, [
-                'La direction « artisanale » ne prend pas. Trouver comment le dire sans dire « ça ne marche pas ».',
-                'Préparer deux planches avant le point, pas une seule à défendre.',
             ]],
         ];
     }
@@ -1478,26 +1451,23 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     /**
      * The prospect's own notes, about its logo.
      *
-     * Its space used to receive the same five notes as the client's. Each
-     * space had its own wall then, so nothing showed; since space notes live
-     * in the Notes module, the library and the favourites listed every one
-     * of them twice.
+     * Its space used to receive the same notes as the client's. Each space
+     * had its own wall then, so nothing showed; since a space's notes are a
+     * notes space of their own, the same titles in two spaces read as a copy.
      *
-     * @return list<array{0: string, 1: bool, 2: bool, 3: list<string>}>
+     * @return list<array{0: string, 1: bool, 2: list<string>}>
      */
     private function prospectNoteContents(): array
     {
         return [
-            ['Premier rendez-vous', true, false, [
+            ['Premier rendez-vous', true, [
                 "Il tient au rabot du logo actuel : c'est celui de son grand-père.",
                 'Budget pas encore arrêté. Attendre le devis du photographe avant de chiffrer.',
             ]],
-            ['Pistes de logo', false, false, [
-                "- Monogramme MF, comme gravé dans le bois
-- Le rabot simplifié, d'un seul trait
-- La typographie seule, sans pictogramme",
+            ['Pistes de logo', false, [
+                "- Monogramme MF, comme gravé dans le bois\n- Le rabot simplifié, d'un seul trait\n- La typographie seule, sans pictogramme",
             ]],
-            ['Avant de signer', false, true, [
+            ['Avant de signer', false, [
                 'Lui faire valider une charte en deux couleurs seulement : il imprime tout chez le même artisan.',
             ]],
         ];
