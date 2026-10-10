@@ -19,6 +19,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
+use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -83,8 +84,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 
+use function array_key_first;
+use function array_map;
 use function hash;
 use function implode;
+use function in_array;
 use function mb_substr;
 use function sprintf;
 
@@ -177,6 +181,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly NoteFolderManagerInterface $noteFolders,
         private readonly NoteFolderInputFactoryInterface $noteFolderInputs,
         private readonly NoteFavoriteManagerInterface $noteFavorites,
+        private readonly MarkdownNoteRepository $markdownNoteRepository,
     ) {}
 
     public static function getGroups(): array
@@ -291,6 +296,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedApprovals();
         $this->seedTrash($jean);
         $this->seedClientFile();
+        $this->seedHostedNotes();
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -681,6 +687,91 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $salon->setDeletedAt(new DateTimeImmutable('-6 days'));
             $this->entityManager->flush();
         }
+    }
+
+    /**
+     * Notes the team keeps in its client spaces, filed in folders.
+     *
+     * Since 10/10/2026 a client space's notes are written in the client space
+     * and no longer show in the Notes module: the demonstration has to show
+     * them where they live, and with what makes the editor worth having -
+     * folders, meeting minutes, checklists, links between notes. Three spaces
+     * get some, each about its own job.
+     *
+     * Outside `seedSpaces()`, like the trash, so an existing demo gains them on
+     * the next `make demo`: a space whose notes already carry the first title
+     * of its list is left alone.
+     */
+    private function seedHostedNotes(): void
+    {
+        foreach ($this->hostedNoteContents() as $spaceName => [$authorEmail, $folders]) {
+            $space = $this->spaceRepository->findOneBy(['name' => $spaceName]);
+            $author = $this->userRepository->find($this->suiteUser($authorEmail));
+
+            if (!$space instanceof CustomerSpaceInterface || !$author instanceof User) {
+                continue;
+            }
+
+            $noteSpace = $this->spaceNoteSpaceProvider->resolve($space);
+            $titles = array_map(static fn ($note): string => (string) $note->getTitle(), $this->markdownNoteRepository->findLivingInSpace($noteSpace));
+            $first = array_key_first($folders[array_key_first($folders)]);
+
+            if (in_array($first, $titles, true)) {
+                continue;
+            }
+
+            foreach ($folders as $folderName => $notes) {
+                $folder = '' === $folderName ? null : $this->noteFolders->create($author, $this->noteFolderInputs->fromArray([
+                    'name' => $folderName,
+                    'spaceId' => $noteSpace->getId(),
+                ]));
+
+                foreach ($notes as $title => $content) {
+                    $this->markdownNotes->create($author, $this->markdownNoteInputs->fromArray([
+                        'title' => $title,
+                        'content' => $content,
+                        'spaceId' => $noteSpace->getId(),
+                        'folderId' => $folder?->getId(),
+                    ]));
+                }
+            }
+        }
+    }
+
+    /**
+     * Space name => [author's email, [folder name ('' at the root) => [title => Markdown]]].
+     *
+     * @return array<string, array{0: string, 1: array<string, array<string, string>>}>
+     */
+    private function hostedNoteContents(): array
+    {
+        return [
+            'Atelier Dupont - Réseaux sociaux' => ['marie.dupont@aurora.app', [
+                'Comptes rendus' => [
+                    'Point de lancement' => "## Présents\n\nMarie, Léa, Thomas Dupont et son neveu.\n\n## Ce qu'on retient\n\n- Deux publications par semaine : le mardi un chantier, le vendredi une pièce finie.\n- Pas de prix en ligne, jamais. Voir [[Brief téléphonique]].\n- Les photos d'atelier passent avant les photos de catalogue.\n\n## Suites\n\n- [x] Ouvrir l'espace client et y inviter Thomas\n- [x] Récupérer les accès Instagram\n- [ ] Planifier la séance photo de l'atelier",
+                    'Point de mi-parcours' => "Les publications « avant / après » font trois fois plus de commentaires que les autres. On en fait une rubrique, voir [[Rubriques]].\n\nLe vendredi est trop chargé pour Thomas : la validation passe au **jeudi midi**.\n\n- [ ] Revoir le calendrier éditorial de novembre\n- [ ] Proposer deux formats courts en vidéo",
+                ],
+                'Ligne éditoriale' => [
+                    'Ton et vocabulaire' => "On parle comme l'atelier parle : simple, précis, sans superlatifs.\n\n| On écrit | On évite |\n| --- | --- |\n| chêne massif, assemblage tenon-mortaise | « produit d'exception » |\n| fait à la main, à Chéruy | « artisanat de luxe » |\n\nLe vert est banni des visuels : voir [[Brief téléphonique]].",
+                    'Rubriques' => "1. **Le chantier de la semaine** : une pièce en cours, trois photos.\n2. **Avant / après** : une restauration, deux photos côte à côte.\n3. **Le geste** : une courte vidéo d'un outil en main.\n\nChaque rubrique suit le [[Ton et vocabulaire]].",
+                ],
+            ]],
+            'Atelier Dupont - Refonte du site' => ['dev@aurora.app', [
+                '' => [
+                    'Arborescence du site' => "- Accueil\n- L'atelier\n  - Notre histoire\n  - Le savoir-faire\n- Réalisations\n  - Mobilier\n  - Restauration\n- Contact\n\nLes réalisations reprennent les publications de la rubrique « Avant / après ».",
+                    'Contenus à récupérer' => "- [x] Logo en vectoriel (reçu le 3)\n- [ ] Textes de l'histoire de l'atelier\n- [ ] Vingt photos de réalisations, en haute définition\n- [ ] Mentions légales à jour\n\nTout passe par l'onglet Fichiers de l'espace, pas par mail.",
+                ],
+                'Comptes rendus' => [
+                    'Atelier de lancement' => "Objectif : un site que Thomas met à jour seul.\n\n- Trois pages par rubrique au plus, voir [[Arborescence du site]].\n- Les contenus à fournir sont listés dans [[Contenus à récupérer]].\n- Mise en ligne visée avant les portes ouvertes.",
+                ],
+            ]],
+            'Roux Photographie - Portfolio 2026' => ['marie.dupont@aurora.app', [
+                '' => [
+                    'Sélection des séries' => "Trois séries, douze images chacune au plus.\n\n1. Mariages en extérieur\n2. Portraits d'artisans\n3. Paysages de l'Isère\n\nLes légendes à écrire sont dans [[Légendes à écrire]].",
+                    'Légendes à écrire' => "- [ ] Mariages : lieu et saison, jamais les prénoms\n- [ ] Artisans : le métier et la ville\n- [x] Paysages : le lieu suffit",
+                ],
+            ]],
+        ];
     }
 
     /**
