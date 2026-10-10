@@ -170,7 +170,8 @@ function pipeline(list) {
         border-radius: 28px; background: rgba(17, 24, 39, .85);
         border: 1.5px solid rgba(52, 211, 153, .45); box-shadow: 0 0 80px rgba(52, 211, 153, .18);
     }
-    .core h1 { margin: 22px 0 26px; font-size: 54px; font-weight: 700; letter-spacing: -.01em; }
+    /* The name as the wordmark sets it: lowercase, Sora SemiBold (10/10/2026). */
+    .core h1 { margin: 22px 0 26px; font-family: "Sora", ui-sans-serif, system-ui, sans-serif; font-size: 56px; font-weight: 600; letter-spacing: -.02em; }
     .current {
         display: inline-flex; padding: 12px 22px; border-radius: 999px; font-size: 34px; font-weight: 700;
         color: #052e22; background: ${GREEN}; box-shadow: 0 0 40px rgba(52, 211, 153, .45);
@@ -226,7 +227,7 @@ function pipeline(list) {
 </svg>
 <div class="core">
     ${LOGO}
-    <h1>Aurora</h1>
+    <h1>aurora</h1>
     <div class="current">v${current.version}</div>
     ${stack}
 </div>
@@ -301,7 +302,7 @@ for (const [name, body] of [["tour-releases", pipeline(list)], ["tour-release-no
     const html = join(work, `${name}.html`);
     await writeFile(
         html,
-        `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">${body}`,
+        `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Sora:wght@600&display=swap">${body}`,
         "utf8",
     );
     await tab.goto(pathToFileURL(html).href, { waitUntil: "networkidle" });
