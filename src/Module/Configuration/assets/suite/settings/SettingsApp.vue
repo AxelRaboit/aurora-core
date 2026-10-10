@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppPageHeading from "@/shared/components/display/AppPageHeading.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
@@ -34,7 +35,21 @@ const props = defineProps({
     navSections: { type: Array, default: () => [] },
 });
 
-const { t } = useI18n();
+const { t, te: translationExists } = useI18n();
+
+/**
+ * The tab's name and the sentence under it, as on every screen of the suite
+ * (`AppPageHeading`). A tab a client module adds may not ship its sentence:
+ * then the heading keeps the name alone rather than printing a key.
+ */
+const tabTitle = computed(() => {
+    const key = `suite.settings.tabs.${props.activeTab}`;
+    return translationExists(key) ? t(key) : props.activeTab;
+});
+const tabLead = computed(() => {
+    const key = `suite.settings.tabs.${props.activeTab}_description`;
+    return translationExists(key) ? t(key) : "";
+});
 
 /**
  * The page draws one tab, the one its URL names.
@@ -83,7 +98,7 @@ const tabGuide = computed(() =>
     customComponent.value ? null : TAB_GUIDES[props.activeTab] ?? null,
 );
 
-const { fieldValues, mediaState, isLocked, lockReason, onBoolChange, pendingOff, confirmOff, cancelOff, onMediaChange, savingGroups, saveGroup } =
+const { fieldValues, mediaState, isLocked, lockReason, onBoolChange, pendingOff, confirmOff, cancelOff, onMediaChange, savingGroups, saveGroup, pendingCount, resetGroup } =
     useSettingsForm(props.groups, genericGroups.value, props.updatePath);
 
 const { postPickerLabels, postPickerSearch, postPickerResults, postPickerOpen, resolvePostLabel, searchPosts, selectPost, clearPost, onPostPickerBlur, onPostPickerFocus } =
@@ -92,6 +107,33 @@ const { postPickerLabels, postPickerSearch, postPickerResults, postPickerOpen, r
 const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, goToSequencePage } =
     useSettingsSequenceFilter(props.groups);
 
+/**
+ * A tab's fields in their sections, in the order the first field of each
+ * appears: the section's title and sentence on the left, its card on the
+ * right (validated screen mockups, 10/10/2026). Fields without a section make
+ * one block with no title, which is how a short tab - or a client module's
+ * tab that declares none - keeps its single card.
+ */
+function blocksFor(groupName) {
+    if ("sequences" === groupName) {
+        return [{ key: "sequences", section: null, parameters: paginatedSequences.value }];
+    }
+
+    const blocks = [];
+    const byKey = new Map();
+    for (const parameter of props.groups[groupName] ?? []) {
+        const key = parameter.section?.key ?? "";
+        if (!byKey.has(key)) {
+            const block = { key: key || "fields", section: parameter.section ?? null, parameters: [] };
+            byKey.set(key, block);
+            blocks.push(block);
+        }
+        byKey.get(key).parameters.push(parameter);
+    }
+
+    return blocks;
+}
+
 </script>
 
 <template>
@@ -99,6 +141,8 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
          the tabs now. The page is the tab. -->
     <div class="flex flex-col">
         <div class="flex-1 min-w-0 aurora-stack">
+            <AppPageHeading :title="tabTitle" :subtitle="tabLead" />
+
             <!-- The tab's how-to guide, above its fields; only the generic
                  tabs listed in TAB_GUIDES have one. -->
             <AppGuide v-if="tabGuide" :title="t(`${tabGuide.namespace}.title`)" :storage-key="`settings-${activeTab}`">
@@ -118,183 +162,223 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
             />
 
             <!-- Generic field renderer for parameter-driven tabs -->
-            <div v-for="groupName in genericGroups" :key="groupName">
-                <div class="aurora-card p-4 space-y-5">
-                    <AppSearchInput
-                        v-if="groupName === 'sequences'"
-                        v-model="sequenceSearch"
-                        :placeholder="t('suite.settings.sequence_search')"
-                    />
+            <div v-for="groupName in genericGroups" :key="groupName" class="flex flex-col">
+                <div
+                    v-for="block in blocksFor(groupName)"
+                    :key="block.key"
+                    data-settings-block
+                    :class="block.section
+                        ? 'grid grid-cols-1 gap-x-10 gap-y-3 border-t border-line py-6 first:border-t-0 first:pt-0 lg:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)]'
+                        : 'pb-6'"
+                >
+                    <div v-if="block.section" class="min-w-0">
+                        <h3 class="text-[0.9375rem] font-semibold text-primary">{{ block.section.title }}</h3>
+                        <p class="mt-1 text-[0.8125rem] text-secondary">{{ block.section.lead }}</p>
+                    </div>
+                    <div class="aurora-card min-w-0 space-y-5 p-4 sm:p-5">
+                        <AppSearchInput
+                            v-if="groupName === 'sequences'"
+                            v-model="sequenceSearch"
+                            :placeholder="t('suite.settings.sequence_search')"
+                        />
 
-                    <div
-                        v-for="parameter in (groupName === 'sequences' ? paginatedSequences : groups[groupName])"
-                        :key="parameter.key"
-                    >
-                        <template v-if="parameter.type === ParameterType.Bool">
-                            <div class="flex items-center justify-between gap-4" :class="{ 'opacity-60': isLocked(parameter) }">
-                                <div class="min-w-0">
-                                    <p class="text-sm font-medium text-primary flex items-center gap-1.5">
-                                        {{ parameter.label }}
-                                        <Lock v-if="isLocked(parameter)" class="w-3.5 h-3.5 text-muted" :stroke-width="2" />
-                                    </p>
-                                    <p v-if="parameter.description" class="text-xs text-muted mt-0.5">{{ parameter.description }}</p>
-                                    <p v-if="isLocked(parameter)" class="text-xs text-warning mt-0.5">{{ lockReason(parameter) }}</p>
-                                </div>
-                                <AppToggle
-                                    :model-value="!isLocked(parameter) && fieldValues[parameter.key] === '1'"
-                                    :disabled="isLocked(parameter)"
-                                    v-on:update:model-value="onBoolChange(parameter, $event)"
-                                />
-                            </div>
-                        </template>
-
-                        <template v-else-if="parameter.type === ParameterType.Post">
-                            <p class="text-sm font-medium text-primary mb-1">{{ parameter.label }}</p>
-                            <p v-if="parameter.description" class="text-xs text-muted mb-2">{{ parameter.description }}</p>
-                            <div v-if="postPickerLabels[parameter.key]" class="flex items-center gap-3 p-3 border border-line rounded-lg bg-surface-2 mb-2">
-                                <FileText class="w-4 h-4 shrink-0 text-accent" :stroke-width="2" />
-                                <span class="flex-1 text-sm font-medium text-primary truncate">{{ postPickerLabels[parameter.key].title }}</span>
-                                <span class="text-xs text-muted shrink-0">#{{ postPickerLabels[parameter.key].id }}</span>
-                                <AppTextLinkButton color="danger" size="xs" class="shrink-0" v-on:click="clearPost(parameter.key)">
-                                    {{ t("shared.common.remove") }}
-                                </AppTextLinkButton>
-                            </div>
-                            <div v-else class="flex items-center gap-1.5 text-sm text-muted italic mb-2">
-                                <FileText class="w-3.5 h-3.5 opacity-60" :stroke-width="1.5" />
-                                {{ t("suite.settings.no_page_selected") }}
-                            </div>
-                            <div class="relative">
-                                <AppInput
-                                    type="text"
-                                    :placeholder="t('suite.settings.search_post')"
-                                    :model-value="postPickerSearch[parameter.key] ?? ''"
-                                    v-on:update:model-value="postPickerSearch[parameter.key] = $event; searchPosts(parameter.key, $event)"
-                                    v-on:blur="onPostPickerBlur(parameter.key)"
-                                    v-on:focus="onPostPickerFocus(parameter.key)"
-                                >
-                                    <template #prefix>
-                                        <Search class="w-3.5 h-3.5" :stroke-width="2" />
-                                    </template>
-                                </AppInput>
-                                <div v-if="postPickerOpen[parameter.key] && postPickerResults[parameter.key]?.length" class="aurora-card absolute z-20 left-0 right-0 mt-1 shadow-lg overflow-hidden">
-                                    <AppListItemButton
-                                        v-for="post in postPickerResults[parameter.key]"
-                                        :key="post.id"
-                                        class="justify-between border-b border-line last:border-0"
-                                        v-on:click="selectPost(parameter.key, post)"
-                                    >
-                                        <span class="font-medium text-primary truncate">{{ post.title ?? "-" }}</span>
-                                        <span class="text-xs text-muted shrink-0">{{ post.postType }}</span>
-                                    </AppListItemButton>
-                                </div>
-                            </div>
-                            <div class="mt-2 flex items-center gap-2">
-                                <span class="text-xs text-muted shrink-0">{{ t("suite.settings.or_id") }}</span>
-                                <div class="w-28">
-                                    <AppInput
-                                        type="number"
-                                        :placeholder="'ID'"
-                                        :model-value="fieldValues[parameter.key]"
-                                        v-on:update:model-value="fieldValues[parameter.key] = $event; resolvePostLabel(parameter.key)"
+                        <div
+                            v-for="parameter in block.parameters"
+                            :key="parameter.key"
+                        >
+                            <template v-if="parameter.type === ParameterType.Bool">
+                                <div class="flex items-center justify-between gap-4" :class="{ 'opacity-60': isLocked(parameter) }">
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-primary flex items-center gap-1.5">
+                                            {{ parameter.label }}
+                                            <Lock v-if="isLocked(parameter)" class="w-3.5 h-3.5 text-muted" :stroke-width="2" />
+                                        </p>
+                                        <p v-if="parameter.description" class="text-xs text-muted mt-0.5">{{ parameter.description }}</p>
+                                        <p v-if="isLocked(parameter)" class="text-xs text-warning mt-0.5">{{ lockReason(parameter) }}</p>
+                                    </div>
+                                    <AppToggle
+                                        :model-value="!isLocked(parameter) && fieldValues[parameter.key] === '1'"
+                                        :disabled="isLocked(parameter)"
+                                        v-on:update:model-value="onBoolChange(parameter, $event)"
                                     />
                                 </div>
-                            </div>
-                        </template>
+                            </template>
 
-                        <template v-else-if="parameter.type === ParameterType.Media">
-                            <AppImagePickerField
-                                :label="parameter.label"
-                                :hint="parameter.description ? parameter.description + ' - ' + t('suite.settings.media_square_hint') : t('suite.settings.media_square_hint')"
-                                :model-value="mediaState[parameter.key]"
-                                :size="96"
-                                v-on:update:model-value="onMediaChange(parameter, $event)"
-                            />
-                        </template>
+                            <template v-else-if="parameter.type === ParameterType.Post">
+                                <p class="text-sm font-medium text-primary mb-1">{{ parameter.label }}</p>
+                                <p v-if="parameter.description" class="text-xs text-muted mb-2">{{ parameter.description }}</p>
+                                <div v-if="postPickerLabels[parameter.key]" class="flex items-center gap-3 p-3 border border-line rounded-lg bg-surface-2 mb-2">
+                                    <FileText class="w-4 h-4 shrink-0 text-accent" :stroke-width="2" />
+                                    <span class="flex-1 text-sm font-medium text-primary truncate">{{ postPickerLabels[parameter.key].title }}</span>
+                                    <span class="text-xs text-muted shrink-0">#{{ postPickerLabels[parameter.key].id }}</span>
+                                    <AppTextLinkButton color="danger" size="xs" class="shrink-0" v-on:click="clearPost(parameter.key)">
+                                        {{ t("shared.common.remove") }}
+                                    </AppTextLinkButton>
+                                </div>
+                                <div v-else class="flex items-center gap-1.5 text-sm text-muted italic mb-2">
+                                    <FileText class="w-3.5 h-3.5 opacity-60" :stroke-width="1.5" />
+                                    {{ t("suite.settings.no_page_selected") }}
+                                </div>
+                                <div class="relative">
+                                    <AppInput
+                                        type="text"
+                                        :placeholder="t('suite.settings.search_post')"
+                                        :model-value="postPickerSearch[parameter.key] ?? ''"
+                                        v-on:update:model-value="postPickerSearch[parameter.key] = $event; searchPosts(parameter.key, $event)"
+                                        v-on:blur="onPostPickerBlur(parameter.key)"
+                                        v-on:focus="onPostPickerFocus(parameter.key)"
+                                    >
+                                        <template #prefix>
+                                            <Search class="w-3.5 h-3.5" :stroke-width="2" />
+                                        </template>
+                                    </AppInput>
+                                    <div v-if="postPickerOpen[parameter.key] && postPickerResults[parameter.key]?.length" class="aurora-card absolute z-20 left-0 right-0 mt-1 shadow-lg overflow-hidden">
+                                        <AppListItemButton
+                                            v-for="post in postPickerResults[parameter.key]"
+                                            :key="post.id"
+                                            class="justify-between border-b border-line last:border-0"
+                                            v-on:click="selectPost(parameter.key, post)"
+                                        >
+                                            <span class="font-medium text-primary truncate">{{ post.title ?? "-" }}</span>
+                                            <span class="text-xs text-muted shrink-0">{{ post.postType }}</span>
+                                        </AppListItemButton>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <span class="text-xs text-muted shrink-0">{{ t("suite.settings.or_id") }}</span>
+                                    <div class="w-28">
+                                        <AppInput
+                                            type="number"
+                                            :placeholder="'ID'"
+                                            :model-value="fieldValues[parameter.key]"
+                                            v-on:update:model-value="fieldValues[parameter.key] = $event; resolvePostLabel(parameter.key)"
+                                        />
+                                    </div>
+                                </div>
+                            </template>
 
-                        <template v-else-if="parameter.type === ParameterType.Int">
-                            <AppInput
-                                type="number"
-                                :label="parameter.label"
-                                :placeholder="parameter.placeholder ?? ''"
-                                :model-value="fieldValues[parameter.key]"
-                                v-on:update:model-value="fieldValues[parameter.key] = $event"
-                            />
-                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
-                        </template>
-
-                        <template v-else-if="parameter.type === ParameterType.Select">
-                            <AppMultiselect
-                                v-if="(parameter.options ?? []).length > 10"
-                                :label="parameter.label"
-                                :options="parameter.options ?? []"
-                                :model-value="fieldValues[parameter.key]"
-                                v-on:update:model-value="fieldValues[parameter.key] = $event"
-                            />
-                            <AppSelect
-                                v-else
-                                :label="parameter.label"
-                                :options="parameter.options ?? []"
-                                :model-value="fieldValues[parameter.key]"
-                                v-on:update:model-value="fieldValues[parameter.key] = $event"
-                            />
-                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
-                        </template>
-
-                        <template v-else-if="parameter.type === ParameterType.Color">
-                            <div class="flex items-end justify-between gap-3">
-                                <AppColorField
+                            <template v-else-if="parameter.type === ParameterType.Media">
+                                <AppImagePickerField
                                     :label="parameter.label"
-                                    :hint="parameter.description ?? ''"
+                                    :hint="parameter.description ? parameter.description + ' - ' + t('suite.settings.media_square_hint') : t('suite.settings.media_square_hint')"
+                                    :model-value="mediaState[parameter.key]"
+                                    :size="96"
+                                    v-on:update:model-value="onMediaChange(parameter, $event)"
+                                />
+                            </template>
+
+                            <template v-else-if="parameter.type === ParameterType.Int">
+                                <AppInput
+                                    type="number"
+                                    :label="parameter.label"
+                                    :placeholder="parameter.placeholder ?? ''"
                                     :model-value="fieldValues[parameter.key]"
                                     v-on:update:model-value="fieldValues[parameter.key] = $event"
                                 />
-                                <AppTextLinkButton
-                                    v-if="parameter.defaultValue && fieldValues[parameter.key] !== parameter.defaultValue"
-                                    color="muted"
-                                    size="xs"
-                                    v-on:click="fieldValues[parameter.key] = parameter.defaultValue"
-                                >
-                                    {{ t('suite.settings.color_reset') }}
-                                </AppTextLinkButton>
-                            </div>
-                        </template>
+                                <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                            </template>
 
-                        <template v-else-if="parameter.type === ParameterType.Textarea">
-                            <label class="mb-1.5 block text-[0.8125rem] font-medium text-primary">{{ parameter.label }}</label>
-                            <textarea
-                                :placeholder="parameter.placeholder ?? ''"
-                                :value="fieldValues[parameter.key]"
-                                rows="6"
-                                class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary resize-y focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
-                                v-on:input="fieldValues[parameter.key] = $event.target.value"
-                            />
-                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
-                        </template>
+                            <template v-else-if="parameter.type === ParameterType.Select">
+                                <AppMultiselect
+                                    v-if="(parameter.options ?? []).length > 10"
+                                    :label="parameter.label"
+                                    :options="parameter.options ?? []"
+                                    :model-value="fieldValues[parameter.key]"
+                                    v-on:update:model-value="fieldValues[parameter.key] = $event"
+                                />
+                                <AppSelect
+                                    v-else
+                                    :label="parameter.label"
+                                    :options="parameter.options ?? []"
+                                    :model-value="fieldValues[parameter.key]"
+                                    v-on:update:model-value="fieldValues[parameter.key] = $event"
+                                />
+                                <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                            </template>
 
-                        <template v-else>
-                            <AppInput
-                                type="text"
-                                :label="parameter.label"
-                                :placeholder="parameter.placeholder ?? ''"
-                                :model-value="fieldValues[parameter.key]"
-                                v-on:update:model-value="fieldValues[parameter.key] = $event"
-                            />
-                            <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
-                        </template>
+                            <template v-else-if="parameter.type === ParameterType.Color">
+                                <div class="flex items-end justify-between gap-3">
+                                    <AppColorField
+                                        :label="parameter.label"
+                                        :hint="parameter.description ?? ''"
+                                        :model-value="fieldValues[parameter.key]"
+                                        v-on:update:model-value="fieldValues[parameter.key] = $event"
+                                    />
+                                    <AppTextLinkButton
+                                        v-if="parameter.defaultValue && fieldValues[parameter.key] !== parameter.defaultValue"
+                                        color="muted"
+                                        size="xs"
+                                        v-on:click="fieldValues[parameter.key] = parameter.defaultValue"
+                                    >
+                                        {{ t('suite.settings.color_reset') }}
+                                    </AppTextLinkButton>
+                                </div>
+                            </template>
+
+                            <template v-else-if="parameter.type === ParameterType.Textarea">
+                                <label class="mb-1.5 block text-[0.8125rem] font-medium text-primary">{{ parameter.label }}</label>
+                                <textarea
+                                    :placeholder="parameter.placeholder ?? ''"
+                                    :value="fieldValues[parameter.key]"
+                                    rows="6"
+                                    class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary resize-y focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
+                                    v-on:input="fieldValues[parameter.key] = $event.target.value"
+                                />
+                                <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                            </template>
+
+                            <template v-else>
+                                <AppInput
+                                    type="text"
+                                    :label="parameter.label"
+                                    :placeholder="parameter.placeholder ?? ''"
+                                    :model-value="fieldValues[parameter.key]"
+                                    v-on:update:model-value="fieldValues[parameter.key] = $event"
+                                />
+                                <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                            </template>
+                        </div>
+
+                        <AppPagination
+                            v-if="groupName === 'sequences' && sequenceTotalPages > 1"
+                            :page="sequencePage"
+                            :total-pages="sequenceTotalPages"
+                            v-on:change="goToSequencePage"
+                        />
                     </div>
+                </div>
 
-                    <AppPagination
-                        v-if="groupName === 'sequences' && sequenceTotalPages > 1"
-                        :page="sequencePage"
-                        :total-pages="sequenceTotalPages"
-                        v-on:change="goToSequencePage"
-                    />
-
-                    <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
+                <!-- The tab's foot: what waits to be saved, a way to drop it,
+                     and the one button that saves the whole tab. In the right
+                     column when the tab has sections, under their cards; no
+                     sticky bar (a choice of 07/10/2026, kept). -->
+                <div
+                    :class="blocksFor(groupName).some((block) => block.section)
+                        ? 'grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)]'
+                        : ''"
+                >
+                    <div
+                        data-settings-foot
+                        class="aurora-card flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:px-5 lg:col-start-2"
+                    >
+                        <p v-if="pendingCount(groupName)" class="text-[0.8125rem] text-secondary sm:mr-auto">
+                            {{ t("suite.settings.pending", { count: pendingCount(groupName) }, pendingCount(groupName)) }}
+                        </p>
+                        <AppButton
+                            v-if="pendingCount(groupName)"
+                            type="button"
+                            variant="ghost"
+                            size="md"
+                            class="w-full sm:w-auto"
+                            v-on:click="resetGroup(groupName)"
+                        >
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
                         <AppButton
                             type="button"
                             variant="primary"
                             size="md"
+                            class="w-full sm:w-auto"
                             :loading="savingGroups[groupName]"
                             v-on:click="saveGroup(groupName)"
                         >

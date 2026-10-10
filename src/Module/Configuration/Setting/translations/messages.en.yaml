@@ -1,5 +1,58 @@
 suite:
     settings:
+        pending: "{count} unsaved change | {count} unsaved changes"
+        sections:
+            identity:
+                title: "Site identity"
+                lead: "What shows on the public site, signs the emails and introduces the RSS feed."
+            addresses:
+                title: "Addresses"
+                lead: "The public address builds the links in emails and the sitemap; the admin email receives the administration's messages."
+            languages:
+                title: "Languages"
+                lead: "The language the site serves by default, and whether it serves only one."
+            dates:
+                title: "Dates and times"
+                lead: "The time zone the site shows hours in, and how a date is written."
+            listing:
+                title: "Pages and lists"
+                lead: "How many posts per page, and what the site's root address shows."
+            comments:
+                title: "Comments"
+                lead: "Whether readers can comment, and whether their messages go through moderation first."
+            retention:
+                title: "Retention"
+                lead: "How many versions, days in the trash and form answers the site keeps."
+            maintenance:
+                title: "Maintenance"
+                lead: "Close the public site for the time of an intervention, without closing the administration."
+            suite_access:
+                title: "Administration access"
+                lead: "Who can create an account or ask for access to the suite."
+            site_access:
+                title: "Public site accounts"
+                lead: "Whether visitors can sign in or register on the site."
+            seo_defaults:
+                title: "Titles and descriptions"
+                lead: "What search engines show when a page says nothing about itself."
+            seo_sharing:
+                title: "Sharing"
+                lead: "The image and the account used when a page is shared on social networks."
+            email_language:
+                title: "Language"
+                lead: "The language of the emails the application sends."
+            email_colours:
+                title: "Colours"
+                lead: "The colours of the emails, the site theme's by default."
+            provider_identity:
+                title: "Your identity"
+                lead: "The provider block, copied into each contract when it is sealed."
+            provider_bank:
+                title: "Bank details"
+                lead: "Printed in the contracts, for payment."
+            contract_follow_up:
+                title: "Contract follow-up"
+                lead: "How long contracts are kept, and the reminders for a contract left unanswered."
         studio_guide:
             title: "Your identity in contracts"
             step_1: "These fields fill in the provider identity block of each contract when it is sealed, and contracts already sealed keep their values."

@@ -414,6 +414,36 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     }
 
     /**
+     * The section of its tab the field is drawn in, for the tabs long enough
+     * to need more than one block (visual redesign of the suite, 10/10/2026).
+     * Null for the short tabs, which keep a single card. The section's title
+     * and lead are `suite.settings.sections.<key>.title|lead`.
+     */
+    public function getSection(): ?string
+    {
+        return match ($this) {
+            self::SiteName, self::SiteDescription => 'identity',
+            self::SiteUrl, self::AdminEmail => 'addresses',
+            self::DefaultLocale, self::SingleLocaleMode => 'languages',
+            self::Timezone, self::DateFormat => 'dates',
+            self::PostsPerPage, self::HomepagePostId, self::DefaultFront => 'listing',
+            self::CommentsEnabled, self::CommentModerationEnabled => 'comments',
+            self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays => 'retention',
+            self::MaintenanceMode => 'maintenance',
+            self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled => 'suite_access',
+            self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'site_access',
+            self::SeoTitleTemplate, self::SeoDefaultDescription => 'seo_defaults',
+            self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo_sharing',
+            self::EmailLocale => 'email_language',
+            self::EmailAccentFollowsTheme, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email_colours',
+            self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone => 'provider_identity',
+            self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName => 'provider_bank',
+            self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays => 'contract_follow_up',
+            default => null,
+        };
+    }
+
+    /**
      * Sample value shown inside the input. Only set on the fields where
      * an example is meaningfully clearer than the description alone -
      * the rest fall through to the `default => null` arm.

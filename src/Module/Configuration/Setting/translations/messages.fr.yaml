@@ -1,5 +1,58 @@
 suite:
     settings:
+        pending: "{count} modification en attente | {count} modifications en attente"
+        sections:
+            identity:
+                title: "Identité du site"
+                lead: "Ce qui s'affiche sur le site public, signe les e-mails et présente le flux RSS."
+            addresses:
+                title: "Adresses"
+                lead: "L'adresse publique construit les liens des e-mails et du plan du site ; l'e-mail administrateur reçoit les messages de l'administration."
+            languages:
+                title: "Langues"
+                lead: "La langue que le site sert par défaut, et s'il en sert une seule."
+            dates:
+                title: "Dates et heures"
+                lead: "Le fuseau dans lequel le site affiche les heures, et la façon d'écrire une date."
+            listing:
+                title: "Pages et listes"
+                lead: "Combien de publications par page, et ce que montre l'adresse racine du site."
+            comments:
+                title: "Commentaires"
+                lead: "Si les lecteurs peuvent commenter, et si leurs messages passent d'abord par la modération."
+            retention:
+                title: "Conservation"
+                lead: "Combien de versions, de jours en corbeille et de réponses de formulaire le site garde."
+            maintenance:
+                title: "Maintenance"
+                lead: "Fermer le site public le temps d'une intervention, sans fermer l'administration."
+            suite_access:
+                title: "Accès à l'administration"
+                lead: "Qui peut créer un compte ou demander l'accès à la suite."
+            site_access:
+                title: "Comptes du site public"
+                lead: "Si les visiteurs peuvent se connecter ou s'inscrire sur le site."
+            seo_defaults:
+                title: "Titres et descriptions"
+                lead: "Ce que montrent les moteurs de recherche quand une page ne dit rien d'elle-même."
+            seo_sharing:
+                title: "Partage"
+                lead: "L'image et le compte repris quand une page est partagée sur les réseaux."
+            email_language:
+                title: "Langue"
+                lead: "La langue des e-mails que l'application envoie."
+            email_colours:
+                title: "Couleurs"
+                lead: "Les couleurs des e-mails, celles du thème du site par défaut."
+            provider_identity:
+                title: "Votre identité"
+                lead: "Le bloc du prestataire, repris dans chaque contrat au moment où il est scellé."
+            provider_bank:
+                title: "Coordonnées bancaires"
+                lead: "Imprimées dans les contrats, pour le règlement."
+            contract_follow_up:
+                title: "Suivi des contrats"
+                lead: "Combien de temps les contrats sont gardés, et les relances d'un contrat resté sans réponse."
         studio_guide:
             title: "Votre identité dans les contrats"
             step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."

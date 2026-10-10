@@ -95,6 +95,7 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
                 options: $this->resolveSelectOptions($parameter),
                 placeholderKey: $parameter->getPlaceholder(),
                 offWarningKey: $parameter->getOffWarning(),
+                sectionKey: $parameter->getSection(),
             );
         }
 

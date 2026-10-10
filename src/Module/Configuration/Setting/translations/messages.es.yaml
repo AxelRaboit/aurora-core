@@ -1,5 +1,58 @@
 suite:
     settings:
+        pending: "{count} cambio sin guardar | {count} cambios sin guardar"
+        sections:
+            identity:
+                title: "Identidad del sitio"
+                lead: "Lo que se muestra en el sitio público, firma los correos y presenta el flujo RSS."
+            addresses:
+                title: "Direcciones"
+                lead: "La dirección pública construye los enlaces de los correos y del mapa del sitio; el correo de administración recibe los mensajes de la administración."
+            languages:
+                title: "Idiomas"
+                lead: "El idioma que el sitio sirve por defecto, y si sirve uno solo."
+            dates:
+                title: "Fechas y horas"
+                lead: "La zona horaria en la que el sitio muestra las horas, y cómo se escribe una fecha."
+            listing:
+                title: "Páginas y listas"
+                lead: "Cuántas publicaciones por página, y qué muestra la dirección raíz del sitio."
+            comments:
+                title: "Comentarios"
+                lead: "Si los lectores pueden comentar, y si sus mensajes pasan antes por moderación."
+            retention:
+                title: "Conservación"
+                lead: "Cuántas versiones, días en la papelera y respuestas de formulario guarda el sitio."
+            maintenance:
+                title: "Mantenimiento"
+                lead: "Cerrar el sitio público durante una intervención, sin cerrar la administración."
+            suite_access:
+                title: "Acceso a la administración"
+                lead: "Quién puede crear una cuenta o pedir acceso a la suite."
+            site_access:
+                title: "Cuentas del sitio público"
+                lead: "Si los visitantes pueden iniciar sesión o registrarse en el sitio."
+            seo_defaults:
+                title: "Títulos y descripciones"
+                lead: "Lo que muestran los buscadores cuando una página no dice nada de sí misma."
+            seo_sharing:
+                title: "Compartir"
+                lead: "La imagen y la cuenta usadas cuando una página se comparte en las redes."
+            email_language:
+                title: "Idioma"
+                lead: "El idioma de los correos que envía la aplicación."
+            email_colours:
+                title: "Colores"
+                lead: "Los colores de los correos, los del tema del sitio por defecto."
+            provider_identity:
+                title: "Su identidad"
+                lead: "El bloque del prestador, copiado en cada contrato cuando se sella."
+            provider_bank:
+                title: "Datos bancarios"
+                lead: "Impresos en los contratos, para el pago."
+            contract_follow_up:
+                title: "Seguimiento de contratos"
+                lead: "Cuánto tiempo se guardan los contratos, y los recordatorios de un contrato sin respuesta."
         studio_guide:
             title: 'Su identidad en los contratos'
             step_1: 'Estos campos rellenan el bloque de identidad del prestador de cada contrato en el momento de sellarlo, y los ya sellados conservan sus valores.'
