@@ -27,6 +27,13 @@ final readonly class NavItem
      *                                              two records apart is their data - a slug, a location - and
      *                                              not a sentence of the interface. It is what the selection
      *                                              column showed under the name before it went away.
+     * @param ?int                 $count           The entry's own figure, drawn on the right of its name, when the
+     *                                              module already holds it - a taxonomy's terms, a content type's
+     *                                              publications. A figure is not a sentence: it was written as the
+     *                                              description ("6 termes") until the visual redesign of the
+     *                                              suite (10/10/2026), and read as a second way of counting.
+     *                                              Entries with a fixed key are counted by a
+     *                                              `NavItemCountProviderInterface` instead.
      * @param ?string              $key             Stable identifier, when the route name is not one.
      *                                              Default: the route name, what it has always been. When set,
      *                                              it becomes what the user preferences persist - so it is as
@@ -46,6 +53,7 @@ final readonly class NavItem
         public ?string $key = null,
         public ?string $label = null,
         public ?string $description = null,
+        public ?int $count = null,
     ) {}
 
     /** What the user preferences persist, and what the palette indexes. */
