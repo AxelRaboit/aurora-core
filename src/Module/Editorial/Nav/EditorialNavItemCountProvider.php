@@ -22,7 +22,9 @@ use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 final readonly class EditorialNavItemCountProvider implements NavItemCountProviderInterface
 {
     private const string POSTS = 'suite_editorial_posts';
+
     private const string POST_TYPES = 'suite_editorial_post_types';
+
     private const string TAXONOMIES = 'suite_editorial_taxonomies';
 
     public function __construct(
