@@ -1258,12 +1258,10 @@ suite:
             guide:
                 title: 'Cómo funcionan las notas'
                 step_1: 'Las notas quedan entre ustedes: el cliente nunca las ve.'
-                step_2: "Viven en el módulo Notas, en el espacio de notas de este cliente, abierto al equipo del espacio: el referente lo gestiona, los miembros escriben en él."
-                step_3: 'Una nota se abre en el editor de notas, con sus carpetas, sus enlaces entre notas, su historial y su búsqueda.'
-                step_4: "Una nota solo para usted se toma en su espacio de notas personal."
-            add: 'Nueva nota'
-            untitled: 'Nota sin título'
-            open_in_notes: 'Abrir en Notas'
+                step_2: "Viven aquí, en el espacio de notas de este cliente, abierto al equipo del espacio: el referente lo gestiona, los miembros escriben en él. No aparecen en el módulo Notas."
+                step_3: "El editor es el de las notas: carpetas, enlaces entre notas, historial, búsqueda y comentarios, sin salir del espacio de cliente."
+                step_4: "Una nota solo para usted se toma en su espacio de notas personal, en el módulo Notas."
+            start: "Escribir la primera nota"
             empty: 'No hay notas en este espacio'
             empty_hint: "Lo que el equipo debe saber sobre este cliente y que ningún contenido recoge. El cliente no ve las notas."
             closed: 'Estas notas no le están abiertas'

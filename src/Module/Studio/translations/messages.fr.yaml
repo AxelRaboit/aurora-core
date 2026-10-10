@@ -1282,17 +1282,15 @@ suite:
                 folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
                 import_failed: "Ce fichier n'a pas pu être recopié. Les documents Google n'ont pas de fichier à télécharger."
         space_notes:
-            # The notes of a client space live in the Notes module, in that client's
-            # notes space: the tab is the door to it.
+            # The notes of a client space are written here, in the notes editor
+            # confined to the client's notes space (10/10/2026).
             guide:
                 title: "Comment fonctionnent les notes"
                 step_1: "Les notes restent entre vous : le client ne les voit jamais."
-                step_2: "Elles vivent dans le module Notes, dans l'espace de notes de ce client, ouvert à l'équipe de l'espace : le référent le gère, les membres y écrivent."
-                step_3: "Une note s'ouvre dans l'éditeur des notes, avec ses dossiers, ses liens entre notes, son historique et sa recherche."
-                step_4: "Une note pour vous seul se prend dans votre espace de notes personnel."
-            add: Nouvelle note
-            untitled: Note sans titre
-            open_in_notes: Ouvrir dans Notes
+                step_2: "Elles vivent ici, dans l'espace de notes de ce client, ouvert à l'équipe de l'espace : le référent le gère, les membres y écrivent. Elles n'apparaissent pas dans le module Notes."
+                step_3: "L'éditeur est celui des notes : dossiers, liens entre notes, historique, recherche et commentaires, sans quitter l'espace client."
+                step_4: "Une note pour vous seul se prend dans votre espace de notes personnel, dans le module Notes."
+            start: "Écrire la première note"
             empty: Aucune note sur cet espace
             empty_hint: "Ce que l'équipe doit savoir sur ce client et qu'aucun contenu ne porte. Le client ne voit pas les notes."
             closed: Ces notes ne vous sont pas ouvertes

@@ -1280,12 +1280,10 @@ suite:
             guide:
                 title: "How notes work"
                 step_1: "Notes stay between you: the client never sees them."
-                step_2: "They live in the Notes module, in this client's note space, open to the space's team: the lead manages it, the members write in it."
-                step_3: "A note opens in the notes editor, with its folders, links between notes, history and search."
-                step_4: "A note for you alone is taken in your personal note space."
-            add: New note
-            untitled: Untitled note
-            open_in_notes: Open in Notes
+                step_2: "They live here, in this client's note space, open to the space's team: the lead manages it, the members write in it. They do not appear in the Notes module."
+                step_3: "The editor is the notes editor: folders, links between notes, history, search and comments, without leaving the client space."
+                step_4: "A note for you alone is taken in your personal note space, in the Notes module."
+            start: "Write the first note"
             empty: No note on this space
             empty_hint: "What the team needs to know about this client and no content item carries. The client does not see notes."
             closed: These notes are not open to you
