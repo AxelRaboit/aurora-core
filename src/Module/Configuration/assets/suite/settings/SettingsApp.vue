@@ -141,7 +141,39 @@ function blocksFor(groupName) {
          the tabs now. The page is the tab. -->
     <div class="flex flex-col">
         <div class="flex-1 min-w-0 aurora-stack">
-            <AppPageHeading :title="tabTitle" :subtitle="tabLead" />
+            <!-- The tab's commands beside its name, as on every screen of the
+                 suite: what waits to be saved, a way to drop it, and the one
+                 button that saves the whole tab. A card of its own under the
+                 fields held a lone button (Axel, 10/10/2026); tabs that draw
+                 their own screen keep their own buttons. -->
+            <AppPageHeading :title="tabTitle" :subtitle="tabLead">
+                <template v-if="genericGroups.length" #actions>
+                    <p v-if="pendingCount(activeTab)" class="m-0 text-[0.8125rem] text-secondary sm:mr-1" data-settings-pending>
+                        {{ t("suite.settings.pending", { count: pendingCount(activeTab) }, pendingCount(activeTab)) }}
+                    </p>
+                    <AppButton
+                        v-if="pendingCount(activeTab)"
+                        type="button"
+                        variant="ghost"
+                        size="md"
+                        v-on:click="resetGroup(activeTab)"
+                    >
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton
+                        type="button"
+                        variant="primary"
+                        size="md"
+                        :loading="savingGroups[activeTab]"
+                        :disabled="!pendingCount(activeTab) || savingGroups[activeTab]"
+                        data-settings-save
+                        v-on:click="saveGroup(activeTab)"
+                    >
+                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("suite.settings.save") }}
+                    </AppButton>
+                </template>
+            </AppPageHeading>
 
             <!-- The tab's how-to guide, above its fields; only the generic
                  tabs listed in TAB_GUIDES have one. -->
@@ -345,46 +377,6 @@ function blocksFor(groupName) {
                             :total-pages="sequenceTotalPages"
                             v-on:change="goToSequencePage"
                         />
-                    </div>
-                </div>
-
-                <!-- The tab's foot: what waits to be saved, a way to drop it,
-                     and the one button that saves the whole tab. In the right
-                     column when the tab has sections, under their cards; no
-                     sticky bar (a choice of 07/10/2026, kept). -->
-                <div
-                    :class="blocksFor(groupName).some((block) => block.section)
-                        ? 'grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)]'
-                        : ''"
-                >
-                    <div
-                        data-settings-foot
-                        class="aurora-card flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:px-5 lg:col-start-2"
-                    >
-                        <p v-if="pendingCount(groupName)" class="text-[0.8125rem] text-secondary sm:mr-auto">
-                            {{ t("suite.settings.pending", { count: pendingCount(groupName) }, pendingCount(groupName)) }}
-                        </p>
-                        <AppButton
-                            v-if="pendingCount(groupName)"
-                            type="button"
-                            variant="ghost"
-                            size="md"
-                            class="w-full sm:w-auto"
-                            v-on:click="resetGroup(groupName)"
-                        >
-                            {{ t("shared.common.cancel") }}
-                        </AppButton>
-                        <AppButton
-                            type="button"
-                            variant="primary"
-                            size="md"
-                            class="w-full sm:w-auto"
-                            :loading="savingGroups[groupName]"
-                            v-on:click="saveGroup(groupName)"
-                        >
-                            <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                            {{ t("suite.settings.save") }}
-                        </AppButton>
                     </div>
                 </div>
             </div>
