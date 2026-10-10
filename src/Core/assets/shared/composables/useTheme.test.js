@@ -30,10 +30,12 @@ describe("useTheme", () => {
         expect(theme.value).toBe("dark");
     });
 
-    it("falls back to prefers-color-scheme when nothing is stored", async () => {
+    // The suite opens light whatever the computer's setting (10/10/2026):
+    // a system set to dark no longer picks the theme for a first visit.
+    it("opens light when nothing is stored, even on a dark system", async () => {
         const useTheme = await freshUseTheme(null, true);
         const { theme } = useTheme();
-        expect(theme.value).toBe("dark");
+        expect(theme.value).toBe("light");
     });
 
     it("defaults to light when no preference and no storage", async () => {
