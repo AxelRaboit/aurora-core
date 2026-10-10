@@ -116,6 +116,9 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
 
     /** How long a signing address stays valid, in days. Thirty by default. */
     case StudioContractLinkDays = 'studio_contract_link_days';
+    // The server's systemd units the « État du système » block watches.
+    // Empty by default: aurora-core knows nothing of the server it runs on.
+    case SystemHealthUnits = 'system_health_units';
 
     /**
      * How many days a won or lost deal stays on the prospect board. Thirty by
@@ -212,6 +215,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioContractReminderEnabled => 'suite.parameters.studio_contract_reminder_enabled.label',
             self::StudioContractReminderDays => 'suite.parameters.studio_contract_reminder_days.label',
             self::StudioContractLinkDays => 'suite.parameters.studio_contract_link_days.label',
+            self::SystemHealthUnits => 'suite.parameters.system_health_units.label',
             self::StudioPipelineOutcomeDays => 'suite.parameters.studio_pipeline_outcome_days.label',
             self::StudioContractReminderMax => 'suite.parameters.studio_contract_reminder_max.label',
             self::NavSectionAliases => 'suite.parameters.nav_section_aliases.label',
@@ -288,6 +292,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioContractReminderEnabled => 'suite.parameters.studio_contract_reminder_enabled.description',
             self::StudioContractReminderDays => 'suite.parameters.studio_contract_reminder_days.description',
             self::StudioContractLinkDays => 'suite.parameters.studio_contract_link_days.description',
+            self::SystemHealthUnits => 'suite.parameters.system_health_units.description',
             self::StudioPipelineOutcomeDays => 'suite.parameters.studio_pipeline_outcome_days.description',
             self::StudioContractReminderMax => 'suite.parameters.studio_contract_reminder_max.description',
             self::NavSectionAliases => 'suite.parameters.nav_section_aliases.description',
@@ -373,6 +378,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioContractReminderEnabled => '0',
             self::StudioContractReminderDays => '3',
             self::StudioContractLinkDays => '30',
+            self::SystemHealthUnits => '',
             self::StudioPipelineOutcomeDays => '30',
             self::StudioContractReminderMax => '2',
             self::NavSectionAliases => '{}',
@@ -419,7 +425,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultLocale, self::SingleLocaleMode, self::Timezone, self::DateFormat => 'localization',
             self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::HomepagePostId, self::DefaultFront => 'reading',
             self::MaxUploadSizeMb, self::FileVersionsLimit, self::MediaCreditVisible => 'media',
-            self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'system',
+            self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SystemHealthUnits => 'system',
             self::LogoMediaId, self::LogoDarkMediaId, self::FaviconMediaId, self::SuiteBarSiteNameOnPhone => 'branding',
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix, self::StudioContractPrefix => 'sequences',
@@ -447,6 +453,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::CommentsEnabled, self::CommentModerationEnabled => 'comments',
             self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays => 'retention',
             self::MaintenanceMode => 'maintenance',
+            self::SystemHealthUnits => 'system_health',
             self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled => 'suite_access',
             self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'site_access',
             self::SeoTitleTemplate, self::SeoDefaultDescription => 'seo_defaults',
@@ -478,6 +485,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SeoDefaultDescription => 'suite.parameters.seo_default_description.placeholder',
             self::SeoTwitterHandle => 'suite.parameters.seo_twitter_handle.placeholder',
             self::MaxUploadSizeMb => 'suite.parameters.max_upload_size_mb.placeholder',
+            self::SystemHealthUnits => 'suite.parameters.system_health_units.placeholder',
             default => null,
         };
     }

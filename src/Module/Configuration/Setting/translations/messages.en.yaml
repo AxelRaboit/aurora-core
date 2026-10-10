@@ -56,6 +56,9 @@ suite:
             prospect_pipeline:
                 title: "Prospect follow-up"
                 lead: "What the prospect board shows."
+            system_health:
+                title: "System status"
+                lead: "The server's services the developer access overview watches, besides the application itself."
         studio_guide:
             title: "Your identity in contracts"
             step_1: "These fields fill in the provider identity block of each contract when it is sealed, and contracts already sealed keep their values."
@@ -630,6 +633,10 @@ suite:
         saved: Parameter saved.
         search_placeholder: Search by key…
         all_groups: All groups
+        system_health_units:
+            label: Watched systemd units
+            description: "The names of the server's systemd units to watch, separated by commas or spaces. Empty: none. Read with « systemctl show », without any special right; ignored on a machine without systemd."
+            placeholder: "my-worker.service, my-hub.service, my-backup.timer"
     title: Administration
     # Dashboard shell only - a module that draws a panel ships its own labels.
     stats:

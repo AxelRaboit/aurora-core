@@ -58,6 +58,9 @@ suite:
                     created: Point de montage créé
                     updated: Point de montage modifié
                     deleted: Point de montage supprimé
+                failed_message:
+                    retried: Message en échec relancé
+                    deleted: Message en échec supprimé
             ged:
                 document:
                     created: Document créé

@@ -19,6 +19,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - **« À faire » sur la page du client** : contenus qui attendent son avis, contrats à signer.
 - **Tableau de bord, « À traiter »** : messages client non lus, contrats refusés à reprendre, contrats expirés à renvoyer, contrats sans réponse depuis plus de 3 jours, liens de signature qui expirent sous 3 jours, accès client qui expirent sous 14 jours. Un accès se prolonge d'un clic, à la même adresse. La liste des contrats signale les longues attentes quand la relance automatique est éteinte.
 - **Cloche à l'équipe** quand on est ajouté à l'équipe d'un espace ou invité dans un canal.
+- **État du système**, en tête de Administration > Accès développeur > Vue d'ensemble : un résumé vert, orange ou rouge, puis le détail.
+  - Le worker écrit un battement toutes les 30 secondes : muet depuis plus de 2 minutes, il est signalé en panne.
+  - Chaque tâche planifiée dit son rythme, son dernier et son prochain passage, et passe en retard selon son propre rythme (une tâche de chaque minute muette depuis 10 minutes, pas une tâche de chaque nuit).
+  - Les files : messages en attente et âge du plus ancien, messages en échec listés, à relancer ou supprimer.
+  - La base (temps de réponse, version, taille), les migrations en attente (en production aussi), le hub Mercure appelé pour de vrai, la version, PHP et OPcache, l'espace disque libre, le transport des emails (son nom seul, jamais l'adresse), le stockage des fichiers et R2, le certificat TLS du site.
+  - En option, les unités systemd du serveur à surveiller, saisies dans Réglages > Système (vide par défaut), plus « redémarrage en attente » et le nombre de mises à jour quand le serveur les expose. Rien sur une machine sans systemd.
+  - Mesuré après l'ouverture de la page, et à la demande avec « Mesurer à nouveau ».
 
 ### Corrigé
 - **Une seule règle « en attente du client ».** La page du client comptait comme en attente toute carte visible sans réponse, le studio seulement celles de l'étape Relecture : les deux compteurs disaient deux nombres sur le même tableau.
@@ -27,6 +34,8 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Dans aurora-client
 **Quatre migrations**, jouées par `make aurora-update` : une colonne `locale` sur `core_customers`, une table `core_studio_client_notices` et une colonne `client_digest` sur les espaces (« off » partout), une table `core_studio_space_chat_read_markers` amorcée comme lue pour les membres et les liens existants, une colonne `can_see_contracts` sur les liens (fausse partout). Rien n'est envoyé à un client tant qu'un espace ne l'a pas choisi.
+
+Le réglage « Unités systemd surveillées » arrive vide avec `make aurora-update`. Le worker doit être relancé après la mise à jour pour écrire son battement (`make deploy-prod` le fait).
 
 Les emails différés et les envois du matin passent par le worker Messenger (`async` et `scheduler_main`), comme le récapitulatif du studio. Les classes étendues côté client reçoivent leurs nouveaux arguments en dernier et optionnels : voir `docs/aurora-client/MIGRATION_STUDIO.md`, section 16.
 

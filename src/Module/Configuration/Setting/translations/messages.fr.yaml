@@ -56,6 +56,9 @@ suite:
             prospect_pipeline:
                 title: "Suivi des prospects"
                 lead: "Ce que montre le tableau des prospects."
+            system_health:
+                title: "État du système"
+                lead: "Les services du serveur que la Vue d'ensemble de l'Accès développeur surveille, en plus de l'application elle-même."
         studio_guide:
             title: "Votre identité dans les contrats"
             step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."
@@ -630,6 +633,10 @@ suite:
         saved: Paramètre enregistré.
         search_placeholder: Rechercher par clé…
         all_groups: Tous les groupes
+        system_health_units:
+            label: Unités systemd surveillées
+            description: "Les noms des unités systemd du serveur à surveiller, séparés par des virgules ou des espaces. Vide : aucune. Lu avec « systemctl show », sans droit particulier ; ignoré sur une machine sans systemd."
+            placeholder: "mon-worker.service, mon-hub.service, ma-sauvegarde.timer"
     title: Administration
     # Dashboard shell only - a module that draws a panel ships its own
     # labels.
