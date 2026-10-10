@@ -148,3 +148,49 @@ describe("the site's logo", () => {
         expect(wrapper.findAll("svg[viewBox='0 0 64 64']")).toHaveLength(3);
     });
 });
+
+describe("the figure beside an entry", () => {
+    function renderWith(item) {
+        return mount(AppSidemenu, {
+            props: {
+                navSections: [
+                    {
+                        id: "ged",
+                        items: [{ ...NAV_SECTIONS[0].items[0], ...item }],
+                    },
+                ],
+                activeRoute: "suite_ged_documents",
+            },
+            global: { plugins: [i18n] },
+        });
+    }
+
+    it("prints the count the server wrote, zero included", () => {
+        const figures = renderWith({ count: 0 }).findAll("[data-nav-count]");
+
+        expect(figures.length).toBeGreaterThan(0);
+        expect(figures[0].text()).toBe("0");
+    });
+
+    it("prints a large count in the reader's language", () => {
+        const figure = renderWith({ count: 1204 }).find("[data-nav-count]");
+
+        // French groups thousands with a narrow no-break space.
+        expect(figure.text().replace(/\s/gu, " ")).toBe("1 204");
+    });
+
+    it("prints nothing for an entry nobody counts", () => {
+        expect(renderWith({}).find("[data-nav-count]").exists()).toBe(false);
+    });
+
+    it("draws no icon on a row", () => {
+        // `.si`: the menu's rows. The logo links to the same first page and
+        // keeps its mark.
+        const rows = renderWith({ count: 3 }).findAll(
+            "a.si[href='/suite/ged/documents']",
+        );
+
+        expect(rows.length).toBeGreaterThan(0);
+        rows.forEach((row) => expect(row.find("svg").exists()).toBe(false));
+    });
+});

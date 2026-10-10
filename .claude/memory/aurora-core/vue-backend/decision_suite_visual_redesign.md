@@ -23,6 +23,14 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   `text-secondary`. Les icônes restent dans la palette de recherche et les
   arbres de dossiers. Aucune couleur fixe : l'ancien survol émeraude de
   « Voir le site » ne suivait aucun thème.
+- **Des compteurs dans le menu** (10/10/2026) : `NavItemCountProviderInterface`
+  (Core/Module/Nav), auto-tagué, lu par `NavItemCounter` dans
+  `SidemenuExtension` (`sidemenu_nav_sections(true)` dans le layout, et la vue
+  de module). Comptés : publications (au périmètre de la liste,
+  `PostAccessService::scopedAuthorId()`), types de contenu, taxonomies,
+  documents, utilisateurs. **Pas la corbeille** : neuf sources à interroger à
+  chaque page, trop cher pour un chiffre. Pas Studio : ses listes ont des
+  périmètres (mes espaces, perso/partagés) qu'un compte global trahirait.
 - **Un chiffre de tableau de bord = `AppStatTile`, un bloc = `AppSectionCard`.**
   La tuile s'aligne par sous-grille : la poser directement dans la grille.
 - **Une couleur par statut de publication, une seule source** :

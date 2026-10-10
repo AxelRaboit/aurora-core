@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Core\Twig;
 
+use Aurora\Core\Module\Nav\NavItemCounter;
 use Aurora\Core\Module\Service\ModuleNavResolver;
 use Aurora\Core\Module\Service\ModuleRegistry;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
@@ -16,12 +17,23 @@ final readonly class SidemenuExtension
         private ModuleRegistry $moduleRegistry,
         private ModuleNavResolver $moduleNavResolver,
         private SettingRepository $settingRepository,
+        private NavItemCounter $navItemCounter,
     ) {}
 
+    /**
+     * The menu's sections, resolved for the reader.
+     *
+     * `$counted`: write each entry's figure into it ({@see NavItemCounter}).
+     * Asked by the layout, which draws the menu; not by the navigation
+     * settings, which list the same entries to rename and reorder them and
+     * have no use for the queries.
+     */
     #[AsTwigFunction(name: 'sidemenu_nav_sections')]
-    public function getSidemenuNavSections(): array
+    public function getSidemenuNavSections(bool $counted = false): array
     {
-        return $this->moduleRegistry->getNavSections();
+        $sections = $this->moduleRegistry->getNavSections();
+
+        return $counted ? $this->navItemCounter->annotateContainers($sections) : $sections;
     }
 
     /**
@@ -38,7 +50,16 @@ final readonly class SidemenuExtension
     #[AsTwigFunction(name: 'module_nav_view')]
     public function getModuleNavView(?string $route): ?array
     {
-        return $this->moduleNavResolver->resolveForRoute($route);
+        $view = $this->moduleNavResolver->resolveForRoute($route);
+        if (null === $view) {
+            return null;
+        }
+
+        // The same figures as the main menu: an entry drawn in a module's own
+        // view is the same destination, and must not lose its count there.
+        $view['groups'] = $this->navItemCounter->annotateContainers($view['groups']);
+
+        return $view;
     }
 
     #[AsTwigFunction(name: 'nav_section_aliases')]

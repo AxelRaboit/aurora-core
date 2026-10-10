@@ -10,6 +10,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ### Modifié
 - **Refonte visuelle de la suite.** Le cadre est aligné : l'entête du menu latéral a désormais la hauteur de la barre de titre de la page, et leurs filets courent d'un bord à l'autre de l'écran.
 - **Le menu latéral se lit mieux.** Plus d'icône devant chaque entrée : le point de couleur de la section et le nom suffisent. Les noms de section et les entrées passent un gris plus foncé, les descriptions aussi. Le survol de « Voir le site » suit le thème au lieu d'un vert fixe.
+- **Des chiffres dans le menu.** Publications, Types de contenu, Taxonomies, Documents et Utilisateurs affichent leur nombre à droite de leur nom. Une personne qui ne voit que ses propres publications ne compte que les siennes. Un module peut compter ses propres entrées avec `NavItemCountProviderInterface`.
 - **Clair ou sombre en un clic.** Un bouton à côté de la recherche, en haut de chaque page, change le mode ; il reste aussi dans le menu du compte.
 - **Le fil d'Ariane passe dans le contenu.** Ce n'est plus une seconde barre collée sous le titre, mais une ligne de texte en haut de la page, qui défile avec elle : la page courante dans la couleur du texte, les niveaux au-dessus en gris.
 - **Un tableau de bord d'une seule main.** Tous les panneaux (Éditorial, GED, Calendrier, Plateforme, Studio) montrent leurs chiffres avec la même tuile, chiffre en grand et, pour les publications, le nombre en ligne en dessous ; chaque bloc a le même en-tête, avec son total ou son lien à droite.
@@ -17,7 +18,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - **Les encarts « Comment ça marche »** ouverts sont des cartes pleines, plus des cadres en pointillés.
 
 ### Dans aurora-client
-Rien à faire.
+Rien à faire. Un module client peut afficher le nombre de ses éléments dans le menu en implémentant `NavItemCountProviderInterface` (voir `docs/aurora-client/extending/add_module.md`).
 
 ---
 

@@ -656,6 +656,26 @@ class PostRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
+    /**
+     * The publications the list shows, out of the trash.
+     *
+     * The side menu's figure for « Publications »: scoped to an author exactly
+     * like the list (`PostAccessService::scopedAuthorId()`), so a contributor
+     * counts their own and nobody else's.
+     */
+    public function countNotTrashed(?int $authorId = null): int
+    {
+        $queryBuilder = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.deletedAt IS NULL');
+
+        if (null !== $authorId) {
+            $queryBuilder->andWhere('p.author = :authorId')->setParameter('authorId', $authorId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
     public function countTrashed(): int
     {
         return (int) $this->createQueryBuilder('p')

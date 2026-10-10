@@ -272,6 +272,16 @@ final readonly class MyModuleModule implements ModuleInterface
   pas de `label`, pas de `icon` sur la section - uniquement `id`, `items`, `priority`.
 - `NavPermission(string $name)` : la permission string utilisée par
   `#[IsGranted]` côté controller.
+- `NavItemCountProviderInterface` (optionnel) : le chiffre affiché à droite
+  d'une entrée du menu latéral. Deux méthodes, `getCountedItemKeys(): array`
+  (les clés stables des entrées comptées, la route par défaut) et
+  `countItem(string $itemKey): int`. Auto-tagué, rien à câbler. Le menu ne
+  demande que les entrées qu'il dessine : une entrée cachée par un droit ne
+  coûte aucune requête. **Compter avec le périmètre de la liste** (un
+  contributeur ne voit que ses publications : son chiffre aussi) ; une entrée
+  qu'on ne sait pas compter à bas coût avec ses propres règles reste sans
+  chiffre. L'icône du `NavItem` ne s'affiche plus dans le menu latéral depuis
+  le 10/10/2026 ; elle sert encore à la palette de recherche.
 
 ### 4.2 Synchroniser permissions + menus
 

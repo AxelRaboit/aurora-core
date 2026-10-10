@@ -25,8 +25,9 @@ export function useSidemenuNav(
     moduleNavView = null,
 ) {
     const { t } = useI18n();
-    const { itemClasses: themeItemClasses } =
-        useSidemenuSectionTheme(sectionColorOverrides);
+    const { itemClasses: themeItemClasses } = useSidemenuSectionTheme(
+        sectionColorOverrides,
+    );
 
     const {
         isExpanded: isGroupExpanded,
@@ -80,6 +81,9 @@ export function useSidemenuNav(
                 item.description ||
                 (item.descriptionKey ? t(item.descriptionKey) : ""),
             icon: resolveNavIcon(item.icon),
+            // The figure the server counted for this entry (NavItemCounter), or
+            // null when nothing counts it - which is not the same as zero.
+            count: Number.isInteger(item.count) ? item.count : null,
             activeColor: item.activeColor ?? "accent",
             children: (item.children ?? []).map(buildItem),
         };

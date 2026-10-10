@@ -39,6 +39,8 @@
  * `useSidemenuNav`, `theme` from `useSidemenuSectionTheme`. Ten props would
  * have to be edited in three files every time one is added.
  */
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { ChevronDown } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
@@ -64,6 +66,15 @@ function themeId(section) {
 function isFoldable(section) {
     return false !== section.foldable;
 }
+
+const { locale } = useI18n();
+
+/**
+ * An entry's figure, in the reader's language: « 1 204 » in French, « 1,204 »
+ * in English. The locale is vue-i18n's, never the browser's - a suite in
+ * French reads French numbers whatever the browser is set to.
+ */
+const countFormat = computed(() => new Intl.NumberFormat(locale.value));
 
 defineProps({
     /** The sections to draw, already filtered by the caller. */
@@ -135,7 +146,10 @@ defineProps({
                             class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
                         >
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                                <span class="flex items-baseline gap-2">
+                                    <span class="min-w-0 flex-1 truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                                    <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
+                                </span>
                                 <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
                             </span>
                         </a>
@@ -161,7 +175,10 @@ defineProps({
                             :link-classes-override="nav.itemClasses(child, themeId(section))"
                         >
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
+                                <span class="flex items-baseline gap-2">
+                                    <span class="min-w-0 flex-1 truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
+                                    <span v-if="null !== (child.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(child.count) }}</span>
+                                </span>
                                 <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ child.description }}</span>
                             </span>
                         </AppNavLink>
@@ -178,7 +195,10 @@ defineProps({
                     :link-classes-override="nav.itemClasses(item, themeId(section))"
                 >
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                        <span class="flex items-baseline gap-2">
+                            <span class="min-w-0 flex-1 truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                            <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
+                        </span>
                         <!-- Not truncated: a description cut at one line is
                              worse than no description, and the row is allowed
                              to grow when the reader asked for the text. -->
