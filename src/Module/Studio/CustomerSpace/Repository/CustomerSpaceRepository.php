@@ -186,6 +186,45 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The people working for this customer: the members of its spaces.
+     *
+     * Archived spaces count, trashed ones do not. An archived space is a
+     * finished campaign whose team still knows the customer; a trashed one is
+     * waiting to disappear. One person on two of the customer's spaces is one
+     * person, so the list is keyed while collecting.
+     *
+     * The spaces are read with their teams in one query, then walked: a
+     * customer has a handful of them, and selecting the users directly would
+     * need a root on the member entity that this repository does not own.
+     *
+     * @return list<CoreUserInterface>
+     */
+    public function findTeamOfCustomer(CustomerInterface $customer): array
+    {
+        /** @var list<CustomerSpaceInterface> $spaces */
+        $spaces = $this->createQueryBuilder('s')
+            ->addSelect('m', 'u')
+            ->leftJoin('s.members', 'm')
+            ->leftJoin('m.user', 'u')
+            ->where('s.customer = :customer')
+            ->andWhere('s.deletedAt IS NULL')
+            ->setParameter('customer', $customer)
+            ->getQuery()
+            ->getResult();
+
+        $users = [];
+
+        foreach ($spaces as $space) {
+            foreach ($space->getMembers() as $member) {
+                $user = $member->getUser();
+                $users[$user->getUserIdentifier()] = $user;
+            }
+        }
+
+        return array_values($users);
+    }
+
+    /**
      * How many spaces name this customer, those in the trash included.
      *
      * Asked before a customer is deleted, so the refusal can say how many

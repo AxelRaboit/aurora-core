@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Service\ContractLinkLifetime;
+use Aurora\Module\Studio\Contract\Service\ContractTeamNotifier;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -50,6 +51,7 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractLinkLifetime $lifetime,
+        protected readonly ContractTeamNotifier $teamNotifier,
     ) {}
 
     public function send(ContractInterface $contract): ContractAccessLinkInterface
@@ -203,7 +205,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
     {
         $this->mailService->send(
             to: $link->getRecipientEmail(),
-            subjectKey: $subjectKey,
+            // An amendment says so from the subject line: the customer has
+            // signed the original already, and « un contrat attend votre
+            // signature » read as the same document a second time.
+            subjectKey: $contract->isAmendment() ? sprintf('%s_amendment', $subjectKey) : $subjectKey,
             template: $template,
             context: [
                 'contract' => $contract,
@@ -219,7 +224,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             // the client read « le contrat {reference} attend votre
             // signature ». The first sending's subject has no placeholder and
             // ignores it.
-            subjectParameters: ['{reference}' => (string) $contract->getReference()],
+            subjectParameters: [
+                '{reference}' => (string) $contract->getReference(),
+                '{parent}' => (string) $contract->getAmendsReference(),
+            ],
         );
     }
 
@@ -255,11 +263,11 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
      */
     public function expireLapsed(): int
     {
-        $count = 0;
+        $expired = [];
 
         foreach ($this->accessLinkRepository->findContractsWaitingWithoutActiveLink() as $contract) {
             $contract->setStatus(ContractStatusEnum::Expired);
-            ++$count;
+            $expired[] = $contract;
 
             $this->auditLogger->log('studio', 'contract.expired', 'Contract', $contract->getId(), [
                 'reference' => $contract->getReference(),
@@ -268,7 +276,35 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
 
         $this->entityManager->flush();
 
-        return $count;
+        // Told once the statuses are saved. An expiry used to happen in
+        // silence: the contract left « with the customer » and landed among
+        // those to send with nobody hearing of it, and a contract the
+        // customer never signed is precisely one somebody has to chase.
+        foreach ($expired as $contract) {
+            $this->notifyExpired($contract);
+        }
+
+        return count($expired);
+    }
+
+    /**
+     * Tells the provider a contract lapsed unsigned.
+     *
+     * The administrator address, like a signature or a refusal, and the bell
+     * of the customer's team. Not the customer: they let the link run out,
+     * and the next thing they should hear is a new one, which only the
+     * provider can decide to send.
+     */
+    protected function notifyExpired(ContractInterface $contract): void
+    {
+        $this->mailService->sendToAdmin(
+            subjectKey: 'studio.email.contract_expired.subject',
+            template: '@Studio/email/contract_expired.html.twig',
+            context: ['contract' => $contract, 'customer' => $contract->getCustomer()],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
+        );
+
+        $this->teamNotifier->expired($contract);
     }
 
     /**

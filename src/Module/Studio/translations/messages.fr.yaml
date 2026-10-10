@@ -27,6 +27,8 @@ suite:
                 all: Tous les espaces
             attention_title: À traiter
             attention_empty: Rien n'attend chez vos clients.
+            unscoped_title: Contrats et livrables
+            unscoped_hint: "Tous les contrats, quel que soit l'espace : la liste des contrats n'a pas de filtre par espace."
     modules:
         studio: Studio
         studio_suite: Studio
@@ -160,6 +162,8 @@ suite:
                     signed_by_customer: 'Contrat signé par le client'
                     countersigned: 'Contrat conclu'
                     deleted: Contrat supprimé
+                    cancellation_sent: Annulation signalée au client
+                    termination_sent: Résiliation signalée au client
     permissions:
         names:
             studio:
@@ -377,6 +381,7 @@ suite:
                 ended: 'Contrat résilié depuis le {date}'
                 ending: 'Résiliation en cours, effet au {date}'
                 noticed: 'Préavis donné le {date}, à l''initiative de : {origin}.'
+                notify_customer: 'Envoyer la résiliation et sa date d''effet au client ({email})'
             refused_at: 'Refusé le'
             refusal_reason: 'Motif du refus'
             refusal_no_reason: 'Aucun motif indiqué'
@@ -501,6 +506,7 @@ suite:
                     cancel: 'Annuler ce contrat ? Il n''aura plus d''effet et ne pourra plus être envoyé. Sa référence reste dans la liste.'
                     cancel_duplicate: Créer aussi un brouillon avec les mêmes choix, pour le corriger
                     delete: 'Supprimer ce contrat ? C''est définitif.'
+                    cancel_notify: 'Prévenir le client par email ({email})'
                 done:
                     frozen: 'Contrat scellé : il a reçu sa référence.'
                     sent: 'Contrat envoyé à {email}.'
@@ -2541,6 +2547,12 @@ suite:
                 # space are filed. Read in the GED, not here.
                 category: Espaces clients
                 category_description: Fichiers déposés sur les contenus d'un espace client, par le studio ou par le client lui-même.
+        contract_notifications:
+            # Told to the members of the customer's spaces, each in their own language.
+            signed: 'Contrat {reference} signé par le client, à contresigner'
+            refused: 'Contrat {reference} refusé par le client'
+            expired: 'Contrat {reference} : lien expiré sans signature'
+            termination_effective: 'Contrat {reference} : la résiliation prend effet aujourd''hui'
 studio:
     contract:
         # Written into the document itself, so sealed with it: these sentences go
@@ -2766,6 +2778,7 @@ studio:
             cta: 'Ouvrir le contrat et le signer'
             replaces: 'Ce lien remplace celui du message précédent, qui n''est plus valide.'
             expires: 'Ce lien est valide jusqu''au {date}.'
+            subject_amendment: 'Rappel : l''avenant {reference} au contrat {parent} attend votre signature'
         contracts_integrity:
             subject: 'Contrats : un document scellé a changé'
             body: 'La vérification quotidienne a relu les contrats scellés ({count}), et tout ne correspond plus à ce qui a été scellé.'
@@ -2797,3 +2810,28 @@ studio:
             expiry: 'Ce lien est valide jusqu''au {date}.'
             warning: Ce lien vous est personnel. Ne le transmettez pas.
             signature: '{company}'
+            subject_amendment: 'Un avenant au contrat {parent} attend votre signature'
+        signature_received:
+            subject: 'Contrat {reference} : votre signature est enregistrée'
+            body: 'Nous avons bien reçu votre signature du contrat {reference}, le {at}.'
+            next: 'Il sera conclu dès que {company} l''aura contresigné. Vous recevrez alors le document signé par les deux parties.'
+            hash: 'Empreinte du document signé : {hash}'
+        refusal_received:
+            subject: 'Contrat {reference} : votre refus est enregistré'
+            body: 'Votre refus du contrat {reference} est enregistré, le {at}.'
+            reason: 'Motif que vous avez indiqué :'
+            next: '{company} peut vous adresser une nouvelle version. Elle arrivera avec un nouveau lien.'
+        contract_expired:
+            subject: 'Contrat {reference} : lien expiré sans signature'
+            body: 'Le lien de signature du contrat {reference} ({customer}) a expiré sans que le client ait signé.'
+            action: 'Vous pouvez le renvoyer, ce qui crée un nouveau lien, ou l''annuler depuis la suite.'
+        contract_cancelled:
+            subject: 'Contrat {reference} annulé'
+            greeting: 'Bonjour {name},'
+            body: '{company} a annulé le contrat {reference} qui vous avait été adressé. Il n''a pas d''effet et vous n''avez rien à faire.'
+            link: 'Le lien de signature que vous avez reçu ne fonctionne plus.'
+        contract_terminated:
+            subject: 'Contrat {reference} : résiliation enregistrée'
+            greeting: 'Bonjour {name},'
+            body: 'Nous avons enregistré la résiliation du contrat {reference}, notifiée le {noticed}.'
+            effective: 'Elle prend effet le {date}.'

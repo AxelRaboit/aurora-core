@@ -1,0 +1,19 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{# The written trace of a termination, sent when the provider asks for it.
+   The two dates are the whole content: when notice was given, and the day
+   the contract stops. The reason stays in the back office - it is the
+   provider's note, not a clause. #}
+{% block content %}
+<p>{{ 'studio.email.contract_terminated.greeting'|trans({'{name}': customer.representativeFullName ?? customer.legalName}) }}</p>
+
+<p>{{ 'studio.email.contract_terminated.body'|trans({'{reference}': contract.reference, '{noticed}': contract.terminationNoticedAt|calendar_date}) }}</p>
+
+<table class="panel" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr>
+        <td class="panel-content">{{ 'studio.email.contract_terminated.effective'|trans({'{date}': contract.terminationEffectiveAt|calendar_date}) }}</td>
+    </tr>
+</table>
+
+<p>{{ 'studio.email.contract_link.signature'|trans({'{company}': siteName}) }}</p>
+{% endblock %}

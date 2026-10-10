@@ -27,6 +27,8 @@ suite:
                 all: 'Todos los espacios'
             attention_title: 'Por tratar'
             attention_empty: 'Nada pendiente con sus clientes.'
+            unscoped_title: Contratos y entregables
+            unscoped_hint: "Todos los contratos, sea cual sea el espacio: la lista de contratos no se filtra por espacio."
     modules:
         studio: Studio
         studio_suite: Studio
@@ -160,6 +162,8 @@ suite:
                     signed_by_customer: 'Contrato firmado por el cliente'
                     countersigned: 'Contrato concluido'
                     deleted: 'Contrato eliminado'
+                    cancellation_sent: Anulación comunicada al cliente
+                    termination_sent: Resolución comunicada al cliente
     permissions:
         names:
             studio:
@@ -377,6 +381,7 @@ suite:
                 ended: 'Contrato rescindido desde el {date}'
                 ending: 'Rescisión en curso, efectiva el {date}'
                 noticed: 'Preaviso dado el {date}, a iniciativa de: {origin}.'
+                notify_customer: 'Enviar la resolución y su fecha de efecto al cliente ({email})'
             refused_at: 'Rechazado el'
             refusal_reason: 'Motivo del rechazo'
             refusal_no_reason: 'No se indicó ningún motivo'
@@ -501,6 +506,7 @@ suite:
                     cancel: '¿Anular este contrato? No tendrá efecto y ya no podrá enviarse. Su referencia se queda en la lista.'
                     cancel_duplicate: Crear también un borrador con las mismas opciones, para corregirlo
                     delete: '¿Eliminar este contrato? Es definitivo.'
+                    cancel_notify: 'Avisar al cliente por correo ({email})'
                 done:
                     frozen: 'Contrato sellado: ya tiene su referencia.'
                     sent: 'Contrato enviado a {email}.'
@@ -2502,6 +2508,12 @@ suite:
             attachments:
                 category: 'Espacios de clientes'
                 category_description: 'Archivos subidos a los contenidos de un espacio de cliente, por el estudio o por el propio cliente.'
+        contract_notifications:
+            # Told to the members of the customer's spaces, each in their own language.
+            signed: 'Contrato {reference} firmado por el cliente, pendiente de contrafirma'
+            refused: 'Contrato {reference} rechazado por el cliente'
+            expired: 'Contrato {reference}: enlace caducado sin firma'
+            termination_effective: 'Contrato {reference}: la resolución surte efecto hoy'
 studio:
     contract:
         language:
@@ -2725,6 +2737,7 @@ studio:
             cta: 'Abrir el contrato y firmarlo'
             replaces: 'Este enlace sustituye al del mensaje anterior, que ya no es válido.'
             expires: 'Este enlace es válido hasta el {date}.'
+            subject_amendment: 'Recordatorio: la adenda {reference} al contrato {parent} espera su firma'
         contracts_integrity:
             subject: 'Contratos: un documento sellado ha cambiado'
             body: 'La verificación diaria ha revisado los contratos sellados ({count}), y no todo coincide ya con lo que se selló.'
@@ -2756,3 +2769,28 @@ studio:
             expiry: 'Este enlace es válido hasta el {date}.'
             warning: 'Este enlace es personal. No lo transmita.'
             signature: '{company}'
+            subject_amendment: 'Una adenda al contrato {parent} espera su firma'
+        signature_received:
+            subject: 'Contrato {reference}: su firma ha quedado registrada'
+            body: 'Hemos recibido su firma del contrato {reference}, el {at}.'
+            next: 'Quedará concluido en cuanto {company} lo contrafirme. Recibirá entonces el documento firmado por ambas partes.'
+            hash: 'Huella del documento firmado: {hash}'
+        refusal_received:
+            subject: 'Contrato {reference}: su rechazo ha quedado registrado'
+            body: 'Su rechazo del contrato {reference} ha quedado registrado, el {at}.'
+            reason: 'Motivo que indicó:'
+            next: '{company} puede enviarle una nueva versión. Llegará con un nuevo enlace.'
+        contract_expired:
+            subject: 'Contrato {reference}: enlace caducado sin firma'
+            body: 'El enlace de firma del contrato {reference} ({customer}) caducó sin que el cliente firmara.'
+            action: 'Puede volver a enviarlo, lo que crea un nuevo enlace, o anularlo desde la suite.'
+        contract_cancelled:
+            subject: 'Contrato {reference} anulado'
+            greeting: 'Hola, {name}:'
+            body: '{company} ha anulado el contrato {reference} que se le había enviado. No tiene efecto y no tiene que hacer nada.'
+            link: 'El enlace de firma que recibió ya no funciona.'
+        contract_terminated:
+            subject: 'Contrato {reference}: resolución registrada'
+            greeting: 'Hola, {name}:'
+            body: 'Hemos registrado la resolución del contrato {reference}, notificada el {noticed}.'
+            effective: 'Surte efecto el {date}.'

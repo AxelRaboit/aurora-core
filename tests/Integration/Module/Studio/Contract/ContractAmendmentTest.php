@@ -9,6 +9,8 @@ use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
+use Aurora\Module\Studio\Contract\Access\Manager\ContractAccessLinkManagerInterface;
 use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
@@ -111,6 +113,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
     {
         // Amendments point at their parent, so they go first: the other order
         // trips the foreign key rather than the cascade.
+        $this->entityManager->createQuery(sprintf('DELETE FROM %s', ContractAccessLink::class))->execute();
         $this->entityManager->createQuery(sprintf('UPDATE %s c SET c.amends = NULL', Contract::class))->execute();
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', Contract::class))->execute();
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', ContractTemplate::class))->execute();
@@ -163,6 +166,31 @@ final class ContractAmendmentTest extends IntegrationTestCase
         self::assertSame($original->getReference().'-A2', $second->getReference());
         self::assertSame(1, $first->getAmendmentRank());
         self::assertSame(2, $second->getAmendmentRank());
+    }
+
+    /**
+     * The mail that carries an amendment says so in its subject. It read « un
+     * contrat attend votre signature », which a customer who signed the
+     * original weeks ago took for the same document a second time.
+     */
+    public function testAnAmendmentIsNamedInTheSubjectOfItsMail(): void
+    {
+        $original = $this->concludedContract();
+        $amendment = $this->amendmentOf($original);
+        $this->contractManager->freeze($amendment);
+
+        static::getContainer()->get(ContractAccessLinkManagerInterface::class)->send($amendment);
+
+        $subjects = [];
+        foreach ($this->getMailerEvents() as $event) {
+            if (!$event->isQueued()) {
+                $subjects[] = (string) $event->getMessage()->getSubject();
+            }
+        }
+
+        self::assertCount(1, $subjects);
+        self::assertStringContainsString('avenant', $subjects[0]);
+        self::assertStringContainsString((string) $original->getReference(), $subjects[0]);
     }
 
     /** A draft that never went anywhere consumes no rank. */

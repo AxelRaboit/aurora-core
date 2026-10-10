@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Refusal\Dto\ContractRefusalInputInterface;
+use Aurora\Module\Studio\Contract\Service\ContractTeamNotifier;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -54,6 +55,7 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly MailService $mailService,
         protected readonly TranslatorInterface $translator,
+        protected readonly ContractTeamNotifier $teamNotifier,
     ) {}
 
     public function refuseAsCustomer(
@@ -89,6 +91,8 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
         ]);
 
         $this->notifyProvider($contract);
+        $this->acknowledgeToCustomer($contract);
+        $this->teamNotifier->refused($contract);
     }
 
     /**
@@ -138,6 +142,29 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
             ],
             // Without it the subject read « Contrat {reference} : refus du
             // client », braces included.
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
+        );
+    }
+
+    /**
+     * Tells the customer their refusal was recorded.
+     *
+     * The page said so, and only the page. A refusal is a decision somebody
+     * may want to point back to, and the mail is the copy they keep: what was
+     * refused, when, and that the provider may send a new version.
+     */
+    protected function acknowledgeToCustomer(ContractInterface $contract): void
+    {
+        $this->mailService->send(
+            to: $contract->getCustomer()->getContractualEmail() ?? '',
+            subjectKey: 'studio.email.refusal_received.subject',
+            template: '@Studio/email/refusal_received.html.twig',
+            context: [
+                'contract' => $contract,
+                'reason' => $contract->getRefusalReason(),
+                'refusedAt' => $contract->getRefusedAt(),
+            ],
+            locale: $contract->getLocale(),
             subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }

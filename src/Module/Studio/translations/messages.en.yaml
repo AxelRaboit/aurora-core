@@ -27,6 +27,8 @@ suite:
                 all: All spaces
             attention_title: To handle
             attention_empty: Nothing is waiting at your clients'.
+            unscoped_title: Contracts and deliverables
+            unscoped_hint: "Every contract, whatever the space: the contract list has no space filter."
     modules:
         studio: Studio
         studio_suite: Studio
@@ -160,6 +162,8 @@ suite:
                     signed_by_customer: 'Contract signed by the customer'
                     countersigned: 'Contract concluded'
                     deleted: Contract deleted
+                    cancellation_sent: Cancellation sent to the customer
+                    termination_sent: Termination sent to the customer
     permissions:
         names:
             studio:
@@ -377,6 +381,7 @@ suite:
                 ended: 'Terminated since {date}'
                 ending: 'Termination pending, effective {date}'
                 noticed: 'Notice given on {date}, by: {origin}.'
+                notify_customer: 'Send the termination and its effective date to the customer ({email})'
             refused_at: 'Refused on'
             refusal_reason: 'Reason for the refusal'
             refusal_no_reason: 'No reason given'
@@ -501,6 +506,7 @@ suite:
                     cancel: 'Cancel this contract? It will have no effect and can no longer be sent. Its reference stays in the list.'
                     cancel_duplicate: Also create a draft with the same choices, to correct it
                     delete: 'Delete this contract? This is permanent.'
+                    cancel_notify: 'Tell the customer by email ({email})'
                 done:
                     frozen: 'Contract sealed: it has its reference.'
                     sent: 'Contract sent to {email}.'
@@ -2534,6 +2540,12 @@ suite:
                 # space are filed under. Read in GED, not here.
                 category: Client spaces
                 category_description: Files dropped on the content of a client space, by the studio or by the client themselves.
+        contract_notifications:
+            # Told to the members of the customer's spaces, each in their own language.
+            signed: 'Contract {reference} signed by the customer, to countersign'
+            refused: 'Contract {reference} refused by the customer'
+            expired: 'Contract {reference}: link expired unsigned'
+            termination_effective: 'Contract {reference}: the termination takes effect today'
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these
@@ -2759,6 +2771,7 @@ studio:
             cta: 'Open the contract and sign it'
             replaces: 'This link replaces the one in the previous message, which no longer works.'
             expires: 'This link is valid until {date}.'
+            subject_amendment: 'Reminder: amendment {reference} to contract {parent} awaits your signature'
         contracts_integrity:
             subject: 'Contracts: a sealed document has changed'
             body: 'The daily check read the sealed contracts ({count}), and not everything still matches what was sealed.'
@@ -2790,3 +2803,28 @@ studio:
             expiry: 'This link is valid until {date}.'
             warning: This link is personal to you. Please do not forward it.
             signature: '{company}'
+            subject_amendment: 'An amendment to contract {parent} awaits your signature'
+        signature_received:
+            subject: 'Contract {reference}: your signature is recorded'
+            body: 'We have received your signature on contract {reference}, on {at}.'
+            next: 'It will be concluded as soon as {company} countersigns it. You will then receive the document signed by both parties.'
+            hash: 'Fingerprint of the signed document: {hash}'
+        refusal_received:
+            subject: 'Contract {reference}: your refusal is recorded'
+            body: 'Your refusal of contract {reference} is recorded, on {at}.'
+            reason: 'The reason you gave:'
+            next: '{company} may send you a new version. It will come with a new link.'
+        contract_expired:
+            subject: 'Contract {reference}: link expired unsigned'
+            body: 'The signing link of contract {reference} ({customer}) expired before the customer signed.'
+            action: 'You can send it again, which creates a new link, or cancel it from the suite.'
+        contract_cancelled:
+            subject: 'Contract {reference} cancelled'
+            greeting: 'Hello {name},'
+            body: '{company} has cancelled contract {reference}, which had been sent to you. It has no effect and there is nothing for you to do.'
+            link: 'The signing link you received no longer works.'
+        contract_terminated:
+            subject: 'Contract {reference}: termination recorded'
+            greeting: 'Hello {name},'
+            body: 'We have recorded the termination of contract {reference}, notified on {noticed}.'
+            effective: 'It takes effect on {date}.'

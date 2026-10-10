@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
+use Aurora\Module\Studio\Contract\Service\ContractTeamNotifier;
 use Aurora\Module\Studio\Contract\Signature\Dto\ContractSignatureInputInterface;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
@@ -60,6 +61,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         protected readonly ContractPdfGenerator $pdfGenerator,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractSeal $seal,
+        protected readonly ContractTeamNotifier $teamNotifier,
     ) {}
 
     public function signAsCustomer(
@@ -95,6 +97,8 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         ]);
 
         $this->notifyProvider($signature);
+        $this->acknowledgeToCustomer($signature);
+        $this->teamNotifier->signed($contract);
 
         return $signature;
     }
@@ -274,6 +278,29 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
                 'contract' => $contract,
                 'signature' => $signature,
             ],
+            subjectParameters: ['{reference}' => (string) $contract->getReference()],
+        );
+    }
+
+    /**
+     * Tells the customer their signature was received.
+     *
+     * Signing used to end on the page and nowhere else: the customer closed
+     * the tab with nothing in their mailbox to say it had worked, and nothing
+     * to say what happens next. One mail now says both - received, and waiting
+     * for the provider - in the contract's language, to the address the
+     * contract names.
+     */
+    protected function acknowledgeToCustomer(ContractSignatureInterface $signature): void
+    {
+        $contract = $signature->getContract();
+
+        $this->mailService->send(
+            to: $contract->getCustomer()->getContractualEmail() ?? '',
+            subjectKey: 'studio.email.signature_received.subject',
+            template: '@Studio/email/signature_received.html.twig',
+            context: ['contract' => $contract, 'signature' => $signature],
+            locale: $contract->getLocale(),
             subjectParameters: ['{reference}' => (string) $contract->getReference()],
         );
     }

@@ -1,0 +1,17 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{# The provider's cue that a contract lapsed unsigned.
+
+   The daily expiry used to happen in silence: the contract left the list of
+   those with the customer and nobody heard of it. Two ways forward, both in
+   the back office, and the mail names them. #}
+{% block content %}
+<p>{{ 'studio.email.contract_expired.body'|trans({'{reference}': contract.reference, '{customer}': customer.legalName}) }}</p>
+
+<p>{{ 'studio.email.contract_expired.action'|trans }}</p>
+
+{{ include('@Shared/email/partials/action_button.html.twig', {
+    url: url('suite_studio_contracts_show', {id: contract.id}),
+    label: 'studio.email.open_contract'|trans,
+}) }}
+{% endblock %}
