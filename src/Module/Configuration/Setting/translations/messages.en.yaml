@@ -90,7 +90,7 @@ suite:
             step_5: "Nothing is saved until you press the Save button at the top of the tab, beside its title."
         branding_guide:
             title: "The site's logo and icon"
-            step_1: "The logo appears in the suite side menu and on the sign-in pages, and is the sharing image when no other is set."
+            step_1: "The logo appears in the suite side menu and on the sign-in pages, and is the sharing image when no other is set. A second, optional logo takes its place when the suite is in dark mode."
             step_2: "With no favicon chosen, the browser tab shows the site name's initial on the theme's main colour."
             step_3: "An image taken from the media library must have the “Published” status to be shown to visitors."
             step_4: "On a phone, the site name next to the logo in the top bar can be hidden, keeping only the logo."
@@ -483,6 +483,9 @@ suite:
         logo_media_id:
             label: Site logo
             description: ID of the media used as the logo
+        logo_dark_media_id:
+            label: Logo in dark mode
+            description: "Optional. Replaces the site's logo when the suite is in dark mode: side menu, top bar and sign-in pages. Useful for a logo without a background drawn in a dark colour, which would vanish on a dark ground. Empty, the site's logo serves in both modes."
         favicon_media_id:
             label: Favicon
             description: ID of the media used as the favicon

@@ -90,7 +90,7 @@ suite:
             step_5: "Rien n'est enregistré avant le bouton Enregistrer, en haut de l'onglet, à droite du titre."
         branding_guide:
             title: "Le logo et l'icône du site"
-            step_1: "Le logo s'affiche dans le menu latéral de la suite et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie."
+            step_1: "Le logo s'affiche dans le menu latéral de la suite et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie. Un second logo, facultatif, prend sa place quand la suite est en mode sombre."
             step_2: "Sans favicon choisi, l'onglet du navigateur affiche l'initiale du nom du site sur la couleur principale du thème."
             step_3: "Une image prise dans la médiathèque doit être au statut « Publié » pour s'afficher aux visiteurs."
             step_4: "Sur téléphone, le nom du site peut être masqué à côté du logo de la barre du haut, pour ne garder que le logo."
@@ -483,6 +483,9 @@ suite:
         logo_media_id:
             label: Logo du site
             description: ID du média utilisé comme logo
+        logo_dark_media_id:
+            label: Logo en mode sombre
+            description: "Facultatif. Remplace le logo du site quand la suite est en mode sombre : menu latéral, barre du haut et pages de connexion. Utile pour un logo sans fond dessiné en couleur foncée, qui disparaîtrait sur fond sombre. Vide, le logo du site sert dans les deux modes."
         favicon_media_id:
             label: Favicon
             description: ID du média utilisé comme favicon

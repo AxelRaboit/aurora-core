@@ -90,7 +90,7 @@ suite:
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, arriba de la pestaña, junto al título.'
         branding_guide:
             title: 'El logotipo y el icono del sitio'
-            step_1: 'El logotipo aparece en el menú lateral de la suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra.'
+            step_1: 'El logotipo aparece en el menú lateral de la suite y en las páginas de inicio de sesión, y sirve de imagen para compartir cuando no hay otra. Un segundo logotipo, opcional, ocupa su lugar cuando la suite está en modo oscuro.'
             step_2: 'Sin favicon elegido, la pestaña del navegador muestra la inicial del nombre del sitio sobre el color principal del tema.'
             step_3: 'Una imagen tomada de la mediateca debe tener el estado «Publicado» para mostrarse a los visitantes.'
             step_4: 'En el teléfono, el nombre del sitio junto al logotipo de la barra superior puede ocultarse para dejar solo el logotipo.'
@@ -483,6 +483,9 @@ suite:
         logo_media_id:
             label: 'Logotipo del sitio'
             description: 'ID del medio utilizado como logotipo'
+        logo_dark_media_id:
+            label: Logotipo en modo oscuro
+            description: "Opcional. Sustituye el logotipo del sitio cuando la suite está en modo oscuro: menú lateral, barra superior y páginas de inicio de sesión. Útil para un logotipo sin fondo dibujado en un color oscuro, que desaparecería sobre fondo oscuro. Vacío, el logotipo del sitio sirve en ambos modos."
         favicon_media_id:
             label: Favicon
             description: 'ID del medio utilizado como favicon'

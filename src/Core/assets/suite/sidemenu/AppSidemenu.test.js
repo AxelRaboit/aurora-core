@@ -115,13 +115,14 @@ describe("switching between the two menu views", () => {
 });
 
 describe("the site's logo", () => {
-    function renderWithLogo(siteLogoUrl) {
+    function renderWithLogo(siteLogoUrl, siteLogoDarkUrl = "") {
         return mount(AppSidemenu, {
             props: {
                 navSections: NAV_SECTIONS,
                 activeRoute: "suite_ged_documents",
                 moduleNavView: GED_VIEW,
                 siteLogoUrl,
+                siteLogoDarkUrl,
             },
             global: { plugins: [i18n] },
         });
@@ -146,6 +147,18 @@ describe("the site's logo", () => {
 
         expect(wrapper.findAll("img[alt='Logo']")).toHaveLength(0);
         expect(wrapper.findAll("svg[viewBox='0 0 64 64']")).toHaveLength(3);
+    });
+
+    /** The dark-mode version reaches the same three places as the logo. */
+    it("carries the dark-mode version wherever the logo shows", () => {
+        const wrapper = renderWithLogo(
+            "/uploads/ged/logo.png",
+            "/uploads/ged/logo-dark.png",
+        );
+
+        expect(
+            wrapper.findAll('img[src="/uploads/ged/logo-dark.png"]'),
+        ).toHaveLength(3);
     });
 });
 

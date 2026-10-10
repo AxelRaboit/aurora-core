@@ -14,8 +14,15 @@
    The tile, its rounding and its glow belong to this default logo only: on an uploaded one a box
    shadow follows the image box, not the drawing, and frames a transparent logo in a square. #}
 {% set logoSvg %}
+    {# The dark-mode logo (Réglages > Image de marque, 10/10/2026), shown by
+       the `dark` class the theme script puts on `<html>`; without one, the
+       site's logo serves in both modes. #}
+    {% set logoDarkUrl = siteLogoDarkUrl ?? null %}
     {% if siteLogoUrl is defined and siteLogoUrl %}
-        <img src="{{ siteLogoUrl }}" alt="{{ logoLabel }}" width="{{ logoSize }}" height="{{ logoSize }}" class="object-contain" style="width:{{ logoSize }}px;height:{{ logoSize }}px;">
+        <img src="{{ siteLogoUrl }}" alt="{{ logoLabel }}" width="{{ logoSize }}" height="{{ logoSize }}" class="object-contain{{ logoDarkUrl ? ' dark:hidden' }}" style="width:{{ logoSize }}px;height:{{ logoSize }}px;">
+        {% if logoDarkUrl %}
+            <img src="{{ logoDarkUrl }}" alt="{{ logoLabel }}" width="{{ logoSize }}" height="{{ logoSize }}" class="hidden object-contain dark:block" style="width:{{ logoSize }}px;height:{{ logoSize }}px;">
+        {% endif %}
     {% else %}
         <svg width="{{ logoSize }}" height="{{ logoSize }}" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" class="shadow-lg shadow-accent-500/30 rounded-2xl text-accent-500">
             <defs><linearGradient id="{{ logoGradientId }}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="currentColor" stop-opacity="1"/><stop offset="100%" stop-color="currentColor" stop-opacity="0.85"/></linearGradient></defs>

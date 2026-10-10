@@ -22,7 +22,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, ChevronsDownUp, ChevronsUpDown, ExternalLink, Filter, X } from "lucide-vue-next";
-import AppLogo from "@/shared/components/display/AppLogo.vue";
+import AppSiteLogo from "@/shared/components/display/AppSiteLogo.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 
 const props = defineProps({
@@ -32,6 +32,7 @@ const props = defineProps({
     theme: { type: Object, required: true },
     siteName: { type: String, default: "Aurora" },
     siteLogoUrl: { type: String, default: "" },
+    siteLogoDarkUrl: { type: String, default: "" },
     dashboardPath: { type: String, default: "/suite" },
     frontPath: { type: String, default: "/" },
     hasEnabledFronts: { type: Boolean, default: true },
@@ -80,8 +81,7 @@ defineExpose({ focusFilter });
     <div class="sidemenu-head flex shrink-0 flex-col gap-2.5 border-b border-line px-4 pb-3 pt-4">
         <div class="flex min-w-0 items-center gap-2">
             <a :href="dashboardPath" class="flex min-w-0 flex-1 items-center gap-2.5 px-1">
-                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
-                <AppLogo v-else :size="28" class="shrink-0" />
+                <AppSiteLogo :url="siteLogoUrl" :dark-url="siteLogoDarkUrl" :size="28" />
                 <span class="truncate text-[0.9375rem] font-semibold leading-tight tracking-tight text-primary">{{ siteName }}</span>
             </a>
             <!-- It leaves the suite for the public site, so it stays a link,

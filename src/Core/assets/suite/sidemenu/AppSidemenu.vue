@@ -14,7 +14,7 @@ import { useSidemenuPeek } from "@core/suite/sidemenu/composables/useSidemenuPee
 import { useSidemenuNav } from "@core/suite/sidemenu/composables/useSidemenuNav.js";
 import { useSidemenuSectionTheme } from "@core/suite/sidemenu/composables/useSidemenuSectionTheme.js";
 import { useSidemenuLiveColors } from "@core/suite/sidemenu/composables/useSidemenuLiveColors.js";
-import AppLogo from "@/shared/components/display/AppLogo.vue";
+import AppSiteLogo from "@/shared/components/display/AppSiteLogo.vue";
 import AppAvatar from "@/shared/components/display/AppAvatar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
@@ -69,6 +69,7 @@ const props = defineProps({
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
     siteLogoUrl: { type: String, default: "" },
+    siteLogoDarkUrl: { type: String, default: "" },
     /** Site setting: the name next to the logo in the top bar on a phone. */
     siteNameOnPhone: { type: Boolean, default: true },
     appVersion: { type: String, default: "" },
@@ -242,6 +243,7 @@ function searchAllModules() {
             :theme="sectionTheme"
             :site-name="siteName"
             :site-logo-url="siteLogoUrl"
+            :site-logo-dark-url="siteLogoDarkUrl"
             :dashboard-path="dashboardPath"
             :front-path="frontPath"
             :has-enabled-fronts="hasEnabledFronts"
@@ -306,8 +308,7 @@ function searchAllModules() {
         <a :href="dashboardPath" class="flex items-center gap-2">
             <!-- The site's logo on a phone too: it was only read by the wide
                  sidebar, and the phone bar kept drawing the default mark. -->
-            <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
-            <AppLogo v-else :size="28" />
+            <AppSiteLogo :url="siteLogoUrl" :dark-url="siteLogoDarkUrl" :size="28" />
             <!-- The name next to the logo, or the logo alone below `sm`: a site
                  setting (Réglages > Marque, 02/10/2026). When hidden, it is
                  still read by screen readers. Without a logo, the name always
@@ -393,6 +394,7 @@ function searchAllModules() {
                 :theme="sectionTheme"
                 :site-name="siteName"
                 :site-logo-url="siteLogoUrl"
+                :site-logo-dark-url="siteLogoDarkUrl"
                 :dashboard-path="dashboardPath"
                 :front-path="frontPath"
                 :has-enabled-fronts="hasEnabledFronts"
