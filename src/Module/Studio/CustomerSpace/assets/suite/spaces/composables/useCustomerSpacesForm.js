@@ -40,6 +40,7 @@ function emptyForm() {
         status: "active",
         colourSlot: "",
         timezone: siteZone() ?? "Europe/Paris",
+        clientDigest: "off",
         members: [],
     };
 }
@@ -79,6 +80,7 @@ export function formFrom(space) {
         status: space.status ?? "active",
         colourSlot: space.colourSlot ?? "",
         timezone: space.timezone ?? siteZone() ?? "Europe/Paris",
+        clientDigest: space.clientDigest ?? "off",
         // Copied rather than referenced: the form is edited before it is
         // sent, and mutating the space it came from would change the screen
         // before anything is saved.

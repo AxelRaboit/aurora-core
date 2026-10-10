@@ -107,6 +107,12 @@ const props = defineProps({
     resources: { type: Array, default: () => [] },
     /** The documents published for this client: audits, strategies. */
     documents: { type: Array, default: () => [] },
+    /**
+     * What the studio did since this person last opened the page, one line
+     * per kind: `{ type, view, key, count, names }`. Read once: opening the
+     * page is what makes it seen.
+     */
+    news: { type: Array, default: () => [] },
 });
 
 const { t, d: formatDate } = useI18n();
@@ -288,6 +294,13 @@ const views = computed(() => VIEWS.filter((entry) => {
 }));
 
 const view = ref("calendar");
+
+/** A line of news opens the tab it is about, when the page has that tab. */
+function openNews(line) {
+    if (views.value.some((entry) => entry.key === line.view)) {
+        view.value = line.view;
+    }
+}
 
 /**
  * The how-to guide, reduced to what this link allows.
@@ -638,6 +651,28 @@ function isLate(event) {
             {{ space.description }}
         </p>
 
+
+        <!-- What happened while they were away, before anything else: the
+             reason most people open the page, and the line a digest mail
+             points at. Each line opens its tab. -->
+        <section
+            v-if="news.length"
+            class="aurora-card space-y-2 p-4"
+            :aria-label="t('studio.public.space.news_title')"
+        >
+            <h2 class="m-0 text-sm font-semibold text-primary">{{ t("studio.public.space.news_title") }}</h2>
+            <ul class="m-0 flex list-none flex-col gap-1 p-0">
+                <li v-for="line in news" :key="line.type">
+                    <button
+                        type="button"
+                        class="w-full rounded-md px-2 py-1 text-left text-sm text-secondary transition-colors hover:bg-surface-2 hover:text-primary"
+                        v-on:click="openNews(line)"
+                    >
+                        {{ t(line.key, { count: line.count, names: line.names }, line.count) }}
+                    </button>
+                </li>
+            </ul>
+        </section>
 
         <!-- The screen's how-to guide, next to what it explains; collapsed
              or expanded, the choice applies to every guide. -->

@@ -103,6 +103,25 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Every address of this space that still opens it, previews left out.
+     *
+     * @return list<SpaceAccessLinkInterface>
+     */
+    public function findUsableForSpace(CustomerSpaceInterface $space, DateTimeImmutable $now): array
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.space = :space')
+            ->andWhere('l.previewOf IS NULL')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->setParameter('space', $space)
+            ->setParameter('now', $now)
+            ->orderBy('l.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** A link's current preview, if there is one. */
     public function findPreviewOf(SpaceAccessLinkInterface $link): ?SpaceAccessLinkInterface
     {

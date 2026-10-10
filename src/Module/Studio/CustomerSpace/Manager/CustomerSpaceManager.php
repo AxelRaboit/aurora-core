@@ -18,8 +18,10 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
@@ -222,6 +224,27 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     }
 
     /**
+     * When the space writes to its client.
+     *
+     * Under the right to share, like everything the client receives: mailing
+     * them is sending them something, the gesture {@see ClientVisibility}
+     * reserves. Asked only when the choice changes, so a teammate saving the
+     * name does not trip on it.
+     */
+    protected function applyClientDigest(CustomerSpaceInterface $space, ?ClientDigestModeEnum $mode): void
+    {
+        if (null === $mode || $mode === $space->getClientDigest()) {
+            return;
+        }
+
+        if (!$this->security->isGranted(ClientVisibility::PRIVILEGE)) {
+            throw new FieldException('clientDigest', $this->translator->trans('suite.studio.spaces.errors.client_digest_needs_share'));
+        }
+
+        $space->setClientDigest($mode);
+    }
+
+    /**
      * Whoever creates a space leads it, unless they already see every space.
      *
      * Creating was the unguarded half: any team and any roles went through,
@@ -301,6 +324,8 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
             ->setCustomer($this->resolveCustomer($input))
             ->setStatus($input->getStatus())
             ->setTimezone($input->getTimezone());
+
+        $this->applyClientDigest($space, $input->getClientDigest());
 
         $colourSlot = $input->getColourSlot();
         if (null !== $colourSlot) {

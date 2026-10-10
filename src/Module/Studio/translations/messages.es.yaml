@@ -1199,6 +1199,14 @@ suite:
                 customer_required: 'Elija el cliente al que pertenece este espacio.'
                 timezone_invalid: 'Esta zona horaria no se reconoce.'
                 team_lead_only: "Solo el referente del espacio puede cambiar su equipo y sus roles."
+                client_digest_needs_share: "Elegir si se avisa al cliente requiere el derecho de compartir el espacio."
+            client_digest:
+                label: Avisar al cliente por correo
+                hint: "Lo que hace el equipo en el espacio (mensajes, archivos, contenidos por validar) se resume en un correo al cliente. Su página lo muestra de todos modos en su próxima visita."
+                modes:
+                    off: Nunca
+                    delayed: "Media hora después de su último cambio"
+                    daily: Cada mañana a las 8
         space_access:
             guide:
                 title: 'Cómo funcionan los enlaces de acceso'
@@ -2696,6 +2704,7 @@ studio:
                 upload_failed: 'El envío no se completó. Inténtelo de nuevo.'
                 upload_too_large: 'Ese archivo supera los 25 MB. Envíe una versión más ligera.'
                 upload_type_refused: 'Ese tipo de archivo no se acepta. Solo imágenes, PDF y vídeos habituales.'
+            news_title: Desde su última visita
         unavailable:
             title: 'Este enlace ya no es válido'
             message: 'La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.'
@@ -2812,3 +2821,18 @@ studio:
             personal: 'Esta dirección es personal: abre su espacio sin contraseña. No la comparta.'
             expires: 'Es válida hasta el {date}.'
             fallback: 'Si el botón no funciona, copie esta dirección en su navegador:'
+        client_digest:
+            subject: 'Novedades en su espacio {space}'
+            body: '{company} ha avanzado en su espacio {space}:'
+            cta: Abrir mi espacio
+            why: 'Recibe este mensaje porque {company} le ha abierto este espacio. Lo que ya ha visto en su espacio no se le vuelve a enviar.'
+    client_notices:
+        lines:
+            studio_message: "{count} mensaje nuevo de {names} | {count} mensajes nuevos de {names}"
+            studio_comment: "{count} comentario del equipo sobre: {names} | {count} comentarios del equipo sobre: {names}"
+            awaiting_review: "{count} contenido espera su opinión: {names} | {count} contenidos esperan su opinión: {names}"
+            approval_reset: "{count} contenido ha cambiado desde su respuesta, por revisar: {names} | {count} contenidos han cambiado desde su respuesta, por revisar: {names}"
+            review_due: "{count} contenido por revisar antes de mañana: {names} | {count} contenidos por revisar antes de mañana: {names}"
+            file_shared: "{count} archivo compartido: {names} | {count} archivos compartidos: {names}"
+            resource_shared: "{count} recurso añadido: {names} | {count} recursos añadidos: {names}"
+            deliverable_shared: "{count} documento compartido: {names} | {count} documentos compartidos: {names}"

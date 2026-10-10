@@ -9,6 +9,8 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
@@ -47,6 +49,12 @@ class SpaceFileManager implements SpaceFileManagerInterface
         // its own constructor keeps booting: without it a file the client
         // sends is stored and audited, and nobody is told.
         protected readonly ?SpaceActivityNotifier $notifier = null,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     public function attachAsStudio(CustomerSpaceInterface $space, DocumentInterface $document): SpaceFileInterface
@@ -125,6 +133,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
             throw new FieldException('visibleToClient', $this->translator->trans('suite.studio.space_files.errors.client_file_stays_visible'));
         }
 
+        $wasVisible = $file->isVisibleToClient();
         $file->setVisibleToClient($visible);
         $this->entityManager->flush();
 
@@ -132,6 +141,13 @@ class SpaceFileManager implements SpaceFileManagerInterface
         // actions in the code, and a computed value escapes it.
         if ($visible) {
             $this->auditLogger->log('studio', 'space_file.shown', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+
+            // Shown is sent: a studio file is born hidden, and this is the
+            // moment it reaches the client.
+            if (!$wasVisible) {
+                $document = $file->getDocument();
+                $this->clientNoticeRecorder?->record($file->getSpace(), ClientNoticeTypeEnum::FileShared, $document->getOriginalName() ?? $document->getTitle());
+            }
 
             return;
         }

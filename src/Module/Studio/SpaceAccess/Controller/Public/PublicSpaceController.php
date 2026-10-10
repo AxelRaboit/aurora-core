@@ -17,6 +17,7 @@ use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Studio\ClientNotice\View\ClientNoticeViewBuilder;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
@@ -115,6 +116,7 @@ final class PublicSpaceController extends AbstractController
         private readonly DriveFileServer $driveFileServer,
         private readonly DriveArchive $driveArchives,
         private readonly SpaceFileManagerInterface $spaceFileManager,
+        private readonly ClientNoticeViewBuilder $clientNoticeViewBuilder,
     ) {}
 
     /**
@@ -148,6 +150,9 @@ final class PublicSpaceController extends AbstractController
             ...$this->viewBuilder->view($link, $token),
             ...$this->chatViewBuilder->publicView($link, $token, $rooms),
             ...$this->filesViewBuilder->publicView($link, $token),
+            // Last, because it marks what it reads as seen: the page is the
+            // visit, and the API calls that follow it are not.
+            ...$this->clientNoticeViewBuilder->publicView($link),
         ]));
 
         // **The one place a guest is authorised at the hub.** Everything else

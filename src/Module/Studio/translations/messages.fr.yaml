@@ -1214,6 +1214,14 @@ suite:
                 customer_required: Choisissez le client à qui cet espace appartient.
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
                 team_lead_only: "Seul le référent de l'espace peut changer son équipe et ses rôles."
+                client_digest_needs_share: "Choisir si le client est prévenu demande le droit de partager l'espace."
+            client_digest:
+                label: Prévenir le client par email
+                hint: "Ce que fait l'équipe dans l'espace (messages, fichiers, contenus à valider) est résumé dans un email au client. Sa page le montre de toute façon à sa prochaine visite."
+                modes:
+                    off: Jamais
+                    delayed: "Une demi-heure après votre dernier geste"
+                    daily: Chaque matin à 8 h
         space_access:
             guide:
                 title: "Comment fonctionnent les liens d'accès"
@@ -2737,6 +2745,7 @@ studio:
                 upload_failed: L'envoi n'a pas abouti. Réessayez.
                 upload_too_large: Ce fichier dépasse 25 Mo. Envoyez une version plus légère.
                 upload_type_refused: Ce type de fichier n'est pas accepté. Images, PDF et vidéos courantes uniquement.
+            news_title: Depuis votre dernière visite
         unavailable:
             title: Ce lien n'est plus valide
             message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez un contrat, demandez un nouveau lien à votre interlocuteur.
@@ -2853,3 +2862,18 @@ studio:
             personal: 'Cette adresse vous est personnelle : elle ouvre votre espace sans mot de passe. Ne la transmettez pas.'
             expires: 'Elle est valable jusqu''au {date}.'
             fallback: 'Si le bouton ne fonctionne pas, copiez cette adresse dans votre navigateur :'
+        client_digest:
+            subject: 'Du nouveau dans votre espace {space}'
+            body: '{company} a avancé dans votre espace {space} :'
+            cta: Ouvrir mon espace
+            why: 'Vous recevez ce message parce que {company} vous a ouvert cet espace. Ce que vous avez déjà vu dans votre espace ne vous est pas renvoyé.'
+    client_notices:
+        lines:
+            studio_message: "{count} nouveau message de {names} | {count} nouveaux messages de {names}"
+            studio_comment: "{count} commentaire de l'équipe sur : {names} | {count} commentaires de l'équipe sur : {names}"
+            awaiting_review: "{count} contenu attend votre avis : {names} | {count} contenus attendent votre avis : {names}"
+            approval_reset: "{count} contenu a changé depuis votre réponse, à revoir : {names} | {count} contenus ont changé depuis votre réponse, à revoir : {names}"
+            review_due: "{count} contenu à relire avant demain : {names} | {count} contenus à relire avant demain : {names}"
+            file_shared: "{count} fichier partagé : {names} | {count} fichiers partagés : {names}"
+            resource_shared: "{count} ressource ajoutée : {names} | {count} ressources ajoutées : {names}"
+            deliverable_shared: "{count} document partagé : {names} | {count} documents partagés : {names}"

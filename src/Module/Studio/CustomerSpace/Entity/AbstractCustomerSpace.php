@@ -9,6 +9,7 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceDocumentFolderProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -148,6 +149,13 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
      */
     #[ORM\Column(length: 64, options: ['default' => 'Europe/Paris'])]
     protected string $timezone = 'Europe/Paris';
+
+    /**
+     * When this space writes to its client about what the studio did, see
+     * {@see ClientDigestModeEnum}. Off until somebody decides otherwise.
+     */
+    #[ORM\Column(length: 20, enumType: ClientDigestModeEnum::class, options: ['default' => 'off'])]
+    protected ClientDigestModeEnum $clientDigest = ClientDigestModeEnum::Off;
 
     /**
      * The Drive folder the customer shared for this space.
@@ -366,6 +374,18 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function setDriveFolderId(?string $driveFolderId): static
     {
         $this->driveFolderId = $driveFolderId;
+
+        return $this;
+    }
+
+    public function getClientDigest(): ClientDigestModeEnum
+    {
+        return $this->clientDigest;
+    }
+
+    public function setClientDigest(ClientDigestModeEnum $clientDigest): static
+    {
+        $this->clientDigest = $clientDigest;
 
         return $this;
     }

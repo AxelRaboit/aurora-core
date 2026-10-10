@@ -12,8 +12,10 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
@@ -68,7 +70,7 @@ final readonly class CustomerSpacesViewBuilder
      * Settings tab of a space: the customers, the accounts, the statuses, the
      * roles and the timezones.
      *
-     * @return array{customers: list<array{id: int, name: string}>, canCreateCustomer: bool, users: list<array{id: int, name: string, email: string}>, statuses: list<array{value: string, labelKey: string}>, roles: list<array{value: string, labelKey: string}>, timezones: list<string>}
+     * @return array{customers: list<array{id: int, name: string}>, canCreateCustomer: bool, users: list<array{id: int, name: string, email: string}>, statuses: list<array{value: string, labelKey: string}>, roles: list<array{value: string, labelKey: string}>, timezones: list<string>, clientDigestModes: list<array{value: string, labelKey: string}>, canChooseClientDigest: bool}
      */
     public function formOptions(): array
     {
@@ -84,6 +86,13 @@ final readonly class CustomerSpacesViewBuilder
             // The whole list, as the calendar's own screen does it: a
             // shortlist would be right until the first client abroad.
             'timezones' => DateTimeZone::listIdentifiers(),
+            'clientDigestModes' => array_map(
+                static fn (ClientDigestModeEnum $mode): array => ['value' => $mode->value, 'labelKey' => $mode->getLabelKey()],
+                ClientDigestModeEnum::cases(),
+            ),
+            // The choice is the right to share's, like everything sent to
+            // the client: shown to the others, not offered.
+            'canChooseClientDigest' => $this->authorizationChecker->isGranted(ClientVisibility::PRIVILEGE),
         ];
     }
 

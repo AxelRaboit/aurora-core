@@ -1214,6 +1214,14 @@ suite:
                 customer_required: Choose the client this space belongs to.
                 timezone_invalid: That time zone is not recognised.
                 team_lead_only: Only the space lead can change its team and roles.
+                client_digest_needs_share: "Choosing whether the client is told requires the right to share the space."
+            client_digest:
+                label: Tell the client by email
+                hint: "What the team does in the space (messages, files, content to approve) is summed up in an email to the client. Their page shows it at their next visit anyway."
+                modes:
+                    off: Never
+                    delayed: "Half an hour after your last change"
+                    daily: Every morning at 8
         space_access:
             guide:
                 title: "How access links work"
@@ -2730,6 +2738,7 @@ studio:
                 upload_failed: The upload did not complete. Try again.
                 upload_too_large: That file is over 25 MB. Send a lighter version.
                 upload_type_refused: That file type is not accepted. Images, PDF and common videos only.
+            news_title: Since your last visit
         unavailable:
             title: This link is no longer valid
             message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a contract, ask your contact for a new link.
@@ -2846,3 +2855,18 @@ studio:
             personal: 'This address is personal: it opens your space without a password. Do not pass it on.'
             expires: 'It is valid until {date}.'
             fallback: 'If the button does not work, copy this address into your browser:'
+        client_digest:
+            subject: 'Something new in your {space} space'
+            body: '{company} has moved forward in your {space} space:'
+            cta: Open my space
+            why: 'You receive this message because {company} opened this space for you. What you have already seen in your space is not sent again.'
+    client_notices:
+        lines:
+            studio_message: "{count} new message from {names} | {count} new messages from {names}"
+            studio_comment: "{count} comment from the team on: {names} | {count} comments from the team on: {names}"
+            awaiting_review: "{count} piece of content awaits your opinion: {names} | {count} pieces of content await your opinion: {names}"
+            approval_reset: "{count} piece of content changed since your answer, to review again: {names} | {count} pieces of content changed since your answer, to review again: {names}"
+            review_due: "{count} piece of content to review by tomorrow: {names} | {count} pieces of content to review by tomorrow: {names}"
+            file_shared: "{count} file shared: {names} | {count} files shared: {names}"
+            resource_shared: "{count} resource added: {names} | {count} resources added: {names}"
+            deliverable_shared: "{count} document shared: {names} | {count} documents shared: {names}"

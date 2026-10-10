@@ -8,6 +8,8 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
@@ -27,6 +29,12 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
         protected readonly Security $security,
         protected readonly TranslatorInterface $translator,
         protected readonly SpaceActivityNotifier $notifier,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     public function postAsStudio(SpaceContentItemInterface $item, string $body): SpaceContentCommentInterface
@@ -47,6 +55,10 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
         $this->entityManager->flush();
 
         $this->auditPosted($comment);
+
+        // The client hears of it when they see the card: a remark on a card
+        // still in « Rédaction » is the team talking to itself.
+        $this->clientNoticeRecorder?->recordForItem($item, ClientNoticeTypeEnum::StudioComment, ClientNoticeRecorder::commenters());
 
         return $comment;
     }

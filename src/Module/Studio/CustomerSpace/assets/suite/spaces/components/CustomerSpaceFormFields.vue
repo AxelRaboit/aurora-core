@@ -28,6 +28,10 @@ const props = defineProps({
     statuses: { type: Array, default: () => [] },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    /** When the space mails its client; empty where the choice is not offered. */
+    clientDigestModes: { type: Array, default: () => [] },
+    /** The right to share: the choice is read by the others, not changed. */
+    canChooseClientDigest: { type: Boolean, default: false },
     /**
      * Whether the reader can change the team and the roles. Reserved to the
      * space's lead: the others see the team without being able to touch it,
@@ -121,6 +125,10 @@ function chooseCustomer(value) {
         prospectEmail: "",
     });
 }
+
+const clientDigestOptions = computed(() =>
+    props.clientDigestModes.map((mode) => ({ value: mode.value, label: t(mode.labelKey) })),
+);
 
 const statusOptions = computed(() =>
     props.statuses.map((status) => ({
@@ -283,6 +291,17 @@ function removeMember(userId) {
                     v-on:update:model-value="set('timezone', $event)"
                 />
             </div>
+
+            <AppSelect
+                v-if="clientDigestOptions.length"
+                :model-value="form.clientDigest ?? 'off'"
+                :label="t('suite.studio.spaces.client_digest.label')"
+                :options="clientDigestOptions"
+                :hint="t('suite.studio.spaces.client_digest.hint')"
+                :error="errors.clientDigest"
+                :disabled="!canChooseClientDigest"
+                v-on:update:model-value="set('clientDigest', $event)"
+            />
 
             <!-- Swatches and not a select: the thing being chosen is the colour
                  itself, so showing it beats naming it. These are the same eight

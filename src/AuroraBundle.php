@@ -120,6 +120,9 @@ use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequest;
 use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequestInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\ClientNotice\Entity\ClientNotice;
+use Aurora\Module\Studio\ClientNotice\Entity\ClientNoticeInterface;
+use Aurora\Module\Studio\ClientNotice\Message\ClientDigestMessage;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
@@ -326,6 +329,7 @@ class AuroraBundle extends AbstractBundle
                     SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     SpaceResourceInterface::class => SpaceResource::class,
+                    ClientNoticeInterface::class => ClientNotice::class,
                     DeliverableInterface::class => Deliverable::class,
                     DeliverableLinkInterface::class => DeliverableLink::class,
                     DeliverableCategoryInterface::class => DeliverableCategory::class,
@@ -554,6 +558,8 @@ class AuroraBundle extends AbstractBundle
                     // stamp, and handled inline it would be sent immediately -
                     // which is precisely the mail it exists to avoid.
                     SpaceActivityDigestMessage::class => 'async',
+                    // Same reason, on the client's side: half an hour.
+                    ClientDigestMessage::class => 'async',
                     // Erasing what a trash emptied: the rows go in the request,
                     // the bytes after it. On R2 each batch is a network call,
                     // and a trash of a few hundred files kept the button
