@@ -812,8 +812,9 @@ suite:
             col_contact: Contact
 
             group_identity: "Identité légale"
-            group_representative: Représentant légal
-            group_contact: Contact
+            group_identity_hint: "Reprise dans le préambule des contrats."
+            group_people: "Représentant et contact"
+            group_people_hint: "C'est à l'e-mail contractuel que part le lien de signature."
 
             legal_name: Raison sociale
             legal_name_placeholder: "Atelier Dupont"
@@ -871,6 +872,13 @@ suite:
                 step_2: "C'est le seul endroit où elle se modifie. L'onglet Informations de chacun de ses espaces la montre telle quelle, et c'est ce que le client y lit."
                 step_3: "À droite, ce qui l'entoure : ses espaces, ses contrats et les livrables de Studio écrits pour lui, d'un clic."
                 step_4: "Un prospect se convertit en client depuis le bouton « … » : son email contractuel est alors demandé."
+            facts:
+                contracts: "Contrats"
+                spaces: "Espaces"
+                deliverables: "Livrables"
+                contact: "Contact"
+                no_contact: "Aucun contact renseigné"
+                detail_count: "{detail} : {count}"
             group_related: Autour de ce client
             related:
                 contracts: "Contrats de ce client"
@@ -879,6 +887,7 @@ suite:
                 other_spaces: "Autres espaces de ce client"
                 empty: "Aucun contrat, aucun livrable ni aucun espace pour ce client pour l'instant."
                 empty_other: "Aucun contrat, aucun livrable ni aucun autre espace pour ce client pour l'instant."
+                all: Tous
                 draft_contract: "Brouillon"
                 all_spaces: Tous ses espaces
                 all_contracts: Tous ses contrats

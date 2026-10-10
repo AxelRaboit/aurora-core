@@ -812,8 +812,9 @@ suite:
             col_contact: Contact
 
             group_identity: "Legal identity"
-            group_representative: Legal representative
-            group_contact: Contact
+            group_identity_hint: "Carried into the preamble of contracts."
+            group_people: "Representative and contact"
+            group_people_hint: "The signing link goes to the contractual email."
 
             legal_name: "Legal name"
             legal_name_placeholder: "Atelier Dupont"
@@ -871,6 +872,13 @@ suite:
                 step_2: "This is the only place it is edited. The Information tab of each of their spaces shows it as it is, and that is what the client reads there."
                 step_3: "On the right, what surrounds them: their spaces, their contracts and the Studio deliverables written for them, one click away."
                 step_4: "A prospect is converted to a customer from the « … » button, which asks for their contractual email."
+            facts:
+                contracts: "Contracts"
+                spaces: "Spaces"
+                deliverables: "Deliverables"
+                contact: "Contact"
+                no_contact: "No contact yet"
+                detail_count: "{detail}: {count}"
             group_related: Around this client
             related:
                 contracts: "This client's contracts"
@@ -879,6 +887,7 @@ suite:
                 other_spaces: "This client's other spaces"
                 empty: "No contract, deliverable or space for this client yet."
                 empty_other: "No contract, deliverable or other space for this client yet."
+                all: All
                 draft_contract: "Draft"
                 all_spaces: All their spaces
                 all_contracts: All their contracts
