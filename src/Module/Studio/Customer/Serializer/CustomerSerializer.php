@@ -41,6 +41,7 @@ class CustomerSerializer implements CustomerSerializerInterface
             'representativeFullName' => $customer->getRepresentativeFullName(),
             'representativeRole' => $customer->getRepresentativeRole(),
             'contractualEmail' => $customer->getContractualEmail(),
+            'locale' => $customer->getLocale(),
             'phone' => $customer->getPhone(),
             'landline' => $customer->getLandline(),
             'siren' => $customer->getSiren(),

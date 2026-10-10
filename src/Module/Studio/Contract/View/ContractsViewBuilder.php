@@ -255,13 +255,15 @@ final readonly class ContractsViewBuilder
         return ['success' => true, 'contracts' => $this->contracts()];
     }
 
-    /** @return list<array{value: string, label: string}> */
+    /** @return list<array{value: string, label: string, locale: string|null}> */
     private function customerOptions(): array
     {
         return array_map(
             static fn (CustomerInterface $customer): array => [
                 'value' => (string) $customer->getId(),
                 'label' => $customer->getLegalName(),
+                // The language a new contract for them starts in.
+                'locale' => $customer->getLocale(),
             ],
             $this->customerRepository->findAllOrdered(),
         );

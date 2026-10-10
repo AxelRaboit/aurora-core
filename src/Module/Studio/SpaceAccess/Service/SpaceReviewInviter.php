@@ -7,13 +7,10 @@ namespace Aurora\Module\Studio\SpaceAccess\Service;
 use Aurora\Core\Mail\Service\MailService;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
-use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManager;
-use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Throwable;
 
 /**
@@ -24,13 +21,12 @@ use Throwable;
  * fill the client's inbox while the batch is still being built. The one who
  * knows when the batch is ready is the one who prepared it.
  *
- * **A new link per recipient, the old one revoked.** A link's token only
- * exists in clear text when it is created: only its hash is stored, so that a
- * stolen database does not open a client's content plan. The address of a
- * link already issued therefore cannot be put in an email again, and a new
- * one has to be issued. Revoking the previous one is what keeps a client from
- * piling up six open addresses after six invitations: they always have
- * exactly one valid, the last one received.
+ * **The address they already have, not a new one.** This used to issue a new
+ * link per recipient and revoke the old one, because the long address exists
+ * in readable form only at creation. Each invitation therefore closed the
+ * address the client had bookmarked. The mail now carries the address the
+ * application can rebuild ({@see SpaceLinkMailer::addressOf()}), which opens
+ * the same page, so an invitation changes nothing about how they get in.
  *
  * **Nothing goes out if there is nothing to review.** An email announcing zero
  * pending posts is an email that teaches people to ignore the next ones.
@@ -39,10 +35,9 @@ final readonly class SpaceReviewInviter
 {
     public function __construct(
         private SpaceAccessLinkRepository $accessLinkRepository,
-        private SpaceAccessLinkManagerInterface $linkManager,
         private SpaceWorkload $workload,
         private MailService $mailService,
-        private UrlGeneratorInterface $urlGenerator,
+        private SpaceLinkMailer $linkMailer,
         private LoggerInterface $logger,
     ) {}
 
@@ -63,62 +58,35 @@ final readonly class SpaceReviewInviter
             return ['awaiting' => 0, 'notified' => 0];
         }
 
-        $now = new DateTimeImmutable();
         $notified = 0;
 
-        foreach ($this->accessLinkRepository->findApproversForSpace($space, $now) as $previous) {
-            $fresh = $this->reissue($previous);
+        foreach ($this->accessLinkRepository->findApproversForSpace($space, new DateTimeImmutable()) as $link) {
+            $url = $this->linkMailer->addressOf($link);
+            if (null === $url) {
+                continue;
+            }
 
             try {
-                $this->write($space, $fresh, $awaiting);
+                $this->write($space, $link, $url, $awaiting);
             } catch (Throwable $exception) {
-                // **The email first, the revocation after.** A mail server that
-                // does not answer would otherwise leave the client with no
-                // valid address and without the message that gave them a new
-                // one, that is, locked out without knowing it. Here their old
-                // address keeps working, and it is the new one, which nobody
-                // received, that gets closed.
-                $this->linkManager->revoke($fresh);
+                // The address they hold still works: nothing was revoked to
+                // send this, so a mail server that does not answer costs one
+                // message and nothing else.
                 $this->logger->error('Space review invitation could not be sent to {email}: {reason}', [
-                    'email' => $previous->getRecipientEmail(),
+                    'email' => $link->getRecipientEmail(),
                     'reason' => $exception->getMessage(),
                 ]);
 
                 continue;
             }
 
-            $this->linkManager->revoke($previous);
             ++$notified;
         }
 
         return ['awaiting' => $awaiting, 'notified' => $notified];
     }
 
-    /**
-     * The same link, brand new.
-     *
-     * The rights are copied: the invitation does not change what the person is
-     * allowed to do, it only gives them an address again. The validity starts
-     * again from the default delay rather than from what was left on the
-     * previous one, otherwise an invitation sent the day before an expiry would
-     * give one day to answer.
-     */
-    private function reissue(SpaceAccessLinkInterface $previous): SpaceAccessLinkInterface
-    {
-        return $this->linkManager->issue(
-            $previous->getSpace(),
-            $previous->getRecipientEmail(),
-            $previous->getLabel(),
-            SpaceAccessLinkManager::DEFAULT_VALID_DAYS,
-            $previous->canApprove(),
-            $previous->canComment(),
-            $previous->canChat(),
-            $previous->canUpload(),
-            $previous->canSeeDrive(),
-        );
-    }
-
-    private function write(CustomerSpaceInterface $space, SpaceAccessLinkInterface $link, int $awaiting): void
+    private function write(CustomerSpaceInterface $space, SpaceAccessLinkInterface $link, string $url, int $awaiting): void
     {
         $this->mailService->send(
             to: $link->getRecipientEmail(),
@@ -127,18 +95,10 @@ final readonly class SpaceReviewInviter
             context: [
                 'space' => $space,
                 'awaiting' => $awaiting,
-                'url' => $this->urlGenerator->generate(
-                    'public_space_show',
-                    [
-                        'selector' => $link->getSelector(),
-                        // Readable only once, at creation: this message is
-                        // exactly why one was just created.
-                        'token' => $link->getPlainToken(),
-                    ],
-                    UrlGeneratorInterface::ABSOLUTE_URL,
-                ),
+                'url' => $url,
                 'expiresAt' => $link->getExpiresAt(),
             ],
+            locale: $this->linkMailer->localeOf($space),
             subjectParameters: ['{space}' => $space->getName(), '{count}' => (string) $awaiting],
         );
     }

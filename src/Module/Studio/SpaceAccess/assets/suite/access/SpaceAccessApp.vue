@@ -36,7 +36,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import { Ban, Copy, Eye, Link, Link2, Trash2, Unlink, X } from "lucide-vue-next";
+import { Ban, Copy, Eye, Link, Link2, Mail, Trash2, Unlink, X } from "lucide-vue-next";
 
 const { t, d: formatDate } = useI18n();
 const { can } = usePrivileges();
@@ -58,6 +58,8 @@ const props = defineProps({
     /** Address templates of the short address, `__id__` replaced by the link. */
     aliasPath: { type: String, default: "" },
     aliasRemovePath: { type: String, default: "" },
+    /** With `__id__`: writes the link's address to its recipient again. */
+    invitePath: { type: String, default: "" },
 });
 
 const canShare = computed(() => can("studio.spaces.share"));
@@ -81,6 +83,10 @@ const issueForm = ref({
     // rather than assumed.
     canUpload: false,
     canSeeDrive: true,
+    // The application writes the invitation itself unless told not to: the
+    // address used to leave by copy and paste, and a link nobody pasted was
+    // a link never sent.
+    sendInvitation: true,
 });
 
 /** The one and only moment the address exists in readable form. */
@@ -104,7 +110,11 @@ const {
         showIssue.value = false;
         applyLinks(data);
         mintedUrl.value = data?.url ?? "";
-        toast.success(t("suite.studio.space_access.issued"));
+        toast.success(
+            data?.invited
+                ? t("suite.studio.space_access.issued_and_invited", { email: issueForm.value.recipientEmail })
+                : t("suite.studio.space_access.issued"),
+        );
     },
 });
 
@@ -118,6 +128,7 @@ function openIssue() {
         canChat: true,
         canUpload: false,
         canSeeDrive: true,
+        sendInvitation: true,
     };
     clearIssue();
     showIssue.value = true;
@@ -171,6 +182,22 @@ async function removeAlias(link) {
     }
 }
 
+const inviting = ref(null);
+
+/** The address, written to its recipient again. Nothing is revoked. */
+async function invite(link) {
+    inviting.value = link.id;
+    try {
+        const data = await request(buildPath(props.invitePath, { id: link.id }));
+        if (data) {
+            applyLinks(data);
+            toast.success(t("suite.studio.space_access.invited", { email: link.recipientEmail }));
+        }
+    } finally {
+        inviting.value = null;
+    }
+}
+
 const revoking = ref(null);
 
 async function revoke(link) {
@@ -212,6 +239,15 @@ function linkActions(link) {
             icon: Eye,
             title: t("suite.studio.space_access.preview"),
             onSelect: () => window.open(buildPath(props.previewPath, { id: link.id }), "_blank", "noopener"),
+        });
+    }
+    if (props.invitePath && link.usable) {
+        actions.push({
+            key: "invite",
+            icon: Mail,
+            title: t("suite.studio.space_access.invite"),
+            loading: inviting.value === link.id,
+            onSelect: () => invite(link),
         });
     }
     if (props.aliasPath && link.usable) {
@@ -475,6 +511,13 @@ function openedLabel(link) {
                     :label="t('suite.studio.space_access.can_upload')"
                     :hint="t('suite.studio.space_access.can_upload_hint')"
                     v-on:update:model-value="issueForm.canUpload = $event"
+                />
+
+                <AppCheckbox
+                    :model-value="issueForm.sendInvitation"
+                    :label="t('suite.studio.space_access.send_invitation')"
+                    :hint="t('suite.studio.space_access.send_invitation_hint')"
+                    v-on:update:model-value="issueForm.sendInvitation = $event"
                 />
 
                 <!-- Offered only when the space has a folder connected: a box

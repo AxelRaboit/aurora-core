@@ -106,6 +106,7 @@ suite:
                     opened: 'Espacio abierto por un cliente'
                     alias_given: "Dirección corta asignada a un enlace de cliente"
                     alias_removed: "Dirección corta retirada de un enlace de cliente"
+                    invitation_sent: Enlace de acceso enviado por correo
                 space_file:
                     added: 'Archivo añadido a un espacio'
                     sent_by_client: Archivo enviado por el cliente a un espacio
@@ -942,6 +943,10 @@ suite:
                 follow_up_note_too_long: "Este recordatorio no puede superar los 255 caracteres."
                 estimated_value_invalid: "El importe estimado no puede ser negativo."
                 lost_reason_too_long: "El motivo no puede superar los 255 caracteres."
+                locale_invalid: Este idioma no está activo en el sitio.
+            locale: Idioma de los correos
+            locale_hint: "El idioma de los mensajes que la aplicación le envía: espacio de cliente, invitaciones, y el que se propone para sus contratos."
+            locale_default: "El del sitio"
         pipeline:
             card_title: "Seguimiento"
             card_hint: "En qué punto está el negocio y cuándo volver a contactar."
@@ -1263,6 +1268,12 @@ suite:
                 alias_unusable: "Este enlace ya no está activo: no puede recibir una dirección corta."
                 email_required: 'El email del destinatario es obligatorio.'
                 email_invalid: 'Este email no es válido.'
+                invite_unusable: "Este enlace ya no está activo: no se puede enviar."
+            send_invitation: Enviar la invitación por correo
+            send_invitation_hint: "La aplicación escribe a esta dirección con el enlace del espacio. Desmarque para enviarlo usted."
+            issued_and_invited: 'Enlace creado, invitación enviada a {email}.'
+            invite: Volver a enviar el enlace por correo
+            invited: 'Enlace enviado a {email}.'
         client_visibility:
             share_needed: "Solo una persona que puede compartir el espacio lo muestra al cliente o se lo oculta."
         space_files:
@@ -2717,8 +2728,7 @@ studio:
             subject: 'Se espera su opinión sobre {space}'
             body: "{count} contenido espera su opinión en el espacio {space}. Puede validarlo o responder «Por revisar», y comentarlo. | {count} contenidos esperan su opinión en el espacio {space}. Puede validarlos o responder «Por revisar», y comentar cada uno."
             cta: 'Abrir mi espacio'
-            replaces: 'Esta dirección sustituye a la anterior, que ya no funciona. Es personal, no la transmita.'
-            expires: 'Sigue siendo válida hasta el {date}.'
+            expires: 'Su acceso sigue siendo válido hasta el {date}.'
         space_activity:
             subject: 'Novedades en {space}'
             body: 'Su cliente ha hecho algo en el espacio {space}:'
@@ -2794,3 +2804,11 @@ studio:
             greeting: 'Hola, {name}:'
             body: 'Hemos registrado la resolución del contrato {reference}, notificada el {noticed}.'
             effective: 'Surte efecto el {date}.'
+        space_invitation:
+            subject: 'Su espacio {space} está abierto'
+            greeting: 'Hola:'
+            body: '{company} le ha abierto un espacio, {space}. Encontrará el calendario de sus contenidos, las conversaciones con el equipo y los archivos compartidos.'
+            cta: Abrir mi espacio
+            personal: 'Esta dirección es personal: abre su espacio sin contraseña. No la comparta.'
+            expires: 'Es válida hasta el {date}.'
+            fallback: 'Si el botón no funciona, copie esta dirección en su navegador:'

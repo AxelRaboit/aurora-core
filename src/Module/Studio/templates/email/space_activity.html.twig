@@ -1,3 +1,5 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
 {# What happened in a client space while nobody was looking.
 
    A single email for the space, not one per event: a client who approves three
@@ -6,6 +8,7 @@
 
    The link leads to the space, not to one of the events: that is where people
    answer, and it is also what marks the rest as read. #}
+{% block content %}
 <p>{{ 'studio.email.space_activity.body'|trans({'{space}': space.name}) }}</p>
 
 <ul>
@@ -14,6 +17,10 @@
     {% endfor %}
 </ul>
 
-<p><a href="{{ url }}">{{ 'studio.email.space_activity.cta'|trans }}</a></p>
+{{ include('@Shared/email/partials/action_button.html.twig', {
+    url: url,
+    label: 'studio.email.space_activity.cta'|trans,
+}) }}
 
-<p>{{ 'studio.email.space_activity.quiet'|trans }}</p>
+<p class="warning">{{ 'studio.email.space_activity.quiet'|trans }}</p>
+{% endblock %}

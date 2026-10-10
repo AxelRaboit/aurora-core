@@ -62,4 +62,7 @@ interface CustomerInputInterface
     public function getEstimatedValueCurrency(): ?CurrencyEnum;
 
     public function getLostReason(): ?string;
+
+    /** A language code, null for the site's email language. */
+    public function getLocale(): ?string;
 }

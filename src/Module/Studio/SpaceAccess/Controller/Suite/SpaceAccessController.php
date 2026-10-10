@@ -13,6 +13,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Dto\SpaceAccessLinkInputFactoryInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceLinkMailer;
 use Aurora\Module\Studio\SpaceAccess\Service\SpaceReviewInviter;
 use Aurora\Module\Studio\SpaceAccess\View\SpaceAccessViewBuilder;
 use DateTimeImmutable;
@@ -47,6 +48,7 @@ class SpaceAccessController extends AbstractController
         protected readonly SpaceAccessViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly SpaceReviewInviter $reviewInviter,
+        protected readonly SpaceLinkMailer $linkMailer,
     ) {}
 
     /**
@@ -123,7 +125,8 @@ class SpaceAccessController extends AbstractController
     #[IsGranted('studio.spaces.share')]
     public function issue(CustomerSpace $space, Request $request): JsonResponse
     {
-        $input = $this->inputFactory->fromArray($this->decodeJson($request));
+        $payload = $this->decodeJson($request);
+        $input = $this->inputFactory->fromArray($payload);
 
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
@@ -142,7 +145,33 @@ class SpaceAccessController extends AbstractController
             $input->canSeeDrive(),
         );
 
-        return $this->jsonSuccess($this->viewBuilder->issuedPayload($space, $link));
+        // Written by the application when asked, which the screen does by
+        // default: the address is still readable here, and only here.
+        $invited = true === ($payload['sendInvitation'] ?? false) && $this->linkMailer->invite($link);
+
+        return $this->jsonSuccess([...$this->viewBuilder->issuedPayload($space, $link), 'invited' => $invited]);
+    }
+
+    /**
+     * Writes the link's address to its recipient again.
+     *
+     * Nothing is revoked: the mail carries the address the application can
+     * rebuild, which opens the same page as the one they may have bookmarked.
+     */
+    #[Route('/{linkId}/invite', name: '_invite', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.share')]
+    public function invite(
+        CustomerSpace $space,
+        #[MapEntity(id: 'linkId')]
+        SpaceAccessLink $link,
+    ): JsonResponse {
+        $this->assertOwned($space, $link);
+
+        if (!$this->linkMailer->invite($link)) {
+            return $this->jsonFailure('suite.studio.space_access.errors.invite_unusable', HttpStatusEnum::Conflict->value);
+        }
+
+        return $this->jsonSuccess([...$this->viewBuilder->listPayload($space), 'invited' => true]);
     }
 
     /**

@@ -106,6 +106,7 @@ suite:
                     opened: Espace ouvert par un client
                     alias_given: "Adresse courte donnée à un lien client"
                     alias_removed: "Adresse courte retirée d'un lien client"
+                    invitation_sent: Lien d'accès envoyé par email
                 space_file:
                     added: Fichier ajouté à un espace
                     sent_by_client: Fichier envoyé par le client dans un espace
@@ -950,6 +951,10 @@ suite:
                 follow_up_note_too_long: "Ce rappel ne peut pas dépasser 255 caractères."
                 estimated_value_invalid: "Le montant estimé ne peut pas être négatif."
                 lost_reason_too_long: "La raison ne peut pas dépasser 255 caractères."
+                locale_invalid: Cette langue n'est pas active sur le site.
+            locale: Langue des emails
+            locale_hint: "La langue des messages que l'application lui envoie : espace client, invitations, et celle proposée pour ses contrats."
+            locale_default: "Celle du site"
         pipeline:
             card_title: "Suivi"
             card_hint: "Où en est l'affaire, et quand revenir vers lui."
@@ -1284,6 +1289,12 @@ suite:
                 alias_unusable: "Ce lien n'est plus actif : il ne peut pas recevoir d'adresse courte."
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+                invite_unusable: "Ce lien n'est plus actif : il ne peut plus être envoyé."
+            send_invitation: Envoyer l'invitation par email
+            send_invitation_hint: "L'application écrit à cette adresse avec le lien de l'espace. Décochez pour l'envoyer vous-même."
+            issued_and_invited: 'Lien créé, invitation envoyée à {email}.'
+            invite: Renvoyer le lien par email
+            invited: 'Lien envoyé à {email}.'
         client_visibility:
             share_needed: "Seule une personne qui peut partager l'espace le montre au client ou le lui cache."
         space_files:
@@ -2758,8 +2769,7 @@ studio:
             subject: 'Votre avis est attendu sur {space}'
             body: "{count} contenu attend votre avis dans l'espace {space}. Vous pouvez le valider ou répondre « À revoir », et le commenter. | {count} contenus attendent votre avis dans l'espace {space}. Vous pouvez les valider ou répondre « À revoir », et commenter chacun d'eux."
             cta: Ouvrir mon espace
-            replaces: "Cette adresse remplace la précédente, qui ne fonctionne plus. Elle est personnelle, ne la transmettez pas."
-            expires: 'Elle reste valable jusqu''au {date}.'
+            expires: 'Votre accès reste valable jusqu''au {date}.'
         space_activity:
             subject: 'Du nouveau dans {space}'
             body: "Votre client a fait quelque chose dans l'espace {space} :"
@@ -2835,3 +2845,11 @@ studio:
             greeting: 'Bonjour {name},'
             body: 'Nous avons enregistré la résiliation du contrat {reference}, notifiée le {noticed}.'
             effective: 'Elle prend effet le {date}.'
+        space_invitation:
+            subject: 'Votre espace {space} est ouvert'
+            greeting: 'Bonjour,'
+            body: '{company} vous a ouvert un espace, {space}. Vous y trouverez le calendrier de vos contenus, les échanges avec l''équipe et les fichiers partagés.'
+            cta: Ouvrir mon espace
+            personal: 'Cette adresse vous est personnelle : elle ouvre votre espace sans mot de passe. Ne la transmettez pas.'
+            expires: 'Elle est valable jusqu''au {date}.'
+            fallback: 'Si le bouton ne fonctionne pas, copiez cette adresse dans votre navigateur :'

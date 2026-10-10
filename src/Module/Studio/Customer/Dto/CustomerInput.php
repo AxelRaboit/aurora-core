@@ -91,6 +91,8 @@ class CustomerInput implements CustomerInputInterface
         public readonly ?CurrencyEnum $estimatedValueCurrency = null,
         #[Assert\Length(max: 255, maxMessage: 'suite.studio.customers.errors.lost_reason_too_long')]
         public readonly ?string $lostReason = null,
+        #[Assert\Length(max: 5)]
+        public readonly ?string $locale = null,
     ) {}
 
     /**
@@ -255,5 +257,10 @@ class CustomerInput implements CustomerInputInterface
     public function getLostReason(): ?string
     {
         return $this->lostReason;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
     }
 }

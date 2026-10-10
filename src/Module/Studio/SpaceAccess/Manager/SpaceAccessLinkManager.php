@@ -186,8 +186,10 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         // it they have right. The short address's token opens the same page
         // (10/10/2026), as long as the short address exists.
         $aliasToken = $this->aliasToken($link);
+        $mailToken = $this->mailToken($link);
         if (!hash_equals($link->getHashedToken(), AbstractSpaceAccessLink::hashToken($token))
-            && (null === $aliasToken || !hash_equals($aliasToken, $token))) {
+            && (null === $aliasToken || !hash_equals($aliasToken, $token))
+            && (null === $mailToken || !hash_equals($mailToken, $token))) {
             return null;
         }
 
@@ -312,6 +314,29 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         }
 
         return hash_hmac('sha256', 'space-alias|'.$link->getSelector().'|'.$aliasHash, $this->secret);
+    }
+
+    /**
+     * The token the application's own mails carry, computed and never stored.
+     *
+     * **The mails need an address they can write again.** The long address
+     * exists once, at creation, and the review invitation had to mint a new
+     * link to have one to send - revoking the address the client had
+     * bookmarked each time. A digest written every half hour cannot do that.
+     *
+     * Same construction as {@see aliasToken()}: signed with the application's
+     * secret over the selector and the stored hash, so it opens what the long
+     * address opens, under the same conditions, changes when the link is
+     * reissued and dies when it is revoked or expires. Nothing in the
+     * database opens the space without the application's secret.
+     */
+    public function mailToken(SpaceAccessLinkInterface $link): ?string
+    {
+        if ('' === $this->secret || $link->isPreview()) {
+            return null;
+        }
+
+        return hash_hmac('sha256', 'space-mail|'.$link->getSelector().'|'.$link->getHashedToken(), $this->secret);
     }
 
     /** Lowercase ASCII words joined by dashes, cut at a word. */

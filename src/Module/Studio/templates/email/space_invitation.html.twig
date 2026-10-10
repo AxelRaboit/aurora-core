@@ -1,0 +1,26 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{# The address of a client space, written by the application to the person it
+   is for. It replaced a copy and paste: the studio used to send the link from
+   their own mailbox, or forget to.
+
+   Says what the space is for in one line, and what the address is: personal,
+   valid until a date, and the only door - there is no account to log in to. #}
+{% block content %}
+<p>{{ 'studio.email.space_invitation.greeting'|trans }}</p>
+
+<p>{{ 'studio.email.space_invitation.body'|trans({'{company}': siteName, '{space}': space.name}) }}</p>
+
+{{ include('@Shared/email/partials/action_button.html.twig', {
+    url: url,
+    label: 'studio.email.space_invitation.cta'|trans,
+}) }}
+
+<p class="warning">{{ 'studio.email.space_invitation.personal'|trans }}</p>
+<p class="warning">{{ 'studio.email.space_invitation.expires'|trans({'{date}': expiresAt|site_date}) }}</p>
+
+<div class="subcopy">
+    <p class="sub">{{ 'studio.email.space_invitation.fallback'|trans }}</p>
+    <p class="fallback"><a href="{{ url }}">{{ url }}</a></p>
+</div>
+{% endblock %}

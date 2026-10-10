@@ -57,5 +57,8 @@ interface SpaceAccessLinkManagerInterface
     /** The token the short address redirects with, or null without one. */
     public function aliasToken(SpaceAccessLinkInterface $link): ?string;
 
+    /** The token the application's own mails open this link with, or null without a secret. */
+    public function mailToken(SpaceAccessLinkInterface $link): ?string;
+
     public function markOpened(SpaceAccessLinkInterface $link): void;
 }

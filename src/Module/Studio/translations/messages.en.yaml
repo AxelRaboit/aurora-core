@@ -106,6 +106,7 @@ suite:
                     opened: Space opened by a client
                     alias_given: "Short address given to a client link"
                     alias_removed: "Short address removed from a client link"
+                    invitation_sent: Access link sent by email
                 space_file:
                     added: File added to a space
                     sent_by_client: File sent by the client to a space
@@ -950,6 +951,10 @@ suite:
                 follow_up_note_too_long: "This reminder cannot exceed 255 characters."
                 estimated_value_invalid: "The estimated value cannot be negative."
                 lost_reason_too_long: "The reason cannot exceed 255 characters."
+                locale_invalid: This language is not active on the site.
+            locale: Email language
+            locale_hint: "The language of the messages the application sends them: client space, invitations, and the one suggested for their contracts."
+            locale_default: "The site's"
         pipeline:
             card_title: "Follow-up"
             card_hint: "Where the deal stands, and when to get back to them."
@@ -1284,6 +1289,12 @@ suite:
                 alias_unusable: "This link is no longer active: it cannot get a short address."
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
+                invite_unusable: "This link is no longer active: it cannot be sent any more."
+            send_invitation: Send the invitation by email
+            send_invitation_hint: "The application writes to this address with the space's link. Untick to send it yourself."
+            issued_and_invited: 'Link created, invitation sent to {email}.'
+            invite: Send the link again by email
+            invited: 'Link sent to {email}.'
         client_visibility:
             share_needed: "Only someone who can share the space shows it to the client or hides it from them."
         space_files:
@@ -2751,8 +2762,7 @@ studio:
             subject: 'Your answer is needed on {space}'
             body: "{count} content item is waiting for your answer in the {space} space. You can approve it or answer “Changes requested”, and comment on it. | {count} content items are waiting for your answer in the {space} space. You can approve them or answer “Changes requested”, and comment on each one."
             cta: Open my space
-            replaces: 'This address replaces the previous one, which no longer works. It is personal, please do not pass it on.'
-            expires: 'It stays valid until {date}.'
+            expires: 'Your access stays valid until {date}.'
         space_activity:
             subject: 'Something new in {space}'
             body: 'Your client did something in the {space} space:'
@@ -2828,3 +2838,11 @@ studio:
             greeting: 'Hello {name},'
             body: 'We have recorded the termination of contract {reference}, notified on {noticed}.'
             effective: 'It takes effect on {date}.'
+        space_invitation:
+            subject: 'Your {space} space is open'
+            greeting: 'Hello,'
+            body: '{company} has opened a space for you, {space}. You will find the calendar of your content, the conversation with the team and the shared files.'
+            cta: Open my space
+            personal: 'This address is personal: it opens your space without a password. Do not pass it on.'
+            expires: 'It is valid until {date}.'
+            fallback: 'If the button does not work, copy this address into your browser:'

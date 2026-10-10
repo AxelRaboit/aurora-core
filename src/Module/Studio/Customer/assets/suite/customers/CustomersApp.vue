@@ -45,6 +45,7 @@ let deliverBoard = null;
 const props = defineProps({
     customers: { type: Array, default: () => [] },
     currencies: { type: Array, default: () => [] },
+    locales: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
     /** A customer's page, with `__id__`: the sheet is edited there. */
     showPath: { type: String, required: true },
@@ -560,6 +561,7 @@ const pageActions = computed(() => {
                     v-model="newCustomer"
                     :errors="createErrors"
                     :currencies="currencies"
+                    :locales="locales"
                 />
             </form>
             <template #footer>

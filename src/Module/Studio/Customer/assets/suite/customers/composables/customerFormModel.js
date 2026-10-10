@@ -24,6 +24,8 @@ export function emptyCustomerForm() {
         representativeLastName: "",
         representativeRole: "",
         contractualEmail: "",
+        // Empty: the site's email language.
+        locale: "",
         phone: "",
         landline: "",
         links: [],
@@ -80,6 +82,7 @@ export function customerFormFrom(customer) {
         representativeLastName: customer?.representativeLastName ?? "",
         representativeRole: customer?.representativeRole ?? "",
         contractualEmail: customer?.contractualEmail ?? "",
+        locale: customer?.locale ?? "",
         phone: customer?.phone ?? "",
         landline: customer?.landline ?? "",
         // Copied row by row: sharing the received array would move what the
