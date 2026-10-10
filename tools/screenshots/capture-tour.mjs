@@ -1802,6 +1802,63 @@ const SHOTS = [
     },
 
     /**
+     * The prospect pipeline (4.10.0): the Prospects tab drawn as a board, one
+     * column per stage, the follow-ups late and due today on the cards. The
+     * tab is remembered in the browser, so `after` puts the list back on its
+     * clients: `tour-client-page` looks for a client by name.
+     */
+    {
+        name: "tour-clients-tableau",
+        path: "/suite/studio/customers?shape=board",
+        async prepare(page) {
+            // The five stages do not fit beside the side menu at 1600 px: the
+            // menu is hidden for this shot, and shown again in `after` - the
+            // choice is stored on the account, every next shot would lose it.
+            await page.getByRole("button", { name: "Masquer le menu", exact: true }).first().click();
+            await page.locator('main [data-customers-view="prospect"]').click();
+            await page.locator("[data-prospect-board]").waitFor();
+            await page.waitForTimeout(1_500);
+        },
+        async after(page) {
+            await page.locator('main [data-customers-view="client"]').click();
+            await page.getByRole("button", { name: "Afficher le menu", exact: true }).first().click();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // The follow-ups due across both tabs, where the side menu's pill and
+        // the dashboard's line lead.
+        name: "tour-clients-relances",
+        path: "/suite/studio/customers?followUps=due",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+        },
+        async after(page) {
+            await page.locator('main [data-customers-view="client"]').click();
+        },
+    },
+    {
+        // A prospect's follow-up on its page: the stage, the follow-up due
+        // today, the estimate and the history of exchanges. Menuiserie Fabre,
+        // the prospect the demo gives a meeting and a call.
+        name: "tour-client-suivi",
+        path: "/suite/studio/customers",
+        async prepare(page) {
+            await page.locator('main [data-customers-view="prospect"]').click();
+            await page.locator("main").getByRole("link", { name: "Menuiserie Fabre", exact: true }).first().click();
+            await page.waitForLoadState("domcontentloaded");
+            await page.locator("[data-customer-pipeline]").waitFor();
+            await page.locator("[data-customer-pipeline]").evaluate((element) => element.scrollIntoView({ block: "start" }));
+            await page.mouse.wheel(0, -90);
+            await page.waitForTimeout(1_500);
+        },
+        async after(page) {
+            await page.goto(`${BASE_URL}/suite/studio/customers`);
+            await page.locator('main [data-customers-view="client"]').click();
+        },
+    },
+
+    /**
      * The header carousel: the demo's home page has three slides in it.
      * The second rather than the first, so it is visible that it is one.
      * "Diapositive 2" is a tab, not a button: targeted by its text.
