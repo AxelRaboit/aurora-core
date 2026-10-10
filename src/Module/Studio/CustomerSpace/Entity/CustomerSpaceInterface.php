@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -63,6 +64,10 @@ interface CustomerSpaceInterface
     public function setDriveLockGeneration(?string $driveLockGeneration): static;
 
     public function setTimezone(string $timezone): static;
+
+    public function getClientDigest(): ClientDigestModeEnum;
+
+    public function setClientDigest(ClientDigestModeEnum $clientDigest): static;
 
     /** @return Collection<int, CustomerSpaceMemberInterface> */
     public function getMembers(): Collection;

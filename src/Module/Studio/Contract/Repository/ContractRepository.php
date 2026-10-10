@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -263,6 +264,49 @@ class ContractRepository extends ResolveTargetEntityRepository
             ->andWhere('c.amends = :parent')
             ->setParameter('parent', $parent)
             ->orderBy('c.createdAt', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The concluded contracts whose termination takes effect on this day.
+     *
+     * @return list<ContractInterface>
+     */
+    public function findTerminationsEffectiveOn(DateTimeImmutable $day): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.status = :concluded')
+            ->andWhere('c.terminationEffectiveAt = :day')
+            ->setParameter('concluded', ContractStatusEnum::Countersigned)
+            ->setParameter('day', $day, Types::DATE_IMMUTABLE)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * A customer's contracts as their client space shows them: the ones that
+     * reached them, newest first. A draft, a sealed contract never sent, a
+     * cancelled one and a link left to lapse or revoked are the studio's
+     * business, not the customer's.
+     *
+     * @return list<ContractInterface>
+     */
+    public function findShownToCustomer(CustomerInterface $customer): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.customer = :customer')
+            ->andWhere('c.status IN (:statuses)')
+            ->setParameter('customer', $customer)
+            ->setParameter('statuses', [
+                ContractStatusEnum::Sent,
+                ContractStatusEnum::Opened,
+                ContractStatusEnum::SignedByCustomer,
+                ContractStatusEnum::Countersigned,
+                ContractStatusEnum::Refused,
+            ])
+            ->orderBy('c.createdAt', Order::Descending->value)
+            ->addOrderBy('c.id', Order::Descending->value)
             ->getQuery()
             ->getResult();
     }

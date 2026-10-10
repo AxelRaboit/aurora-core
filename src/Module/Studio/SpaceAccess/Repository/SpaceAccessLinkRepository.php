@@ -103,6 +103,62 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Every address of this space that still opens it, previews left out.
+     *
+     * @return list<SpaceAccessLinkInterface>
+     */
+    public function findUsableForSpace(CustomerSpaceInterface $space, DateTimeImmutable $now): array
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.space = :space')
+            ->andWhere('l.previewOf IS NULL')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->setParameter('space', $space)
+            ->setParameter('now', $now)
+            ->orderBy('l.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The live links of these spaces that stop working between now and then,
+     * per space: an access that runs out unnoticed is a client who finds a
+     * dead page.
+     *
+     * @param list<int> $spaceIds
+     *
+     * @return array<int, int> space id => count
+     */
+    public function countExpiringBySpace(array $spaceIds, DateTimeImmutable $now, DateTimeImmutable $before): array
+    {
+        if ([] === $spaceIds) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('l')
+            ->select('IDENTITY(l.space) AS space, COUNT(l.id) AS expiring')
+            ->where('l.space IN (:spaces)')
+            ->andWhere('l.previewOf IS NULL')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->andWhere('l.expiresAt <= :before')
+            ->setParameter('spaces', $spaceIds)
+            ->setParameter('now', $now)
+            ->setParameter('before', $before)
+            ->groupBy('l.space')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['space']] = (int) $row['expiring'];
+        }
+
+        return $counts;
+    }
+
     /** A link's current preview, if there is one. */
     public function findPreviewOf(SpaceAccessLinkInterface $link): ?SpaceAccessLinkInterface
     {

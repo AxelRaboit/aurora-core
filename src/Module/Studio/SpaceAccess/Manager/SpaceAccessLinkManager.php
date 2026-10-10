@@ -76,6 +76,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         bool $canChat = true,
         bool $canUpload = false,
         bool $canSeeDrive = true,
+        bool $canSeeContracts = false,
     ): SpaceAccessLinkInterface {
         $days = max(1, min(static::MAX_VALID_DAYS, $validForDays));
 
@@ -90,6 +91,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setCanChat($canChat)
             ->setCanUpload($canUpload)
             ->setCanSeeDrive($canSeeDrive)
+            ->setCanSeeContracts($canSeeContracts)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
 
         $this->entityManager->persist($link);
@@ -137,6 +139,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setCanChat($source->canChat())
             ->setCanUpload($source->canUpload())
             ->setCanSeeDrive($source->canSeeDrive())
+            ->setCanSeeContracts($source->canSeeContracts())
             ->setPreviewOf($source)
             // A few minutes: time to look, not time to forget.
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d minutes', static::PREVIEW_MINUTES)));
@@ -155,6 +158,27 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         $this->entityManager->flush();
 
         $this->auditRevoked($link);
+    }
+
+    /**
+     * Gives a link its full validity again, counted from today.
+     *
+     * The address does not change, so the client's bookmark and the mails
+     * already sent keep working: renewing an access used to mean issuing a
+     * new link and sending it again, which is why accesses were left to run
+     * out. A revoked link is a decision and stays closed; an expired one can
+     * be brought back, which is the case this is most often for.
+     */
+    public function extend(SpaceAccessLinkInterface $link): void
+    {
+        if ($link->getRevokedAt() instanceof DateTimeImmutable || $link->isPreview()) {
+            return;
+        }
+
+        $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', static::DEFAULT_VALID_DAYS)));
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'space_access_link.extended', 'SpaceAccessLink', $link->getId(), $this->auditPayload($link));
     }
 
     /**
@@ -186,8 +210,10 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         // it they have right. The short address's token opens the same page
         // (10/10/2026), as long as the short address exists.
         $aliasToken = $this->aliasToken($link);
+        $mailToken = $this->mailToken($link);
         if (!hash_equals($link->getHashedToken(), AbstractSpaceAccessLink::hashToken($token))
-            && (null === $aliasToken || !hash_equals($aliasToken, $token))) {
+            && (null === $aliasToken || !hash_equals($aliasToken, $token))
+            && (null === $mailToken || !hash_equals($mailToken, $token))) {
             return null;
         }
 
@@ -312,6 +338,29 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         }
 
         return hash_hmac('sha256', 'space-alias|'.$link->getSelector().'|'.$aliasHash, $this->secret);
+    }
+
+    /**
+     * The token the application's own mails carry, computed and never stored.
+     *
+     * **The mails need an address they can write again.** The long address
+     * exists once, at creation, and the review invitation had to mint a new
+     * link to have one to send - revoking the address the client had
+     * bookmarked each time. A digest written every half hour cannot do that.
+     *
+     * Same construction as {@see aliasToken()}: signed with the application's
+     * secret over the selector and the stored hash, so it opens what the long
+     * address opens, under the same conditions, changes when the link is
+     * reissued and dies when it is revoked or expires. Nothing in the
+     * database opens the space without the application's secret.
+     */
+    public function mailToken(SpaceAccessLinkInterface $link): ?string
+    {
+        if ('' === $this->secret || $link->isPreview()) {
+            return null;
+        }
+
+        return hash_hmac('sha256', 'space-mail|'.$link->getSelector().'|'.$link->getHashedToken(), $this->secret);
     }
 
     /** Lowercase ASCII words joined by dashes, cut at a word. */

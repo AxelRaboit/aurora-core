@@ -27,6 +27,8 @@ suite:
                 all: Tous les espaces
             attention_title: À traiter
             attention_empty: Rien n'attend chez vos clients.
+            unscoped_title: Contrats et livrables
+            unscoped_hint: "Tous les contrats, quel que soit l'espace : la liste des contrats n'a pas de filtre par espace."
     modules:
         studio: Studio
         studio_suite: Studio
@@ -104,6 +106,8 @@ suite:
                     opened: Espace ouvert par un client
                     alias_given: "Adresse courte donnée à un lien client"
                     alias_removed: "Adresse courte retirée d'un lien client"
+                    invitation_sent: Lien d'accès envoyé par email
+                    extended: Lien d'accès client prolongé
                 space_file:
                     added: Fichier ajouté à un espace
                     sent_by_client: Fichier envoyé par le client dans un espace
@@ -160,6 +164,8 @@ suite:
                     signed_by_customer: 'Contrat signé par le client'
                     countersigned: 'Contrat conclu'
                     deleted: Contrat supprimé
+                    cancellation_sent: Annulation signalée au client
+                    termination_sent: Résiliation signalée au client
     permissions:
         names:
             studio:
@@ -377,6 +383,7 @@ suite:
                 ended: 'Contrat résilié depuis le {date}'
                 ending: 'Résiliation en cours, effet au {date}'
                 noticed: 'Préavis donné le {date}, à l''initiative de : {origin}.'
+                notify_customer: 'Envoyer la résiliation et sa date d''effet au client ({email})'
             refused_at: 'Refusé le'
             refusal_reason: 'Motif du refus'
             refusal_no_reason: 'Aucun motif indiqué'
@@ -501,6 +508,7 @@ suite:
                     cancel: 'Annuler ce contrat ? Il n''aura plus d''effet et ne pourra plus être envoyé. Sa référence reste dans la liste.'
                     cancel_duplicate: Créer aussi un brouillon avec les mêmes choix, pour le corriger
                     delete: 'Supprimer ce contrat ? C''est définitif.'
+                    cancel_notify: 'Prévenir le client par email ({email})'
                 done:
                     frozen: 'Contrat scellé : il a reçu sa référence.'
                     sent: 'Contrat envoyé à {email}.'
@@ -539,6 +547,9 @@ suite:
                     no_history: Rien d'enregistré pour l'instant.
                     version_outdated: 'Version {number} ; la version {latest} est en vigueur depuis.'
                     version: 'version {number}'
+                waiting_long: "{count} contrat attend une signature depuis plus de {days} jours. | {count} contrats attendent une signature depuis plus de {days} jours."
+                waiting_long_manual: "La relance automatique est éteinte (Réglages > Studio) : relancez-les depuis leur page."
+                waiting_long_show: Les voir
             status:
                 draft: Brouillon
                 sealed: Scellé
@@ -944,6 +955,10 @@ suite:
                 follow_up_note_too_long: "Ce rappel ne peut pas dépasser 255 caractères."
                 estimated_value_invalid: "Le montant estimé ne peut pas être négatif."
                 lost_reason_too_long: "La raison ne peut pas dépasser 255 caractères."
+                locale_invalid: Cette langue n'est pas active sur le site.
+            locale: Langue des emails
+            locale_hint: "La langue des messages que l'application lui envoie : espace client, invitations, et celle proposée pour ses contrats."
+            locale_default: "Celle du site"
         pipeline:
             card_title: "Suivi"
             card_hint: "Où en est l'affaire, et quand revenir vers lui."
@@ -1203,6 +1218,14 @@ suite:
                 customer_required: Choisissez le client à qui cet espace appartient.
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
                 team_lead_only: "Seul le référent de l'espace peut changer son équipe et ses rôles."
+                client_digest_needs_share: "Choisir si le client est prévenu demande le droit de partager l'espace."
+            client_digest:
+                label: Prévenir le client par email
+                hint: "Ce que fait l'équipe dans l'espace (messages, fichiers, contenus à valider) est résumé dans un email au client. Sa page le montre de toute façon à sa prochaine visite."
+                modes:
+                    off: Jamais
+                    delayed: "Une demi-heure après votre dernier geste"
+                    daily: Chaque matin à 8 h
         space_access:
             guide:
                 title: "Comment fonctionnent les liens d'accès"
@@ -1278,6 +1301,16 @@ suite:
                 alias_unusable: "Ce lien n'est plus actif : il ne peut pas recevoir d'adresse courte."
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+                invite_unusable: "Ce lien n'est plus actif : il ne peut plus être envoyé."
+            send_invitation: Envoyer l'invitation par email
+            send_invitation_hint: "L'application écrit à cette adresse avec le lien de l'espace. Décochez pour l'envoyer vous-même."
+            issued_and_invited: 'Lien créé, invitation envoyée à {email}.'
+            invite: Renvoyer le lien par email
+            invited: 'Lien envoyé à {email}.'
+            can_see_contracts: Voit les contrats du client
+            can_see_contracts_hint: "Un onglet Contrats liste ce qui lui a été envoyé, propose de signer celui qui attend et de télécharger les copies signées. La signature demande toujours le code envoyé à l'adresse contractuelle."
+            extend: 'Prolonger de {days} jours'
+            extended: 'Accès prolongé de {days} jours, à la même adresse.'
         client_visibility:
             share_needed: "Seule une personne qui peut partager l'espace le montre au client ou le lui cache."
         space_files:
@@ -2355,6 +2388,8 @@ suite:
             approved_many: '%who% a validé %count% contenus'
             changes_requested: "%who% a répondu « À revoir » sur « %item% »"
             late_review: '{1}Une relecture en retard|]1,Inf[%count% relectures en retard'
+            team_added: 'Vous faites partie de l''équipe de %space%'
+            channel_invited: 'Vous avez été ajouté au canal %channel% (%space%)'
         space_chat:
             guide:
                 title: "Comment fonctionne la discussion"
@@ -2541,6 +2576,12 @@ suite:
                 # space are filed. Read in the GED, not here.
                 category: Espaces clients
                 category_description: Fichiers déposés sur les contenus d'un espace client, par le studio ou par le client lui-même.
+        contract_notifications:
+            # Told to the members of the customer's spaces, each in their own language.
+            signed: 'Contrat {reference} signé par le client, à contresigner'
+            refused: 'Contrat {reference} refusé par le client'
+            expired: 'Contrat {reference} : lien expiré sans signature'
+            termination_effective: 'Contrat {reference} : la résiliation prend effet aujourd''hui'
 studio:
     contract:
         # Written into the document itself, so sealed with it: these sentences go
@@ -2714,6 +2755,24 @@ studio:
                 upload_failed: L'envoi n'a pas abouti. Réessayez.
                 upload_too_large: Ce fichier dépasse 25 Mo. Envoyez une version plus légère.
                 upload_type_refused: Ce type de fichier n'est pas accepté. Images, PDF et vidéos courantes uniquement.
+            news_title: Depuis votre dernière visite
+            tab_contracts: Contrats
+            todo_title: À faire
+            todo:
+                review: "{count} contenu attend votre avis | {count} contenus attendent votre avis"
+                sign: "{count} contrat à signer | {count} contrats à signer"
+            contracts:
+                title: 'Contrat {reference}'
+                amendment_title: 'Avenant {reference} au contrat {parent}'
+                steps:
+                    to_sign: À lire et signer.
+                    awaiting_countersignature: "Signé par vous, en attente de la contresignature."
+                    concluded: "Conclu : signé par les deux parties."
+                    refused: "Vous l'avez refusé. Une nouvelle version peut vous être adressée."
+                    ended: Résilié.
+                ended_on: 'Fin le {date}'
+                sign: Lire et signer
+                download: Télécharger le PDF signé
         unavailable:
             title: Ce lien n'est plus valide
             message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez un contrat, demandez un nouveau lien à votre interlocuteur.
@@ -2746,8 +2805,7 @@ studio:
             subject: 'Votre avis est attendu sur {space}'
             body: "{count} contenu attend votre avis dans l'espace {space}. Vous pouvez le valider ou répondre « À revoir », et le commenter. | {count} contenus attendent votre avis dans l'espace {space}. Vous pouvez les valider ou répondre « À revoir », et commenter chacun d'eux."
             cta: Ouvrir mon espace
-            replaces: "Cette adresse remplace la précédente, qui ne fonctionne plus. Elle est personnelle, ne la transmettez pas."
-            expires: 'Elle reste valable jusqu''au {date}.'
+            expires: 'Votre accès reste valable jusqu''au {date}.'
         space_activity:
             subject: 'Du nouveau dans {space}'
             body: "Votre client a fait quelque chose dans l'espace {space} :"
@@ -2766,6 +2824,7 @@ studio:
             cta: 'Ouvrir le contrat et le signer'
             replaces: 'Ce lien remplace celui du message précédent, qui n''est plus valide.'
             expires: 'Ce lien est valide jusqu''au {date}.'
+            subject_amendment: 'Rappel : l''avenant {reference} au contrat {parent} attend votre signature'
         contracts_integrity:
             subject: 'Contrats : un document scellé a changé'
             body: 'La vérification quotidienne a relu les contrats scellés ({count}), et tout ne correspond plus à ce qui a été scellé.'
@@ -2797,3 +2856,51 @@ studio:
             expiry: 'Ce lien est valide jusqu''au {date}.'
             warning: Ce lien vous est personnel. Ne le transmettez pas.
             signature: '{company}'
+            subject_amendment: 'Un avenant au contrat {parent} attend votre signature'
+        signature_received:
+            subject: 'Contrat {reference} : votre signature est enregistrée'
+            body: 'Nous avons bien reçu votre signature du contrat {reference}, le {at}.'
+            next: 'Il sera conclu dès que {company} l''aura contresigné. Vous recevrez alors le document signé par les deux parties.'
+            hash: 'Empreinte du document signé : {hash}'
+        refusal_received:
+            subject: 'Contrat {reference} : votre refus est enregistré'
+            body: 'Votre refus du contrat {reference} est enregistré, le {at}.'
+            reason: 'Motif que vous avez indiqué :'
+            next: '{company} peut vous adresser une nouvelle version. Elle arrivera avec un nouveau lien.'
+        contract_expired:
+            subject: 'Contrat {reference} : lien expiré sans signature'
+            body: 'Le lien de signature du contrat {reference} ({customer}) a expiré sans que le client ait signé.'
+            action: 'Vous pouvez le renvoyer, ce qui crée un nouveau lien, ou l''annuler depuis la suite.'
+        contract_cancelled:
+            subject: 'Contrat {reference} annulé'
+            greeting: 'Bonjour {name},'
+            body: '{company} a annulé le contrat {reference} qui vous avait été adressé. Il n''a pas d''effet et vous n''avez rien à faire.'
+            link: 'Le lien de signature que vous avez reçu ne fonctionne plus.'
+        contract_terminated:
+            subject: 'Contrat {reference} : résiliation enregistrée'
+            greeting: 'Bonjour {name},'
+            body: 'Nous avons enregistré la résiliation du contrat {reference}, notifiée le {noticed}.'
+            effective: 'Elle prend effet le {date}.'
+        space_invitation:
+            subject: 'Votre espace {space} est ouvert'
+            greeting: 'Bonjour,'
+            body: '{company} vous a ouvert un espace, {space}. Vous y trouverez le calendrier de vos contenus, les échanges avec l''équipe et les fichiers partagés.'
+            cta: Ouvrir mon espace
+            personal: 'Cette adresse vous est personnelle : elle ouvre votre espace sans mot de passe. Ne la transmettez pas.'
+            expires: 'Elle est valable jusqu''au {date}.'
+            fallback: 'Si le bouton ne fonctionne pas, copiez cette adresse dans votre navigateur :'
+        client_digest:
+            subject: 'Du nouveau dans votre espace {space}'
+            body: '{company} a avancé dans votre espace {space} :'
+            cta: Ouvrir mon espace
+            why: 'Vous recevez ce message parce que {company} vous a ouvert cet espace. Ce que vous avez déjà vu dans votre espace ne vous est pas renvoyé.'
+    client_notices:
+        lines:
+            studio_message: "{count} nouveau message de {names} | {count} nouveaux messages de {names}"
+            studio_comment: "{count} commentaire de l'équipe sur : {names} | {count} commentaires de l'équipe sur : {names}"
+            awaiting_review: "{count} contenu attend votre avis : {names} | {count} contenus attendent votre avis : {names}"
+            approval_reset: "{count} contenu a changé depuis votre réponse, à revoir : {names} | {count} contenus ont changé depuis votre réponse, à revoir : {names}"
+            review_due: "{count} contenu à relire avant demain : {names} | {count} contenus à relire avant demain : {names}"
+            file_shared: "{count} fichier partagé : {names} | {count} fichiers partagés : {names}"
+            resource_shared: "{count} ressource ajoutée : {names} | {count} ressources ajoutées : {names}"
+            deliverable_shared: "{count} document partagé : {names} | {count} documents partagés : {names}"

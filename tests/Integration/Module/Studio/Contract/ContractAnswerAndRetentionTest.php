@@ -258,7 +258,7 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
             }
         }
 
-        self::assertCount(3, $subjects, 'The sending, the reminder and the refusal.');
+        self::assertCount(4, $subjects, 'The sending, the reminder, the refusal to the provider and its receipt to the customer.');
         foreach (array_slice($subjects, 1) as $subject) {
             self::assertStringContainsString((string) $contract->getReference(), $subject);
             self::assertStringNotContainsString('{', $subject);

@@ -157,6 +157,53 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The contracts with the customer whose live link runs out before this
+     * moment: a signature that will lapse if nobody chases it.
+     */
+    public function countWaitingWithLinkExpiringBefore(DateTimeImmutable $before): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(DISTINCT IDENTITY(l.contract))')
+            ->join('l.contract', 'c')
+            ->andWhere('c.status IN (:waiting)')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.sentAt IS NOT NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->andWhere('l.expiresAt <= :before')
+            ->setParameter('waiting', [ContractStatusEnum::Sent, ContractStatusEnum::Opened])
+            ->setParameter('now', new DateTimeImmutable())
+            ->setParameter('before', $before)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * The contracts with the customer, unanswered, whose live link went out
+     * before this moment: the wait that has become long.
+     *
+     * @return list<ContractInterface>
+     */
+    public function findWaitingSentBefore(DateTimeImmutable $before): array
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('c')
+            ->from(ContractInterface::class, 'c')
+            ->join(ContractAccessLinkInterface::class, 'l', 'WITH', 'l.contract = c')
+            ->andWhere('c.status IN (:waiting)')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.sentAt IS NOT NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->andWhere('l.sentAt <= :before')
+            ->setParameter('waiting', [ContractStatusEnum::Sent, ContractStatusEnum::Opened])
+            ->setParameter('now', new DateTimeImmutable())
+            ->setParameter('before', $before)
+            ->groupBy('c.id')
+            ->orderBy('c.id')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Contracts out with the customer that no link opens any more: every
      * address handed out has run out or been revoked.
      *

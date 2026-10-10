@@ -94,6 +94,21 @@ const amendedContract = computed(() =>
     props.amendable.find((contract) => contract.id === Number(form.value.amendsId)),
 );
 
+/**
+ * The customer, and the language they read in when their sheet says so.
+ *
+ * Followed rather than imposed: the select stays free, and a customer with no
+ * language on their sheet leaves the one already chosen alone.
+ */
+function setCustomer(value) {
+    const customer = props.customers.find((option) => String(option.value) === String(value));
+    const locale = customer?.locale && localeOptions.value.some((option) => option.value === customer.locale)
+        ? customer.locale
+        : props.modelValue.locale;
+
+    emit("update:modelValue", { ...props.modelValue, customerId: value, locale });
+}
+
 function setAmends(value) {
     // AppSelect answers with a string and the ids are numbers: compared as
     // they came, the parent was never found and the customer never filled in.
@@ -168,7 +183,7 @@ function setCustomField(key, value) {
             :hint="amendedContract ? t('suite.studio.contracts.customer_from_amended', { reference: amendedContract.reference }) : ''"
             :error="errors.customerId"
             required
-            v-on:update:model-value="set('customerId', $event)"
+            v-on:update:model-value="setCustomer($event)"
         />
 
         <AppSelect

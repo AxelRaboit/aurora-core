@@ -14,7 +14,7 @@
  * as proof, the seal and what happened, in that order.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
@@ -189,11 +189,11 @@ const signatures = computed(() => contract.value.signatures ?? []);
 /* ------------------------------------------------------------------ */
 
 /** A gesture that answers with the contract, which replaces the page's copy. */
-async function act(path, doneKey, translationParameters = {}) {
+async function act(path, doneKey, translationParameters = {}, body = {}) {
     busy.value = true;
 
     try {
-        const data = await request(path, {}, { noGuard: true });
+        const data = await request(path, body, { noGuard: true });
 
         if (!data?.success) {
             if (data?.errors) toast.error(Object.values(data.errors)[0]);
@@ -218,6 +218,14 @@ function confirm(key) {
 
 const cancelAlsoDuplicates = ref(true);
 
+/**
+ * Whether the customer can be told of a cancellation: only a contract that
+ * reached them, and only with an address. A sealed contract never sent is one
+ * they have not heard of. Ticked by default when offered.
+ */
+const canTellCancellation = computed(() => "sealed" !== contract.value.status && !!contract.value.customerEmail);
+const cancelNotifiesCustomer = ref(true);
+
 async function runPending() {
     const key = pending.value;
     const email = contract.value.link?.recipientEmail ?? contract.value.customerEmail ?? "";
@@ -235,7 +243,9 @@ async function runPending() {
         const data = await act(props.revokeLinkPath, `${FLOW_KEYS}.done.revoked`);
         if (data) pending.value = null;
     } else if ("cancel" === key) {
-        const data = await act(props.cancelPath, `${FLOW_KEYS}.done.cancelled`);
+        const data = await act(props.cancelPath, `${FLOW_KEYS}.done.cancelled`, {}, {
+            notifyCustomer: canTellCancellation.value && cancelNotifiesCustomer.value,
+        });
         if (data) {
             pending.value = null;
             if (cancelAlsoDuplicates.value) await duplicate();
@@ -356,7 +366,17 @@ const termination = ref({
     effectiveAt: "",
     origin: "",
     reason: "",
+    notifyCustomer: false,
 });
+
+// Ticked when the provider ends it, unticked when the customer did: their own
+// letter does not need sending back to them. A suggestion the person can undo.
+watch(
+    () => termination.value.origin,
+    (origin) => {
+        termination.value.notifyCustomer = "" !== origin && "customer" !== origin && !!contract.value.customerEmail;
+    },
+);
 
 const canSubmitTerminate = computed(
     () => "" !== termination.value.noticedAt && "" !== termination.value.effectiveAt && "" !== termination.value.origin && !terminating.value,
@@ -683,6 +703,11 @@ const confirmBlocked = computed(
             <div class="space-y-3">
                 <p class="text-sm text-secondary">{{ confirmText }}</p>
                 <AppCheckbox
+                    v-if="'cancel' === pending && canTellCancellation"
+                    v-model="cancelNotifiesCustomer"
+                    :label="t(`${FLOW_KEYS}.confirm.cancel_notify`, { email: contract.customerEmail })"
+                />
+                <AppCheckbox
                     v-if="'cancel' === pending"
                     v-model="cancelAlsoDuplicates"
                     :label="t(`${FLOW_KEYS}.confirm.cancel_duplicate`)"
@@ -859,6 +884,11 @@ const confirmBlocked = computed(
                     :placeholder="t(`${CONTRACT_KEYS}.termination.reason_placeholder`)"
                     :error="terminationErrors.reason"
                     :rows="4"
+                />
+                <AppCheckbox
+                    v-if="contract.customerEmail"
+                    v-model="termination.notifyCustomer"
+                    :label="t(`${CONTRACT_KEYS}.termination.notify_customer`, { email: contract.customerEmail })"
                 />
             </div>
             <template #footer>

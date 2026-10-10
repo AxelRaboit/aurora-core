@@ -42,6 +42,11 @@ const props = defineProps({
     templatesPath: { type: String, default: "" },
     /** How long a signing address stays valid, from the setting. */
     linkDays: { type: Number, default: 30 },
+    /** Sent contracts unanswered for `waitingDays` days or more. */
+    waitingLong: { type: Number, default: 0 },
+    waitingDays: { type: Number, default: 3 },
+    /** Whether the automatic reminder runs (Réglages > Studio). */
+    remindersEnabled: { type: Boolean, default: false },
     contracts: { type: Array, default: () => [] },
     customers: { type: Array, default: () => [] },
     bodies: { type: Array, default: () => [] },
@@ -223,6 +228,21 @@ const pageActions = computed(() =>
                 <li v-for="stepNumber in 5" :key="stepNumber">{{ t(`suite.studio.contracts.guide.step_${stepNumber}`, { days: linkDays }) }}</li>
             </ol>
         </AppGuide>
+
+        <!-- The long waits, before the tabs: off by default, the automatic
+             reminder leaves them to whoever reads this list. -->
+        <div
+            v-if="waitingLong > 0"
+            class="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-primary sm:flex-row sm:items-center sm:justify-between"
+        >
+            <span>
+                {{ t(`${FLOW_KEYS}.waiting_long`, { count: waitingLong, days: waitingDays }, waitingLong) }}
+                <template v-if="!remindersEnabled"> {{ t(`${FLOW_KEYS}.waiting_long_manual`) }}</template>
+            </span>
+            <AppButton class="w-full shrink-0 sm:w-auto" variant="ghost" size="sm" v-on:click="step = 'with_customer'">
+                {{ t(`${FLOW_KEYS}.waiting_long_show`) }}
+            </AppButton>
+        </div>
 
         <!-- The journey, as tabs. The count says whether a step is worth
              opening, and the hint what it holds. The house segmented group,

@@ -21,4 +21,6 @@ interface SpaceAccessLinkInputInterface
     public function canUpload(): bool;
 
     public function canSeeDrive(): bool;
+
+    public function canSeeContracts(): bool;
 }

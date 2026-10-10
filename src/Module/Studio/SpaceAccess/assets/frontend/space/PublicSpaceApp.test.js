@@ -215,6 +215,7 @@ describe("PublicSpaceApp", () => {
                 columnId: 1,
                 scheduledAt: "2026-09-24T09:00:00+00:00",
                 approval: "pending",
+                atClientStep: true,
             },
             {
                 id: 2,
@@ -222,6 +223,7 @@ describe("PublicSpaceApp", () => {
                 columnId: 1,
                 scheduledAt: "2026-09-25T09:00:00+00:00",
                 approval: "approved",
+                atClientStep: true,
             },
         ];
 
@@ -236,6 +238,27 @@ describe("PublicSpaceApp", () => {
         expect(wrapper.text()).toContain("awaiting_you");
     });
 
+    /**
+     * The studio's « chez le client » and this counter use one rule: a card
+     * shown in « Programmé » is still unanswered, but nobody asked.
+     */
+    it("ne compte pas ce que personne n'a encore soumis au client", async () => {
+        const items = [
+            {
+                id: 1,
+                title: "Déjà programmé",
+                columnId: 1,
+                scheduledAt: "2026-09-24T09:00:00+00:00",
+                approval: "pending",
+                atClientStep: false,
+            },
+        ];
+
+        const wrapper = monter({ items, canApprove: true });
+        await flushPromises();
+        expect(wrapper.text()).not.toContain("awaiting_you");
+    });
+
     it("ne garde que ce qui attend quand le filtre est enclenché", async () => {
         const items = [
             {
@@ -244,6 +267,7 @@ describe("PublicSpaceApp", () => {
                 columnId: 1,
                 scheduledAt: "2026-09-24T09:00:00+00:00",
                 approval: "pending",
+                atClientStep: true,
             },
             {
                 id: 2,
@@ -251,6 +275,7 @@ describe("PublicSpaceApp", () => {
                 columnId: 1,
                 scheduledAt: "2026-09-25T09:00:00+00:00",
                 approval: "approved",
+                atClientStep: true,
             },
         ];
 

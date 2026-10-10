@@ -30,6 +30,8 @@ const props = defineProps({
     modelValue: { type: Object, required: true },
     errors: { type: Object, default: () => ({}) },
     currencies: { type: Array, default: () => [] },
+    /** The site's active languages, `{ code, label }`. */
+    locales: { type: Array, default: () => [] },
     /** Each group in its own card, its title and sentence on top. */
     framed: { type: Boolean, default: false },
 });
@@ -90,6 +92,12 @@ const titleClass = computed(() =>
     props.framed ? "m-0 text-[0.9375rem] font-semibold text-primary" : "m-0 text-xs font-medium uppercase tracking-wider text-muted",
 );
 const leadClass = computed(() => (props.framed ? "m-0 text-[0.8125rem] text-secondary" : "m-0 text-xs text-muted"));
+
+/** The site's languages, after « the site's email language » for none. */
+const localeOptions = computed(() => [
+    { value: "", label: t("suite.studio.customers.locale_default") },
+    ...props.locales.map((locale) => ({ value: locale.code, label: locale.label })),
+]);
 
 const currencyOptions = computed(() =>
     props.currencies.map((currency) => ({
@@ -250,6 +258,16 @@ const currencyOptions = computed(() =>
                 type="email"
                 :required="'prospect' !== form.status"
                 v-on:update:model-value="set('contractualEmail', $event)"
+            />
+
+            <AppSelect
+                v-if="locales.length > 1"
+                :model-value="form.locale ?? ''"
+                :label="t('suite.studio.customers.locale')"
+                :hint="t('suite.studio.customers.locale_hint')"
+                :options="localeOptions"
+                :error="errors.locale"
+                v-on:update:model-value="set('locale', $event)"
             />
 
             <div class="grid gap-4 sm:grid-cols-2">

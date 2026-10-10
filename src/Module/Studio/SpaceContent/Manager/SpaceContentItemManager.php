@@ -8,6 +8,8 @@ use Aurora\Core\Scheduling\Event\EntityScheduledEvent;
 use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
@@ -43,6 +45,12 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly SpaceActivityNotifier $notifier,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     public function create(CustomerSpaceInterface $space, SpaceContentItemInputInterface $input): SpaceContentItemInterface
@@ -58,12 +66,15 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         $this->auditCreated($item);
         $this->announceSchedule($item);
+        $this->tellClientIfNowWaiting($item, false, false);
 
         return $item;
     }
 
     public function update(SpaceContentItemInterface $item, SpaceContentItemInputInterface $input): void
     {
+        $waitedBefore = $this->waitsOnClient($item);
+        $wasAnswered = $item->getApproval()->isAnswered();
         $previousColumn = $item->getColumn();
         $previousTitle = $item->getTitle();
         $previousBody = $item->getBody();
@@ -83,6 +94,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         $this->auditUpdated($item);
         $this->announceSchedule($item);
+        $this->tellClientIfNowWaiting($item, $waitedBefore, $wasAnswered);
     }
 
     /**
@@ -196,6 +208,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         }
 
         $position = 0;
+        $moved = [];
         foreach ($itemIds as $itemId) {
             $item = $byId[$itemId] ?? null;
 
@@ -206,16 +219,28 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
                 continue;
             }
 
+            if ($item->getColumn()->getId() !== $column->getId()) {
+                $moved[] = [$item, $this->waitsOnClient($item)];
+            }
+
             $item->setColumn($column);
             $item->setPosition($position);
             ++$position;
         }
 
         $this->entityManager->flush();
+
+        // A card dragged into « À valider » is the most common way a content
+        // reaches the client, and the one gesture nothing used to tell them.
+        foreach ($moved as [$item, $waitedBefore]) {
+            $this->tellClientIfNowWaiting($item, $waitedBefore, false);
+        }
     }
 
     public function reschedule(SpaceContentItemInterface $item, ?string $scheduledAt): void
     {
+        $waitedBefore = $this->waitsOnClient($item);
+        $wasAnswered = $item->getApproval()->isAnswered();
         $previousScheduledAt = $item->getScheduledAt();
         $item->setScheduledAt($this->instantFrom($scheduledAt, $item->getSpace()));
         $this->clearApprovalIfContentChanged($item, $item->getTitle(), $item->getBody(), $previousScheduledAt);
@@ -223,6 +248,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         $this->auditUpdated($item);
         $this->announceSchedule($item);
+        $this->tellClientIfNowWaiting($item, $waitedBefore, $wasAnswered);
     }
 
     /**
@@ -322,6 +348,39 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         }
 
         $item->clearApproval();
+    }
+
+    /**
+     * Whether this card waits on the client: shown to them, at their step, and
+     * unanswered. The rule of « chez le client » and of the client's « en
+     * attente de vous ».
+     */
+    protected function waitsOnClient(SpaceContentItemInterface $item): bool
+    {
+        return !$item->isTrashed()
+            && $item->isShownToClient()
+            && $item->isAtClientStep()
+            && !$item->getApproval()->isAnswered();
+    }
+
+    /**
+     * Tells the people who may answer that a card now waits on them.
+     *
+     * Two pieces of news, never both: an answer cleared by a change is its own
+     * line (« à revoir »), because « un contenu attend votre avis » would read
+     * as a new card to somebody who approved this one yesterday.
+     */
+    protected function tellClientIfNowWaiting(SpaceContentItemInterface $item, bool $waitedBefore, bool $wasAnswered): void
+    {
+        if (!$this->waitsOnClient($item)) {
+            return;
+        }
+
+        if ($wasAnswered) {
+            $this->clientNoticeRecorder?->recordForItem($item, ClientNoticeTypeEnum::ApprovalReset, ClientNoticeRecorder::approvers());
+        } elseif (!$waitedBefore) {
+            $this->clientNoticeRecorder?->recordForItem($item, ClientNoticeTypeEnum::AwaitingReview, ClientNoticeRecorder::approvers());
+        }
     }
 
     /**

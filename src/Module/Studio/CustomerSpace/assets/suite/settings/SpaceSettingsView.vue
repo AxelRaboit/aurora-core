@@ -109,6 +109,8 @@ const { form, customerOptions, errors, loading, submit } = editable
                 :statuses="spaceSettings.statuses ?? []"
                 :roles="spaceSettings.roles ?? []"
                 :timezones="spaceSettings.timezones ?? []"
+                :client-digest-modes="spaceSettings.clientDigestModes ?? []"
+                :can-choose-client-digest="!!spaceSettings.canChooseClientDigest"
             />
             <div class="flex justify-end">
                 <AppButton

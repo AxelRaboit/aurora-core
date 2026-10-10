@@ -47,6 +47,7 @@ const props = defineProps({
     /** `{contracts, deliverables, spaces}`: null for what the reader cannot open. */
     related: { type: Object, default: () => ({}) },
     currencies: { type: Array, default: () => [] },
+    locales: { type: Array, default: () => [] },
     indexPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     convertPath: { type: String, required: true },
@@ -302,7 +303,13 @@ const pageActions = computed(() => {
              elsewhere. -->
         <div class="grid grid-cols-1 items-start aurora-gap lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <form class="min-w-0" :inert="inertWhenReadOnly" v-on:submit.prevent="save">
-                <CustomerFormFields v-model="form" :errors="errors" :currencies="currencies" framed />
+                <CustomerFormFields
+                    v-model="form"
+                    :errors="errors"
+                    :currencies="currencies"
+                    :locales="locales"
+                    framed
+                />
             </form>
 
             <!-- The follow-up and the history first: they are what the page

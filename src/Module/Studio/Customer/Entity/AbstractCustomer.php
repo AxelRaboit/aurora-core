@@ -138,6 +138,18 @@ abstract class AbstractCustomer implements CustomerInterface
     protected ?string $contractualEmail = null;
 
     /**
+     * The language the application writes to this customer in.
+     *
+     * Null for « the site's email language », which is what every mail to a
+     * customer used before this existed: a contract carried its own language,
+     * nothing else did, and a Spanish customer received their space's mails
+     * in French. Read by the space's mails, and offered as the default
+     * language of a new contract.
+     */
+    #[ORM\Column(length: 5, nullable: true)]
+    protected ?string $locale = null;
+
+    /**
      * The mobile number, and that is what the field has always been.
      *
      * Its on-screen example has been a mobile number since day one, and it is
@@ -448,6 +460,18 @@ abstract class AbstractCustomer implements CustomerInterface
     public function setContractualEmail(?string $contractualEmail): static
     {
         $this->contractualEmail = $contractualEmail;
+
+        return $this;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(?string $locale): static
+    {
+        $this->locale = $locale;
 
         return $this;
     }

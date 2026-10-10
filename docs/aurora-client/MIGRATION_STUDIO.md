@@ -618,3 +618,58 @@ relation `author_link` et le drapeau `visible_to_client` existaient.
   `suite.audit.actions.studio.space_file.sent_by_client`,
   `studio.public.space.files_upload`, `.files_uploaded`, `.files_sent_by`,
   `.files_empty`, `studio.public.space.guide.step_files_upload` (fr, en, es).
+
+## 16. Avis aux deux côtés (4.12.0)
+
+Ce que fait le studio est noté pour le client, les contrats préviennent les
+deux côtés, et la messagerie sait ce qui a été lu. Rien à faire côté client
+sauf si une classe ci-dessous est étendue ou un gabarit surchargé.
+
+- **Migrations** (quatre) : `core_customers.locale`,
+  `core_studio_client_notices` et `core_studio_customer_spaces.client_digest`
+  (`off` partout), `core_studio_space_chat_read_markers` (amorcée comme lue),
+  `core_studio_space_access_links.can_see_contracts` (fausse partout).
+- **Nouvelles entités** déclarées dans `resolve_target_entities` d'aurora-core :
+  `ClientNoticeInterface` (`Studio/ClientNotice`), `SpaceChatReadMarkerInterface`
+  (`Studio/SpaceChat`). Un projet qui les substitue suit le schéma habituel.
+- **Arguments de constructeur ajoutés, derniers et optionnels** : un projet qui
+  étend la classe avec son propre constructeur les transmet à
+  `parent::__construct()`, sinon la fonctionnalité correspondante se tait.
+  - `?ContractTeamNotifier $teamNotifier = null` : `ContractSignatureManager`,
+    `ContractRefusalManager`, `ContractAccessLinkManager` (qui prend aussi
+    `string $secret = ''`, autowiré sur `kernel.secret`).
+  - `?ContractCustomerNotices $customerNotices = null` : `ContractsController`.
+  - `?LocaleContextInterface $localeContext = null` : `CustomerManager`.
+  - `?ClientNoticeRecorder $clientNoticeRecorder = null` : `SpaceChatMessageManager`,
+    `SpaceContentItemManager`, `SpaceContentCommentManager`,
+    `SpaceContentAttachmentManager`, `SpaceFileManager`, `SpaceResourceManager`,
+    `DeliverableManager`.
+  - `?SpaceTeamNotifier $teamNotifier = null` : `CustomerSpaceManager`,
+    `SpaceChatChannelManager`.
+  - `?SpaceLinkMailer $linkMailer = null` : `SpaceAccessController`.
+  - `?SpaceChatReadTracker $readTracker = null` : `SpaceChatController`.
+- **Interfaces enrichies** : `SpaceAccessLinkManagerInterface::mailToken()`,
+  `::extend()`, `issue(..., bool $canSeeContracts = false)` ;
+  `ContractAccessLinkManagerInterface::spaceToken()` ;
+  `CustomerInputInterface::getLocale()` ;
+  `CustomerSpaceInputInterface::getClientDigest()` ;
+  `SpaceAccessLinkInputInterface::canSeeContracts()`. Une implémentation maison
+  les ajoute.
+- **Gabarits** : `@Studio/public/space.html.twig` passe `news`, `contracts`,
+  `chatUnread`, `chatReadPath` à `PublicSpaceApp` ;
+  `@Studio/suite/space-content/content.html.twig` passe `chatUnread` et
+  `chatReadPath` ; `access.html.twig` passe `invitePath` et `extendPath` ;
+  `@Studio/suite/customers/*.html.twig` passent `locales` ;
+  `@Studio/suite/contracts/index.html.twig` passe `waitingLong`,
+  `waitingDays`, `remindersEnabled`. Un gabarit surchargé ajoute les lignes.
+- **Emails** : `space_review`, `space_activity` héritent désormais de
+  `@Shared/email/layout/base.html.twig` ; nouveaux gabarits `client_digest`,
+  `space_invitation`, `signature_received`, `refusal_received`,
+  `contract_expired`, `contract_cancelled`, `contract_terminated`.
+- **Messenger** : `ClientDigestMessage` est routé sur `async` par le bundle ;
+  trois tâches planifiées s'ajoutent (`ClientNoticeRecurringMessageProvider`,
+  rappel des relectures à 7 h 30, récapitulatif du matin à 8 h, purge à 3 h 20)
+  et une pour les contrats (date d'effet des résiliations, 8 h).
+- **Comportement changé** : « Envoyer en relecture » ne révoque plus l'adresse
+  du client ; l'email porte l'adresse calculée (`mailToken`), qui ouvre la même
+  page.

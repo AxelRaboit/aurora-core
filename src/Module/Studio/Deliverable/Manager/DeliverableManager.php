@@ -10,6 +10,8 @@ use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
@@ -58,6 +60,12 @@ readonly class DeliverableManager
         private DeliverableRepository $deliverableRepository,
         private CustomerRepository $customerRepository,
         private SlidesManager $slidesManager,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     /**
@@ -236,10 +244,17 @@ readonly class DeliverableManager
     /** Open or closed to the client, without reopening the editor: this is the list's action. */
     public function setVisibleToClient(DeliverableInterface $deliverable, bool $visible): void
     {
+        $wasVisible = $deliverable->isVisibleToClient();
         $deliverable->setVisibleToClient($visible);
         $this->entityManager->flush();
         if ($visible) {
             $this->auditLogger->log('studio', 'deliverable.shown_to_client', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+
+            // A page or a deck reaching the client's « Documents » tab.
+            $space = $deliverable->getSpace();
+            if (!$wasVisible && $space instanceof CustomerSpaceInterface) {
+                $this->clientNoticeRecorder?->record($space, ClientNoticeTypeEnum::DeliverableShared, $deliverable->getTitle());
+            }
         } else {
             $this->auditLogger->log('studio', 'deliverable.hidden_from_client', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
         }

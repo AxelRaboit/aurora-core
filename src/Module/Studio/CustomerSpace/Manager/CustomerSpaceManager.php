@@ -18,9 +18,12 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\ClientVisibility;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceTeamNotifier;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
@@ -30,6 +33,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
+
+use function in_array;
 
 #[AsAlias(CustomerSpaceManagerInterface::class)]
 class CustomerSpaceManager implements CustomerSpaceManagerInterface
@@ -54,6 +59,9 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
          * simply no longer follows the team.
          */
         protected readonly ?SpaceNoteSpaceSync $noteSpaces = null,
+        // Optional and last for the same reason: without it, nobody is told
+        // they joined a team.
+        protected readonly ?SpaceTeamNotifier $teamNotifier = null,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -79,6 +87,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         $this->chatChannels->ensureMain($space);
 
         $this->auditCreated($space);
+        $this->tellNewMembers($space, []);
 
         return $space;
     }
@@ -86,8 +95,10 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     public function update(CustomerSpaceInterface $space, CustomerSpaceInputInterface $input): void
     {
         $this->refuseTeamChangeUnlessLead($space, $input);
+        $before = $this->memberIds($space);
         $this->applyInput($space, $input);
         $this->entityManager->flush();
+        $this->tellNewMembers($space, $before);
 
         // Its dates carry its name and colour, and leave the calendar when it
         // is archived: they follow it rather than keep the old version.
@@ -221,6 +232,54 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         throw new FieldException('members', $this->translator->trans('suite.studio.spaces.errors.team_lead_only'));
     }
 
+    /** @return list<int> the accounts on the team now */
+    protected function memberIds(CustomerSpaceInterface $space): array
+    {
+        $ids = [];
+        foreach ($space->getMembers() as $member) {
+            $ids[] = (int) $member->getUser()->getId();
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Tells whoever joined the team that they did: it is what subscribes them
+     * to the space's news.
+     *
+     * @param list<int> $before the team's accounts before the change
+     */
+    protected function tellNewMembers(CustomerSpaceInterface $space, array $before): void
+    {
+        foreach ($space->getMembers() as $member) {
+            $user = $member->getUser();
+            if (!in_array((int) $user->getId(), $before, true)) {
+                $this->teamNotifier?->addedToSpace($space, $user);
+            }
+        }
+    }
+
+    /**
+     * When the space writes to its client.
+     *
+     * Under the right to share, like everything the client receives: mailing
+     * them is sending them something, the gesture {@see ClientVisibility}
+     * reserves. Asked only when the choice changes, so a teammate saving the
+     * name does not trip on it.
+     */
+    protected function applyClientDigest(CustomerSpaceInterface $space, ?ClientDigestModeEnum $mode): void
+    {
+        if (!$mode instanceof ClientDigestModeEnum || $mode === $space->getClientDigest()) {
+            return;
+        }
+
+        if (!$this->security->isGranted(ClientVisibility::PRIVILEGE)) {
+            throw new FieldException('clientDigest', $this->translator->trans('suite.studio.spaces.errors.client_digest_needs_share'));
+        }
+
+        $space->setClientDigest($mode);
+    }
+
     /**
      * Whoever creates a space leads it, unless they already see every space.
      *
@@ -301,6 +360,8 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
             ->setCustomer($this->resolveCustomer($input))
             ->setStatus($input->getStatus())
             ->setTimezone($input->getTimezone());
+
+        $this->applyClientDigest($space, $input->getClientDigest());
 
         $colourSlot = $input->getColourSlot();
         if (null !== $colourSlot) {

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceResource\Manager;
 
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Studio\ClientNotice\Enum\ClientNoticeTypeEnum;
+use Aurora\Module\Studio\ClientNotice\Service\ClientNoticeRecorder;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceResource\Dto\SpaceResourceInputInterface;
 use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
@@ -29,6 +31,12 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
         protected readonly EntityManagerInterface $entityManager,
         protected readonly SpaceResourceRepository $spaceResourceRepository,
         protected readonly AuditLogger $auditLogger,
+        /**
+         * Optional, and last, so that a client project extending this class
+         * with its own constructor keeps booting: without it, the client is
+         * simply not told of this gesture.
+         */
+        protected readonly ?ClientNoticeRecorder $clientNoticeRecorder = null,
     ) {}
 
     public function create(CustomerSpaceInterface $space, SpaceResourceInputInterface $input): SpaceResourceInterface
@@ -42,22 +50,27 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
         $this->entityManager->flush();
 
         $this->auditLogger->log('studio', 'space_resource.created', 'SpaceResource', $resource->getId(), $this->auditPayload($resource));
+        $this->tellClientIfNowShown($resource, false);
 
         return $resource;
     }
 
     public function update(SpaceResourceInterface $resource, SpaceResourceInputInterface $input): void
     {
+        $wasVisible = $resource->isVisibleToClient();
         $this->applyInput($resource, $input);
         $this->entityManager->flush();
 
         $this->auditLogger->log('studio', 'space_resource.updated', 'SpaceResource', $resource->getId(), $this->auditPayload($resource));
+        $this->tellClientIfNowShown($resource, $wasVisible);
     }
 
     public function toggleVisibility(SpaceResourceInterface $resource): void
     {
-        $resource->setVisibleToClient(!$resource->isVisibleToClient());
+        $wasVisible = $resource->isVisibleToClient();
+        $resource->setVisibleToClient(!$wasVisible);
         $this->entityManager->flush();
+        $this->tellClientIfNowShown($resource, $wasVisible);
 
         // Two branches and two literals rather than a ternary in the call: the log
         // drift check reads the arguments in the code, and a computed value is a
@@ -69,6 +82,14 @@ class SpaceResourceManager implements SpaceResourceManagerInterface
         }
 
         $this->auditLogger->log('studio', 'space_resource.hidden', 'SpaceResource', $resource->getId(), $this->auditPayload($resource));
+    }
+
+    /** A resource that has just reached the client's page is news for them. */
+    protected function tellClientIfNowShown(SpaceResourceInterface $resource, bool $wasVisible): void
+    {
+        if (!$wasVisible && $resource->isVisibleToClient()) {
+            $this->clientNoticeRecorder?->record($resource->getSpace(), ClientNoticeTypeEnum::ResourceShared, $resource->getLabel());
+        }
     }
 
     /**

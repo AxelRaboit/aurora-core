@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Dto;
 
 use Aurora\Core\Support\Str;
 use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -39,6 +40,7 @@ class CustomerSpaceInputFactory implements CustomerSpaceInputFactoryInterface
             // Localisation) rather than a zone written here.
             timezone: '' !== Str::trimFromArray($data, 'timezone') ? Str::trimFromArray($data, 'timezone') : $this->siteTimezone->name(),
             members: $this->members($data),
+            clientDigest: ClientDigestModeEnum::tryFrom(Str::trimFromArray($data, 'clientDigest')),
         );
     }
 

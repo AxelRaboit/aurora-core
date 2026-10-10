@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Dto;
 
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 
 interface CustomerSpaceInputInterface
@@ -35,4 +36,7 @@ interface CustomerSpaceInputInterface
      * @return list<array{userId: int, role: string}>
      */
     public function getMembers(): array;
+
+    /** Null when not sent: the space keeps its choice. */
+    public function getClientDigest(): ?ClientDigestModeEnum;
 }

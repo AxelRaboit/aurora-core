@@ -59,6 +59,32 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * The live, unanswered cards whose review deadline falls in this window,
+     * with their space and step. Whether the client sees them, and whether
+     * the deadline is tomorrow in the space's own zone, is the caller's to
+     * decide on the few rows this returns.
+     *
+     * @return list<SpaceContentItemInterface>
+     */
+    public function findPendingReviewDueBetween(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        return $this->createQueryBuilder('i')
+            ->addSelect('c', 's')
+            ->join('i.column', 'c')
+            ->join('i.space', 's')
+            ->where('i.deletedAt IS NULL')
+            ->andWhere('s.deletedAt IS NULL')
+            ->andWhere('i.reviewBy >= :from')
+            ->andWhere('i.reviewBy < :to')
+            ->andWhere('i.approval = :pending')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->setParameter('pending', SpaceContentApprovalEnum::Pending)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** The place a new card takes: at the bottom of its column. */
     public function nextPosition(SpaceContentColumnInterface $column): int
     {

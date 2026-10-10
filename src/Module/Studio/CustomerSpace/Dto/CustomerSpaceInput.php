@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Dto;
 
 use Aurora\Module\Studio\CustomerSpace\Entity\AbstractCustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Enum\ClientDigestModeEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -44,6 +45,9 @@ class CustomerSpaceInput implements CustomerSpaceInputInterface
         #[Assert\Timezone(message: 'suite.studio.spaces.errors.timezone_invalid')]
         public readonly string $timezone = 'Europe/Paris',
         public readonly array $members = [],
+        // Null when the form did not send it: the creation modal and older
+        // callers leave the space's choice as it is.
+        public readonly ?ClientDigestModeEnum $clientDigest = null,
     ) {}
 
     public function getName(): string
@@ -90,5 +94,10 @@ class CustomerSpaceInput implements CustomerSpaceInputInterface
     public function getMembers(): array
     {
         return $this->members;
+    }
+
+    public function getClientDigest(): ?ClientDigestModeEnum
+    {
+        return $this->clientDigest;
     }
 }

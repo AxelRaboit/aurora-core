@@ -22,6 +22,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Serializer\ContractSerializerInterface;
+use Aurora\Module\Studio\Contract\Service\ContractCustomerNotices;
 use Aurora\Module\Studio\Contract\Service\ContractPdfExporter;
 use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
 use Aurora\Module\Studio\Contract\Signature\Dto\ContractSignatureInputFactoryInterface;
@@ -60,6 +61,9 @@ class ContractsController extends AbstractController
         protected readonly ContractPdfGenerator $pdfGenerator,
         protected readonly ContractPdfExporter $pdfExporter,
         protected readonly TranslatorInterface $translator,
+        // Optional and last, so that a client project extending this class
+        // with its own constructor keeps booting.
+        protected readonly ?ContractCustomerNotices $customerNotices = null,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -295,12 +299,21 @@ class ContractsController extends AbstractController
      */
     #[Route('/{id}/cancel', name: '_cancel', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.contracts.edit')]
-    public function cancel(Contract $contract): JsonResponse
+    public function cancel(Contract $contract, Request $request): JsonResponse
     {
+        // Read before the status moves: afterwards every cancelled contract
+        // looks the same, sent or not.
+        $tellCustomer = true === ($this->decodeJson($request)['notifyCustomer'] ?? false)
+            && true === $this->customerNotices?->cancellationIsNews($contract);
+
         try {
             $this->contractManager->cancel($contract);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        if ($tellCustomer) {
+            $this->customerNotices->cancelled($contract);
         }
 
         return $this->jsonSuccess([
@@ -339,7 +352,8 @@ class ContractsController extends AbstractController
     #[IsGranted('studio.contracts.edit')]
     public function terminate(Contract $contract, Request $request): JsonResponse
     {
-        $input = $this->terminationInputFactory->fromArray($this->decodeJson($request));
+        $payload = $this->decodeJson($request);
+        $input = $this->terminationInputFactory->fromArray($payload);
 
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
@@ -350,6 +364,12 @@ class ContractsController extends AbstractController
             $this->contractManager->terminate($contract, $input);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        // Only when asked. A termination is most often the customer's own
+        // letter being written down, and sending it back to them is noise.
+        if (true === ($payload['notifyCustomer'] ?? false)) {
+            $this->customerNotices?->terminated($contract);
         }
 
         return $this->jsonSuccess([

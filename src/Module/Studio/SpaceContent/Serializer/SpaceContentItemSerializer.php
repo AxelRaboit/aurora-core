@@ -47,6 +47,10 @@ class SpaceContentItemSerializer implements SpaceContentItemSerializerInterface
             'lateForReview' => $item->isLateForReview(new DateTimeImmutable()),
             'showOnCalendar' => $item->isShownOnCalendar(),
             'approval' => $item->getApproval()->value,
+            // Whether an answer is asked for, by the one rule the studio's
+            // counters use: the client's page counts what waits on them with
+            // it, so both sides say the same number.
+            'atClientStep' => $item->isAtClientStep(),
             'approvalAt' => $item->getApprovalAt()?->format(DATE_ATOM),
             // Who answered, by the name their link carries. It used to be the
             // address, which travels all the way into the page of the other
