@@ -25,7 +25,7 @@ export function useSidemenuNav(
     moduleNavView = null,
 ) {
     const { t } = useI18n();
-    const { itemClasses: themeItemClasses, iconClasses: themeIconClasses } =
+    const { itemClasses: themeItemClasses } =
         useSidemenuSectionTheme(sectionColorOverrides);
 
     const {
@@ -287,12 +287,6 @@ export function useSidemenuNav(
         });
     }
 
-    function iconClasses(item, sectionId = null) {
-        return themeIconClasses(sectionId, {
-            isActive: itemIsActive(item),
-        });
-    }
-
     /**
      * A group holding the page being read starts open, unless the reader said
      * otherwise.
@@ -354,6 +348,5 @@ export function useSidemenuNav(
         itemIsCurrent,
         itemIsActive,
         itemClasses,
-        iconClasses,
     };
 }

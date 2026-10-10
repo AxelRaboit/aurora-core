@@ -1,6 +1,6 @@
 ---
 name: decision_suite_visual_redesign
-description: Refonte visuelle de la suite (09/10/2026) - cadre aligné, menu plus lisible, une tuile, une carte et une palette de statuts pour tout le tableau de bord.
+description: Refonte visuelle de la suite (09-10/10/2026) - cadre aligné, menu sans icônes, fil d'Ariane dans le contenu, compteurs, une tuile, une carte et une palette de statuts.
 metadata:
   type: project
 ---
@@ -10,14 +10,18 @@ metadata:
 La refonte du 09/10/2026, faite d'après une maquette validée par Axel, a posé
 quelques invariants. Les respecter dans tout écran neuf de la suite :
 
-- **Le cadre est aligné.** L'entête du menu (`h-12`) et la ligne « Voir le
-  site » (`h-8`) ont la hauteur des deux bandes de `page_header.html.twig`
-  (titre 48 px, fil d'Ariane 32 px) : leurs filets courent d'un bord à l'autre.
-  Toucher l'une des quatre hauteurs, c'est toucher les quatre.
-- **Le menu se lit sans plisser les yeux.** Libellés de section en
+- **Le cadre est aligné.** L'entête du menu (`h-12`) a la hauteur de la barre
+  de titre de `page_header.html.twig` (48 px) : leurs filets courent d'un bord
+  à l'autre. Toucher l'une, c'est toucher l'autre.
+- **Le fil d'Ariane est dans le contenu** (10/10/2026), plus dans l'entête
+  collant : `nav[data-breadcrumb]`, texte sur le fond de la page, `h-8`, qui
+  défile. Seule la barre de titre colle. `--aurora-topbar` garde sa valeur
+  (ce que la page perd en haut), voir `base.css`.
+- **Le menu se lit sans plisser les yeux, et sans icônes** (10/10/2026) : le
+  point de section et le nom portent la ligne. Libellés de section en
   `text-secondary`, entrées au repos en `text-primary/80`, descriptions en
-  `text-secondary` ; l'icône s'aligne sur la ligne du libellé quand une
-  description est affichée. Aucune couleur fixe : l'ancien survol émeraude de
+  `text-secondary`. Les icônes restent dans la palette de recherche et les
+  arbres de dossiers. Aucune couleur fixe : l'ancien survol émeraude de
   « Voir le site » ne suivait aucun thème.
 - **Un chiffre de tableau de bord = `AppStatTile`, un bloc = `AppSectionCard`.**
   La tuile s'aligne par sous-grille : la poser directement dans la grille.
@@ -45,6 +49,5 @@ l'un de l'autre.
   `POST_STATUS_COLORS`, ne pas recopier la table.
 - Créneaux de graphique nommés : voir [[convention_chart_palette]] (mesurer les
   jointures sous les trois déficiences).
-- Laissé tel quel exprès : le fil d'Ariane en bande (décision de
-  `page_header.html.twig`), les icônes du menu, le style des commutateurs
-  segmentés de la maison (`rounded-lg border bg-surface-2/40 p-0.5`).
+- Laissé tel quel exprès : le style des commutateurs segmentés de la maison
+  (`rounded-lg border bg-surface-2/40 p-0.5`).

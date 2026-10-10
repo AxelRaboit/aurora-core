@@ -226,12 +226,11 @@ function openSearchFromMobile() {
             </a>
         </div>
 
-        <!-- `h-8`, to the pixel, because this row and the breadcrumb band are
-             meant to read as one line across the page: the menu's header and
-             the page header's title strip are both `h-12`, and the breadcrumb
-             under it is `h-8`, so whatever comes next on each side has to match
-             too. Pinned rather than left implicit so a change to `.si` cannot
-             quietly break the alignment.
+        <!-- `h-8`: a single compact link. It used to line up with the
+             breadcrumb band across the page; since the breadcrumb moved into
+             the content (10/10/2026) only the header above still lines up with
+             the page's title strip, both `h-12`. Pinned rather than left
+             implicit so a change to `.si` cannot quietly change the row.
 
              The row keeps its height, so the *link* has to be shorter than it:
              at a full 32px its hover fill reaches both borders and the rounded

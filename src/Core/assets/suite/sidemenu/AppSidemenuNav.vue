@@ -90,11 +90,12 @@ defineProps({
 });
 
 /*
- * With a description under it, a row's icon sits on the label's line
- * (`self-start`) rather than in the middle of the two or three lines: centred,
- * it floated beside the description and belonged to neither line (visual
- * redesign of the suite, 09/10/2026). The label is 20px high, like the icon,
- * so the two share a top edge without an offset.
+ * **No icon on a row** (visual redesign of the suite, 10/10/2026). The menu
+ * folds away entirely rather than to a rail, so an icon never stood in for a
+ * hidden label; beside a name and its description it was a third thing to read
+ * on every line, twenty times down the column. The section's dot and the name
+ * carry the row. Icons stay where they still do work: the search palette,
+ * where results of every kind are mixed, and the folder trees of a module view.
  */
 </script>
 
@@ -133,7 +134,6 @@ defineProps({
                             :data-sidemenu-active="nav.itemIsActive(item) ? 'true' : null"
                             class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
                         >
-                            <component :is="item.icon" class="w-5 h-5 shrink-0" :class="[nav.iconClasses(item, themeId(section)), showDescriptions && item.description ? 'self-start' : '']" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                                 <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ item.description }}</span>
@@ -160,7 +160,6 @@ defineProps({
                             :sidemenu-active="nav.itemIsCurrent(child)"
                             :link-classes-override="nav.itemClasses(child, themeId(section))"
                         >
-                            <component :is="child.icon" class="w-4 h-4 shrink-0" :class="[nav.iconClasses(child, themeId(section)), showDescriptions && child.description ? 'self-start mt-0.5' : '']" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
                                 <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs font-normal text-secondary whitespace-normal">{{ child.description }}</span>
@@ -178,7 +177,6 @@ defineProps({
                     :sidemenu-active="nav.itemIsActive(item)"
                     :link-classes-override="nav.itemClasses(item, themeId(section))"
                 >
-                    <component :is="item.icon" class="w-5 h-5 shrink-0" :class="[nav.iconClasses(item, themeId(section)), showDescriptions && item.description ? 'self-start' : '']" :stroke-width="2" />
                     <span class="min-w-0 flex-1">
                         <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                         <!-- Not truncated: a description cut at one line is
