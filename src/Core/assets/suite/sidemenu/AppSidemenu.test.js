@@ -266,47 +266,15 @@ describe("what a screen reader is told", () => {
 });
 
 describe("a section with a single entry", () => {
-    it("draws the entry alone, without a header that repeats it", () => {
+    /**
+     * It keeps its header: alone, the entry read as the last row of the
+     * section above it (10/10/2026).
+     */
+    it("keeps its header above the entry", () => {
         const wrapper = render(null);
 
         expect(wrapper.find("#sidemenu .si-section-header").exists()).toBe(
-            false,
-        );
-        // Filtered by hand: the selector engine under jsdom misses an `href`
-        // attribute selector once it is scoped by an id.
-        const rows = wrapper
-            .findAll("#sidemenu nav a")
-            .filter(
-                (link) => "/suite/ged/documents" === link.attributes("href"),
-            );
-        expect(rows).toHaveLength(1);
-        // The section's dot moves onto the entry.
-        expect(rows[0].find("span.rounded-full").exists()).toBe(true);
-    });
-
-    it("folds with the rest, its header back in place of the entry", async () => {
-        const wrapper = render(null);
-
-        await wrapper
-            .find("#sidemenu [data-sidemenu-fold-all]")
-            .trigger("click");
-
-        const header = wrapper.find("#sidemenu .si-section-header");
-        expect(header.exists()).toBe(true);
-        expect(header.attributes("aria-expanded")).toBe("false");
-        expect(
-            wrapper
-                .findAll("#sidemenu nav a")
-                .filter(
-                    (link) =>
-                        "/suite/ged/documents" === link.attributes("href"),
-                ),
-        ).toHaveLength(0);
-
-        await header.trigger("click");
-
-        expect(wrapper.find("#sidemenu .si-section-header").exists()).toBe(
-            false,
+            true,
         );
         expect(
             wrapper
@@ -318,33 +286,25 @@ describe("a section with a single entry", () => {
         ).toHaveLength(1);
     });
 
-    it("keeps a foldable header, with its state, over two entries", () => {
-        const wrapper = mount(AppSidemenu, {
-            props: {
-                navSections: [
-                    {
-                        id: "ged",
-                        items: [
-                            NAV_SECTIONS[0].items[0],
-                            {
-                                route: "suite_ged_tags",
-                                path: "/suite/ged/tags",
-                                labelKey: "suite.nav.ged_tags",
-                                icon: "tags",
-                                children: [],
-                            },
-                        ],
-                    },
-                ],
-                activeRoute: "suite_ged_documents",
-            },
-            global: { plugins: [i18n] },
-        });
+    it("folds with the rest", async () => {
+        const wrapper = render(null);
+
+        await wrapper
+            .find("#sidemenu [data-sidemenu-fold-all]")
+            .trigger("click");
 
         expect(
             wrapper
                 .find("#sidemenu .si-section-header")
                 .attributes("aria-expanded"),
-        ).toBe("true");
+        ).toBe("false");
+        expect(
+            wrapper
+                .findAll("#sidemenu nav a")
+                .filter(
+                    (link) =>
+                        "/suite/ged/documents" === link.attributes("href"),
+                ),
+        ).toHaveLength(0);
     });
 });

@@ -68,21 +68,13 @@ function isFoldable(section) {
     return false !== section.foldable;
 }
 
-/**
- * A section holding a single plain entry: Calendrier > Calendrier, Notes >
- * Notes Markdown. Its header said the same thing one line above the entry,
- * so the entry stands alone with the section's dot before its name, where
- * the header's dot sat (visual redesign of the suite, 10/10/2026).
- *
- * Folded, it folds like any other: the header comes back in place of the
- * entry, so a folded menu is a plain list of sections, and a click on it
- * opens the entry again. Shown unfolded with no header, it could not be
- * folded on its own, and "fold all" left those entries standing (Axel,
- * 10/10/2026).
+/*
+ * Every section keeps its header, a single entry included. Without it, an
+ * entry standing alone read as the last row of the section above - Notes
+ * Markdown looked like part of the GED (Axel, 10/10/2026) - and the dot
+ * before its name was not enough to mark the break. The header is what
+ * separates sections, and it is also what folds.
  */
-function isSingle(section) {
-    return isFoldable(section) && 1 === section.items.length && !section.items[0].children?.length;
-}
 
 const { locale } = useI18n();
 
@@ -121,7 +113,7 @@ defineProps({
 <template>
     <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
-            v-if="!navFilter && isFoldable(section) && (!isSingle(section) || !nav.isSectionExpanded(section))"
+            v-if="!navFilter && isFoldable(section)"
             type="button"
             class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider transition-colors"
             :class="[theme.headerClasses(themeId(section)), theme.labelClasses(themeId(section))]"
@@ -207,12 +199,6 @@ defineProps({
                 >
                     <span class="min-w-0 flex-1">
                         <span class="flex items-baseline gap-2">
-                            <span
-                                v-if="isSingle(section) && !navFilter"
-                                class="size-2 shrink-0 self-center rounded-full"
-                                :class="theme.dotClasses(themeId(section))"
-                                aria-hidden="true"
-                            />
                             <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                             <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
                         </span>

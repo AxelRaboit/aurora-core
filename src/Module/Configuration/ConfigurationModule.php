@@ -141,14 +141,14 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
                 // with no header: drawn under the tabs it looked like one of
                 // them, yet stayed in view when Réglages was folded (Axel,
                 // 10/10/2026).
-                if ('appearance' === $tab->id && null !== $themes) {
+                if ('appearance' === $tab->id && $themes instanceof NavItem) {
                     $items[] = $themes;
                     $themes = null;
                 }
             }
 
             // No Apparence tab for this reader: the end of the section.
-            if (null !== $themes && [] !== $items) {
+            if ($themes instanceof NavItem && [] !== $items) {
                 $items[] = $themes;
                 $themes = null;
             }
@@ -159,7 +159,7 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
         }
 
         // Settings switched off: themes alone, in a group of their own.
-        if (null !== $themes) {
+        if ($themes instanceof NavItem) {
             $groups[] = new ModuleNavGroup('appearance', [$themes]);
         }
 
