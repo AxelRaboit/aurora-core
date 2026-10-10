@@ -53,6 +53,9 @@ suite:
             contract_follow_up:
                 title: "Suivi des contrats"
                 lead: "Combien de temps les contrats sont gardés, et les relances d'un contrat resté sans réponse."
+            prospect_pipeline:
+                title: "Suivi des prospects"
+                lead: "Ce que montre le tableau des prospects."
         studio_guide:
             title: "Votre identité dans les contrats"
             step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."
@@ -589,6 +592,9 @@ suite:
         studio_contract_link_days:
             label: Validité d'un lien de signature (jours)
             description: "Combien de jours l'adresse envoyée au client reste ouverte. Entre 1 et 365 ; un nouvel envoi en crée une neuve."
+        studio_pipeline_outcome_days:
+            label: "Affaires gagnées et perdues affichées (jours)"
+            description: "Combien de jours une affaire gagnée ou perdue reste dans ses colonnes du tableau des prospects. Entre 1 et 365 ; elle reste toujours dans la liste."
         nav_section_aliases:
             label: Alias des sections de navigation
             description: 'Carte JSON des alias de sections (géré via l''interface).'

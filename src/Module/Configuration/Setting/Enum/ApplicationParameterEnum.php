@@ -116,6 +116,13 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
 
     /** How long a signing address stays valid, in days. Thirty by default. */
     case StudioContractLinkDays = 'studio_contract_link_days';
+
+    /**
+     * How many days a won or lost deal stays on the prospect board. Thirty by
+     * default: long enough to see what was decided recently, short enough
+     * that the outcome columns do not grow into an archive.
+     */
+    case StudioPipelineOutcomeDays = 'studio_pipeline_outcome_days';
     case NavSectionAliases = 'nav_section_aliases';
     case NavItemAliases = 'nav_item_aliases';
     case NavSectionOrder = 'nav_section_order';
@@ -205,6 +212,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioContractReminderEnabled => 'suite.parameters.studio_contract_reminder_enabled.label',
             self::StudioContractReminderDays => 'suite.parameters.studio_contract_reminder_days.label',
             self::StudioContractLinkDays => 'suite.parameters.studio_contract_link_days.label',
+            self::StudioPipelineOutcomeDays => 'suite.parameters.studio_pipeline_outcome_days.label',
             self::StudioContractReminderMax => 'suite.parameters.studio_contract_reminder_max.label',
             self::NavSectionAliases => 'suite.parameters.nav_section_aliases.label',
             self::NavItemAliases => 'suite.parameters.nav_item_aliases.label',
@@ -280,6 +288,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioContractReminderEnabled => 'suite.parameters.studio_contract_reminder_enabled.description',
             self::StudioContractReminderDays => 'suite.parameters.studio_contract_reminder_days.description',
             self::StudioContractLinkDays => 'suite.parameters.studio_contract_link_days.description',
+            self::StudioPipelineOutcomeDays => 'suite.parameters.studio_pipeline_outcome_days.description',
             self::StudioContractReminderMax => 'suite.parameters.studio_contract_reminder_max.description',
             self::NavSectionAliases => 'suite.parameters.nav_section_aliases.description',
             self::NavItemAliases => 'suite.parameters.nav_item_aliases.description',
@@ -364,6 +373,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioContractReminderEnabled => '0',
             self::StudioContractReminderDays => '3',
             self::StudioContractLinkDays => '30',
+            self::StudioPipelineOutcomeDays => '30',
             self::StudioContractReminderMax => '2',
             self::NavSectionAliases => '{}',
             self::NavItemAliases => '{}',
@@ -383,7 +393,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     public function getType(): string
     {
         return match ($this) {
-            self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays => 'int',
+            self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays, self::StudioPipelineOutcomeDays => 'int',
             self::HomepagePostId => 'post',
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone, self::DateFormat => 'select',
             self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::SuiteBarSiteNameOnPhone, self::EmailAccentFollowsTheme => 'bool',
@@ -413,7 +423,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::LogoMediaId, self::LogoDarkMediaId, self::FaviconMediaId, self::SuiteBarSiteNameOnPhone => 'branding',
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix, self::StudioContractPrefix => 'sequences',
-            self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone, self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName, self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays => 'studio',
+            self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone, self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName, self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays, self::StudioPipelineOutcomeDays => 'studio',
             self::EmailLocale, self::EmailAccentFollowsTheme, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email',
             self::NavSectionAliases, self::NavItemAliases, self::NavSectionOrder, self::NavItemOrder => 'navigation',
             self::ColorPickerPresets, self::SuitePalette => 'appearance',
@@ -446,6 +456,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone => 'provider_identity',
             self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName => 'provider_bank',
             self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax, self::StudioContractLinkDays => 'contract_follow_up',
+            self::StudioPipelineOutcomeDays => 'prospect_pipeline',
             default => null,
         };
     }
