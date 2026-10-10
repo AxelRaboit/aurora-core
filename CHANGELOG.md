@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.9.2] - 2026-10-10
+
+### Corrigé
+- **Sora dans la police d'une entête.** Le choix de police du titre et du texte d'une entête (éditeur de publication, onglet En-tête, et zone Entête d'une grille) recopiait la liste des polices en dur, et Sora, ajoutée en 4.9.0, n'y figurait pas. La liste vient désormais du serveur (`ThemeFontEnum::choices()`), comme sur l'écran Thèmes : une police ajoutée un jour y apparaîtra seule.
+- **Les présentations dans une zone de grille.** La page d'édition calculait la liste des présentations qu'une zone « Présentation » peut afficher, mais ne la transmettait pas à l'éditeur : le choix restait vide. Un test vérifie maintenant que tout ce que la page calcule arrive bien à l'éditeur.
+
+### Dans aurora-client
+Rien à faire.
+
 ## [4.9.1] - 2026-10-10
 
 ### Corrigé

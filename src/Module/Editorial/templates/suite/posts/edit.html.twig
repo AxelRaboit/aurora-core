@@ -18,7 +18,9 @@
    computed it and this template did not carry it, so the picker showed nothing
    but its own placeholder - and a zone that already named a form displayed as
    if it named none, because a browser falls back to the first option when the
-   selected value matches no other. #}
+   selected value matches no other. `decks` had the same fate until 4.9.2: the
+   presentation zone offered an empty list. EditorPropsTest now checks that
+   every key `editView` computes reaches the editor. #}
 <div {{ vue_component('editorial/suite/posts/PostEditorApp', {
     post: post,
     postTypes: postTypes,
@@ -26,6 +28,8 @@
     locales: locales,
     statusOptions: statusOptions,
     forms: forms,
+    decks: decks,
+    bannerFonts: bannerFonts,
     siteUsefulLinks: siteUsefulLinks,
     createPath: path('suite_editorial_posts_create'),
     updatePathTemplate: path_template('suite_editorial_posts_update', {id: '__id__'}),
