@@ -25,17 +25,20 @@ defineProps({
 </script>
 
 <template>
-    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between" data-page-heading>
-        <div class="min-w-0">
+    <!-- The title block takes what the commands leave, and its sentence
+         stops at a reading width: a long one pushed the commands under it,
+         onto a line of their own (the menu preferences, 10/10/2026). -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" data-page-heading>
+        <div class="min-w-0 sm:flex-1">
             <h2 class="text-[1.625rem] font-semibold leading-tight tracking-tight text-primary">{{ title }}</h2>
-            <p v-if="subtitle" class="mt-1 text-[0.8125rem] tabular-nums text-secondary">{{ subtitle }}</p>
+            <p v-if="subtitle" class="mt-1 max-w-[72ch] text-[0.8125rem] tabular-nums text-secondary">{{ subtitle }}</p>
             <div v-if="$slots.default" class="mt-2 flex flex-wrap items-center gap-1.5">
                 <slot />
             </div>
         </div>
         <div
             v-if="$slots.actions"
-            class="flex flex-col gap-2 sm:flex-row sm:items-center *:w-full sm:*:w-auto"
+            class="flex flex-col gap-2 sm:shrink-0 sm:flex-row sm:items-center *:w-full sm:*:w-auto"
         >
             <slot name="actions" />
         </div>
