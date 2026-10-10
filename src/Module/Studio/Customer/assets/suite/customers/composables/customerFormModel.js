@@ -30,6 +30,23 @@ export function emptyCustomerForm() {
         informationNotes: "",
         // What a sheet is at the moment it is created.
         status: "prospect",
+        ...emptyFollowUp(),
+    };
+}
+
+/**
+ * The pipeline's fields of the sheet: the follow-up, the estimate, where the
+ * customer came from, why a deal was lost. Saved with the rest of the sheet;
+ * the stage is not among them, it moves on its own (see the pipeline card).
+ */
+function emptyFollowUp() {
+    return {
+        nextFollowUpOn: "",
+        followUpNote: "",
+        source: "",
+        estimatedValue: "",
+        estimatedValueCurrency: "EUR",
+        lostReason: "",
     };
 }
 
@@ -73,6 +90,20 @@ export function customerFormFrom(customer) {
         })),
         informationNotes: customer?.informationNotes ?? "",
         status: customer?.status ?? "prospect",
+        ...followUpFormFrom(customer),
+    };
+}
+
+/** The pipeline's fields, from what the server returns for a sheet. */
+export function followUpFormFrom(customer) {
+    return {
+        ...emptyFollowUp(),
+        nextFollowUpOn: customer?.nextFollowUpOn ?? "",
+        followUpNote: customer?.followUpNote ?? "",
+        source: customer?.source ?? "",
+        estimatedValue: centsToInput(customer?.estimatedValueCents),
+        estimatedValueCurrency: customer?.estimatedValueCurrency ?? "EUR",
+        lostReason: customer?.lostReason ?? "",
     };
 }
 

@@ -8,11 +8,13 @@ use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
+use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
+use Aurora\Module\Studio\Pipeline\Service\FollowUpCalendar;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkloadRow;
 use Aurora\Module\Studio\StudioContext;
@@ -69,6 +71,8 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         private RequestStack $requestStack,
         private UrlGeneratorInterface $urlGenerator,
         private AuthorizationCheckerInterface $authorizationChecker,
+        private CustomerRepository $customerRepository,
+        private FollowUpCalendar $followUpCalendar,
     ) {}
 
     public function getModuleKey(): string
@@ -109,6 +113,10 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 // list.
                 'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
                 'contractsToCountersignPath' => $this->contractsPathFor('to_countersign'),
+                // The follow-ups due today or late, opening the customers list
+                // on them.
+                'followUpsDue' => $this->canSeeCustomers() ? $this->customerRepository->countFollowUpsDue($this->followUpCalendar->today()) : null,
+                'followUpsPath' => $this->canSeeCustomers() ? $this->urlGenerator->generate('suite_studio_customers', ['followUps' => 'due']) : null,
             ],
         ];
     }
@@ -128,6 +136,11 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         $counts = $this->contractRepository->countGroupedByStatus();
 
         return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, $statuses));
+    }
+
+    private function canSeeCustomers(): bool
+    {
+        return $this->studioContext->areCustomersEnabled() && $this->authorizationChecker->isGranted('studio.customers.view');
     }
 
     private function canSeeContracts(): bool

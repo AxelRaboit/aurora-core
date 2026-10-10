@@ -6,7 +6,10 @@ namespace Aurora\Module\Studio\Customer\Entity;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerSourceEnum;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
+use Aurora\Module\Studio\Pipeline\Entity\PipelineStageInterface;
+use DateTimeImmutable;
 
 interface CustomerInterface extends TimestampableInterface
 {
@@ -99,4 +102,48 @@ interface CustomerInterface extends TimestampableInterface
      * business deciding how a name is assembled from its parts.
      */
     public function getRepresentativeFullName(): ?string;
+
+    public function getPipelineStage(): ?PipelineStageInterface;
+
+    public function setPipelineStage(?PipelineStageInterface $pipelineStage): static;
+
+    public function getPipelinePosition(): int;
+
+    public function setPipelinePosition(int $pipelinePosition): static;
+
+    public function getPipelineStageChangedAt(): ?DateTimeImmutable;
+
+    public function setPipelineStageChangedAt(?DateTimeImmutable $pipelineStageChangedAt): static;
+
+    public function getNextFollowUpOn(): ?DateTimeImmutable;
+
+    public function setNextFollowUpOn(?DateTimeImmutable $nextFollowUpOn): static;
+
+    public function getFollowUpNote(): ?string;
+
+    public function setFollowUpNote(?string $followUpNote): static;
+
+    public function getFollowUpNotifiedOn(): ?DateTimeImmutable;
+
+    public function setFollowUpNotifiedOn(?DateTimeImmutable $followUpNotifiedOn): static;
+
+    public function getSource(): ?CustomerSourceEnum;
+
+    public function setSource(?CustomerSourceEnum $source): static;
+
+    public function getSourceReference(): ?string;
+
+    public function setSourceReference(?string $sourceReference): static;
+
+    public function getEstimatedValueCents(): ?int;
+
+    public function setEstimatedValueCents(?int $estimatedValueCents): static;
+
+    public function getEstimatedValueCurrency(): ?CurrencyEnum;
+
+    public function setEstimatedValueCurrency(?CurrencyEnum $estimatedValueCurrency): static;
+
+    public function getLostReason(): ?string;
+
+    public function setLostReason(?string $lostReason): static;
 }

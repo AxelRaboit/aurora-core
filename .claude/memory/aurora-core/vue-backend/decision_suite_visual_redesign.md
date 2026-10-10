@@ -43,7 +43,10 @@ quelques invariants. Les respecter dans tout écran neuf de la suite :
   `CountableTrashSourceInterface` pour se compter en une requête). Mesuré le
   10/10 : 9 → 23 requêtes sur la liste des utilisateurs en dev, dont 9 pour la
   corbeille. Pas Studio : ses listes ont des périmètres (mes espaces,
-  perso/partagés) qu'un compte global trahirait.
+  perso/partagés) qu'un compte global trahirait. Depuis la 4.10.0, une
+  **pastille d'alerte** distincte (`NavItemAttentionProviderInterface`,
+  `attention` dans l'entrée résolue, `bg-warning-soft`) dit ce qui attend
+  quelqu'un : les relances dues à côté de « Clients ».
 - **Un chiffre de tableau de bord = `AppStatTile`, un bloc = `AppSectionCard`.**
   La tuile s'aligne par sous-grille : la poser directement dans la grille.
 - **Une couleur par statut de publication, une seule source** :

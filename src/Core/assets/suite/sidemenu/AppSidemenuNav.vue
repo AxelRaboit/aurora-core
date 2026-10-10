@@ -151,6 +151,7 @@ defineProps({
                                 <span class="flex items-baseline gap-2">
                                     <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                                     <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
+                                    <span v-if="item.attention" data-nav-attention class="shrink-0 rounded-full bg-warning-soft px-1.5 text-xs font-semibold tabular-nums text-warning" :title="item.attention.label"><span aria-hidden="true">{{ countFormat.format(item.attention.count) }}</span><span class="sr-only">{{ item.attention.label }}</span></span>
                                 </span>
                                 <span v-if="item.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="item.description">{{ item.description }}</span>
                             </span>
@@ -181,6 +182,7 @@ defineProps({
                                 <span class="flex items-baseline gap-2">
                                     <span class="min-w-0 flex-1 truncate" :class="child.description ? 'font-semibold' : ''">{{ child.label }}</span>
                                     <span v-if="null !== (child.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(child.count) }}</span>
+                                    <span v-if="child.attention" data-nav-attention class="shrink-0 rounded-full bg-warning-soft px-1.5 text-xs font-semibold tabular-nums text-warning" :title="child.attention.label"><span aria-hidden="true">{{ countFormat.format(child.attention.count) }}</span><span class="sr-only">{{ child.attention.label }}</span></span>
                                 </span>
                                 <span v-if="child.description" class="sidemenu-description mt-0.5 block text-xs font-normal text-secondary" :title="child.description">{{ child.description }}</span>
                             </span>
@@ -201,6 +203,7 @@ defineProps({
                         <span class="flex items-baseline gap-2">
                             <span class="min-w-0 flex-1 truncate" :class="item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                             <span v-if="null !== (item.count ?? null)" data-nav-count class="shrink-0 text-xs font-medium tabular-nums text-secondary">{{ countFormat.format(item.count) }}</span>
+                            <span v-if="item.attention" data-nav-attention class="shrink-0 rounded-full bg-warning-soft px-1.5 text-xs font-semibold tabular-nums text-warning" :title="item.attention.label"><span aria-hidden="true">{{ countFormat.format(item.attention.count) }}</span><span class="sr-only">{{ item.attention.label }}</span></span>
                         </span>
                         <!-- Two lines at most, the whole sentence on hover:
                              one line cut a description in the middle, and an

@@ -9,6 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ORM\Table(name: 'core_customers')]
+#[ORM\Index(name: 'idx_customer_next_follow_up', columns: ['next_follow_up_on'])]
+#[ORM\Index(name: 'idx_customer_source_reference', columns: ['source_reference'])]
 class Customer extends AbstractCustomer
 {
     #[ORM\Id]
