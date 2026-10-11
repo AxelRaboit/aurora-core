@@ -25,7 +25,14 @@ type: project
   CSRF `admin` dans le corps JSON (`useRequest` ne pose pas d'en-tête).
 - **Unités systemd** : réglage `system_health_units` (Réglages > Système),
   **vide par défaut**. Le dépôt est public : aucun nom d'unité ni d'hôte du VPS
-  dans le code.
+  dans le code. Le nombre de redémarrages (`NRestarts`) s'affiche sans juger
+  l'unité depuis la 4.12.1 : avec `Restart=always`, une sortie voulue
+  (`--time-limit`, déploiement) compte comme un plantage.
+- **Plantage du worker** : `WorkerHeartbeat` écrit `stoppedCleanly: true` sur
+  `WorkerStoppedEvent` (SIGTERM, limite de temps ou de mémoire). Un démarrage
+  qui trouve un battement à `false` garde son `at` comme `crashedAt` ; la ligne
+  reste en avertissement `CRASH_SHOWN_FOR` (24 h). Un battement sans la clé
+  (écrit avant la 4.12.1) ne compte pas.
 
 ## Pourquoi
 

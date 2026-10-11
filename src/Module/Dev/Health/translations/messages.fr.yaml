@@ -50,6 +50,7 @@ suite:
             label: Worker
             alive: 'Vu il y a {seconds} s'
             silent: 'Muet depuis {seconds} s'
+            crashed: "Vu il y a {seconds} s, mais arrêté sans prévenir il y a {hours} h, puis relancé."
             never_seen: "Jamais vu : le worker ne tourne pas, ou n'a pas encore été relancé depuis la mise à jour."
         scheduler:
             label: Tâches planifiées

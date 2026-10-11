@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [4.12.1] - 2026-10-11
+
+### Corrigé
+
+#### « État du système » signalait un worker sain
+Une unité systemd qui avait redémarré passait en orange, même active. Or le worker quitte exprès toutes les heures (`--time-limit`) et à chaque déploiement, et systemd le relance pareil qu'après un plantage : en production, six redémarrages propres en six heures mettaient tout le bloc en « attention ». Le nombre de redémarrages reste affiché, sans plus juger l'unité.
+
+Le plantage du worker se voit désormais autrement : un worker qui s'arrête comme on le lui demande le note dans son battement, un worker qui meurt ne le peut pas. Au démarrage suivant, un battement sans ce mot vaut plantage, et la ligne Worker reste orange 24 heures (« arrêté sans prévenir il y a N h, puis relancé »), même s'il tourne de nouveau.
+
+---
+
 ## [4.12.0] - 2026-10-10
 
 ### Ajouté
