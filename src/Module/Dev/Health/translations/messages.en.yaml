@@ -50,6 +50,7 @@ suite:
             label: Worker
             alive: 'Seen {seconds} s ago'
             silent: 'Silent for {seconds} s'
+            crashed: "Seen {seconds} s ago, but it stopped without warning {hours} h ago, then restarted."
             never_seen: "Never seen: the worker is not running, or has not been restarted since the update."
         scheduler:
             label: Scheduled tasks

@@ -21,6 +21,7 @@ use RuntimeException;
 use stdClass;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
+use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
 use Symfony\Component\Messenger\Stamp\SentToFailureTransportStamp;
@@ -82,6 +83,49 @@ final class SystemHealthTest extends IntegrationTestCase
         $this->cache->save($item);
 
         self::assertSame('danger', $this->check('worker')['status']);
+    }
+
+    /**
+     * The worker leaves every hour on its time limit and comes back: that is
+     * no incident. One that dies without stopping is, for a day, even though
+     * it runs again. Each heartbeat below is a new process, as each worker is.
+     */
+    public function testACleanStopIsNoCrashButADeathIs(): void
+    {
+        $worker = new Worker(['async' => new InMemoryTransport()], static::getContainer()->get(MessageBusInterface::class));
+
+        // Written before the worker said how it stopped: not a crash.
+        $item = $this->cache->getItem(WorkerHeartbeat::CACHE_KEY);
+        $item->set(['at' => time() - 60, 'startedAt' => null, 'transports' => ['async'], 'pid' => null]);
+        $this->cache->save($item);
+        $first = new WorkerHeartbeat($this->cache);
+        $first->onStarted(new WorkerStartedEvent($worker));
+        self::assertSame('ok', $this->check('worker')['status']);
+
+        // An hour later, it leaves on its time limit and comes back.
+        $first->onStopped(new WorkerStoppedEvent($worker));
+        new WorkerHeartbeat($this->cache)->onStarted(new WorkerStartedEvent($worker));
+        self::assertSame('ok', $this->check('worker')['status'], 'A stop it chose is no crash.');
+
+        // Then it dies, and the supervisor brings it back.
+        new WorkerHeartbeat($this->cache)->onStarted(new WorkerStartedEvent($worker));
+        $check = $this->check('worker');
+        self::assertSame('warning', $check['status']);
+        self::assertSame('suite.health.worker.crashed', $check['messageKey']);
+        self::assertNotNull($check['facts']['crashedAt']);
+
+        // Later clean restarts keep the crash in sight.
+        $next = new WorkerHeartbeat($this->cache);
+        $next->onStarted(new WorkerStartedEvent($worker));
+        $next->onStopped(new WorkerStoppedEvent($worker));
+        new WorkerHeartbeat($this->cache)->onStarted(new WorkerStartedEvent($worker));
+        self::assertSame('warning', $this->check('worker')['status']);
+
+        // A day later, it is history.
+        $item = $this->cache->getItem(WorkerHeartbeat::CACHE_KEY);
+        $item->set([...$item->get(), 'crashedAt' => time() - WorkerHeartbeat::CRASH_SHOWN_FOR - 60]);
+        $this->cache->save($item);
+        self::assertSame('ok', $this->check('worker')['status']);
     }
 
     /**
