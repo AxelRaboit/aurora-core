@@ -50,6 +50,7 @@ suite:
             label: Worker
             alive: 'Visto hace {seconds} s'
             silent: 'En silencio desde hace {seconds} s'
+            crashed: "Visto hace {seconds} s, pero se detuvo sin avisar hace {hours} h, luego reiniciado."
             never_seen: "Nunca visto: el worker no está en marcha, o no se ha reiniciado desde la actualización."
         scheduler:
             label: Tareas programadas

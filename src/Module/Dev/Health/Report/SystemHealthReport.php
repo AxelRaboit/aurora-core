@@ -85,16 +85,25 @@ final readonly class SystemHealthReport
         }
 
         $seconds = max(0, time() - $beat['at']->getTimestamp());
+        $crashedAgo = null === $beat['crashedAt'] ? null : max(0, time() - $beat['crashedAt']->getTimestamp());
+        $recentCrash = null !== $crashedAgo && $crashedAgo < WorkerHeartbeat::CRASH_SHOWN_FOR;
+
+        [$status, $message] = match (true) {
+            $seconds > WorkerHeartbeat::SILENT_AFTER => [HealthStatusEnum::Danger, 'suite.health.worker.silent'],
+            $recentCrash => [HealthStatusEnum::Warning, 'suite.health.worker.crashed'],
+            default => [HealthStatusEnum::Ok, 'suite.health.worker.alive'],
+        };
 
         return new HealthCheck(
             'worker',
-            $seconds > WorkerHeartbeat::SILENT_AFTER ? HealthStatusEnum::Danger : HealthStatusEnum::Ok,
+            $status,
             'suite.health.worker.label',
-            $seconds > WorkerHeartbeat::SILENT_AFTER ? 'suite.health.worker.silent' : 'suite.health.worker.alive',
-            ['seconds' => $seconds],
+            $message,
+            ['seconds' => $seconds, 'hours' => intdiv($crashedAgo ?? 0, 3600)],
             [
                 'seenAt' => $beat['at']->format(DATE_ATOM),
                 'startedAt' => $beat['startedAt']?->format(DATE_ATOM),
+                'crashedAt' => $beat['crashedAt']?->format(DATE_ATOM),
                 'transports' => $beat['transports'],
                 'pid' => $beat['pid'],
             ],

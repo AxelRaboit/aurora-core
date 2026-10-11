@@ -8,6 +8,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Health\Enum\HealthStatusEnum;
 use Aurora\Module\Dev\Health\Report\HealthCheck;
+use Aurora\Module\Dev\Health\Worker\WorkerHeartbeat;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 use Throwable;
@@ -19,8 +20,11 @@ use Throwable;
  * knows nothing about; the names of the units worth watching belong to
  * whoever runs one, in Settings > Système. Each unit is read with
  * `systemctl show`, which any account may run: its state, its last result
- * and how many times systemd restarted it. A count of restarts is a warning
- * even when the unit runs again: it is the trace of a crash nobody saw.
+ * and how many times systemd restarted it. The count is shown, never judged:
+ * a service told to restart (`Restart=always`) comes back the same way after
+ * a crash and after an exit it chose, like the worker leaving every hour on
+ * its `--time-limit`. The worker's own crashes are told apart by
+ * {@see WorkerHeartbeat}.
  *
  * Nothing at all on a machine without systemd (a container, another system).
  * Two files say more when the server is a Debian or an Ubuntu and they are
@@ -84,7 +88,6 @@ final readonly class SystemdProbe
         $status = match (true) {
             '' === $active || 'not-found' === $load => HealthStatusEnum::Unknown,
             'failed' === $active || ('success' !== $result && '' !== $result) => HealthStatusEnum::Danger,
-            'active' === $active && $restarts > 0 => HealthStatusEnum::Warning,
             'active' === $active => HealthStatusEnum::Ok,
             // A one-shot service that ran and stopped cleanly (a backup
             // triggered by its timer) is inactive by design.
